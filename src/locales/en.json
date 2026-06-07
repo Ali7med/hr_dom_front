@@ -44,7 +44,8 @@
   "nav": {
     "dashboard": "Dashboard",
     "companies": "Companies",
-    "users": "Users"
+    "users": "Users",
+    "roles": "Roles"
   },
   "home": {
     "welcome": "Welcome to the dashboard",
@@ -53,7 +54,60 @@
     "superAdmin": "Super Admin"
   },
   "users": {
-    "placeholder": "User management — to be detailed in FE-04."
+    "create": "Add user",
+    "edit": "Edit user",
+    "name": "Name",
+    "employeeNo": "Employee no.",
+    "email": "Email",
+    "phone": "Phone",
+    "password": "Password",
+    "passwordKeep": "leave blank to keep",
+    "department": "Department",
+    "noDepartment": "No department",
+    "status": "Status",
+    "roles": "Roles",
+    "noRoles": "No roles available",
+    "search": "Search",
+    "searchPlaceholder": "name, employee no., or email",
+    "empty": "No users.",
+    "confirmDelete": "Delete user \"{name}\"?",
+    "permissions": "Direct permissions",
+    "directPermissionsFor": "Direct permissions for {name}",
+    "directPermissionsWarning": "Note: this replaces ALL of the user's direct permissions with your selection (role permissions are not included)."
+  },
+  "userStatus": {
+    "active": "Active",
+    "suspended": "Suspended",
+    "left": "Left"
+  },
+  "roles": {
+    "title": "Roles & permissions",
+    "create": "Add role",
+    "edit": "Edit role",
+    "name": "Role name",
+    "permissions": "Permissions",
+    "permissionsCount": "Permissions",
+    "empty": "No roles.",
+    "confirmDelete": "Delete role \"{name}\"?"
+  },
+  "permGroups": {
+    "companies": "Companies",
+    "users": "Users",
+    "departments": "Departments",
+    "roles": "Roles",
+    "permissions": "Permissions",
+    "work_sites": "Work sites",
+    "shifts": "Shifts",
+    "schedules": "Schedules",
+    "attendance": "Attendance",
+    "devices": "Devices",
+    "leaves": "Leaves",
+    "payroll": "Payroll",
+    "reports": "Reports",
+    "currencies": "Currencies",
+    "webhooks": "Webhooks",
+    "integration": "Integration",
+    "audit": "Audit"
   },
   "companies": {
     "title": "Companies",

@@ -48,6 +48,12 @@ const router = createRouter({
           meta: { permission: 'users.view' },
         },
         {
+          path: 'roles',
+          name: 'roles',
+          component: () => import('@/features/roles/RolesView.vue'),
+          meta: { permission: 'roles.view' },
+        },
+        {
           path: '403',
           name: 'forbidden',
           component: () => import('@/features/errors/ForbiddenView.vue'),

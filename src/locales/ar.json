@@ -44,7 +44,8 @@
   "nav": {
     "dashboard": "لوحة التحكم",
     "companies": "الشركات",
-    "users": "المستخدمون"
+    "users": "المستخدمون",
+    "roles": "الأدوار"
   },
   "home": {
     "welcome": "مرحباً بك في لوحة التحكم",
@@ -53,7 +54,60 @@
     "superAdmin": "مدير عام"
   },
   "users": {
-    "placeholder": "إدارة المستخدمين — تُفصَّل في FE-04."
+    "create": "إضافة مستخدم",
+    "edit": "تعديل المستخدم",
+    "name": "الاسم",
+    "employeeNo": "الرقم الوظيفي",
+    "email": "البريد",
+    "phone": "الهاتف",
+    "password": "كلمة المرور",
+    "passwordKeep": "اتركها فارغة للإبقاء عليها",
+    "department": "القسم",
+    "noDepartment": "بدون قسم",
+    "status": "الحالة",
+    "roles": "الأدوار",
+    "noRoles": "لا توجد أدوار متاحة",
+    "search": "بحث",
+    "searchPlaceholder": "اسم أو رقم وظيفي أو بريد",
+    "empty": "لا يوجد مستخدمون.",
+    "confirmDelete": "حذف المستخدم \"{name}\"؟",
+    "permissions": "صلاحيات مباشرة",
+    "directPermissionsFor": "صلاحيات مباشرة لـ {name}",
+    "directPermissionsWarning": "تنبيه: تُستبدل كل الصلاحيات المباشرة للمستخدم بما تختاره هنا (لا تشمل صلاحيات الأدوار)."
+  },
+  "userStatus": {
+    "active": "نشط",
+    "suspended": "موقوف",
+    "left": "غادر"
+  },
+  "roles": {
+    "title": "الأدوار والصلاحيات",
+    "create": "إضافة دور",
+    "edit": "تعديل الدور",
+    "name": "اسم الدور",
+    "permissions": "الصلاحيات",
+    "permissionsCount": "عدد الصلاحيات",
+    "empty": "لا توجد أدوار.",
+    "confirmDelete": "حذف الدور \"{name}\"؟"
+  },
+  "permGroups": {
+    "companies": "الشركات",
+    "users": "المستخدمون",
+    "departments": "الأقسام",
+    "roles": "الأدوار",
+    "permissions": "الصلاحيات",
+    "work_sites": "مواقع العمل",
+    "shifts": "الورديات",
+    "schedules": "الجداول",
+    "attendance": "الحضور",
+    "devices": "الأجهزة",
+    "leaves": "الإجازات",
+    "payroll": "الرواتب",
+    "reports": "التقارير",
+    "currencies": "العملات",
+    "webhooks": "Webhooks",
+    "integration": "التكامل",
+    "audit": "التدقيق"
   },
   "companies": {
     "title": "الشركات",
