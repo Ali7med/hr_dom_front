@@ -1,0 +1,29 @@
+@import 'tailwindcss';
+
+/* تفعيل النمط الغامق عبر صنف .dark على <html> (تبديل يدوي محفوظ) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* خط يدعم العربية والإنجليزية */
+@theme {
+  --font-sans:
+    'Segoe UI', 'Tahoma', system-ui, -apple-system, 'Helvetica Neue', Arial,
+    sans-serif;
+}
+
+html {
+  color-scheme: light dark;
+}
+
+body {
+  margin: 0;
+  min-height: 100svh;
+  @apply bg-slate-50 text-slate-800 antialiased dark:bg-slate-900 dark:text-slate-100;
+}
+
+/* عكس المحاذاة الافتراضية حسب الاتجاه */
+[dir='rtl'] {
+  text-align: right;
+}
+[dir='ltr'] {
+  text-align: left;
+}

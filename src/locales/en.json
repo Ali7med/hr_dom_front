@@ -1,0 +1,22 @@
+{
+  "app": {
+    "title": "hr_dom Dashboard",
+    "subtitle": "HR & Attendance Management"
+  },
+  "common": {
+    "language": "Language",
+    "theme": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "arabic": "Arabic",
+    "english": "English",
+    "direction": "Direction",
+    "toggleLanguage": "Toggle language",
+    "toggleTheme": "Toggle theme"
+  },
+  "home": {
+    "welcome": "Welcome to the dashboard",
+    "ready": "Project ready: language (RTL/LTR) and theme switching work, API layer configured.",
+    "apiBase": "API base URL"
+  }
+}
