@@ -12,7 +12,16 @@
     "english": "الإنجليزية",
     "direction": "الاتجاه",
     "toggleLanguage": "تبديل اللغة",
-    "toggleTheme": "تبديل المظهر"
+    "toggleTheme": "تبديل المظهر",
+    "save": "حفظ",
+    "saving": "جارٍ الحفظ…",
+    "saved": "تم الحفظ",
+    "cancel": "إلغاء",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "loading": "جارٍ التحميل…",
+    "loadError": "تعذّر تحميل البيانات.",
+    "saveError": "تعذّر حفظ التغييرات."
   },
   "auth": {
     "loginSubtitle": "ادخل بياناتك للوصول إلى لوحة التحكم",
@@ -34,6 +43,7 @@
   },
   "nav": {
     "dashboard": "لوحة التحكم",
+    "companies": "الشركات",
     "users": "المستخدمون"
   },
   "home": {
@@ -44,6 +54,51 @@
   },
   "users": {
     "placeholder": "إدارة المستخدمين — تُفصَّل في FE-04."
+  },
+  "companies": {
+    "title": "الشركات",
+    "create": "إضافة شركة",
+    "edit": "تعديل الشركة",
+    "name": "الاسم",
+    "slug": "المعرّف اللطيف (slug)",
+    "timezone": "المنطقة الزمنية",
+    "baseCurrencyId": "معرّف العملة الأساسية",
+    "fromTemplate": "إنشاء من قالب (نسخ الإعدادات)",
+    "noTemplate": "بدون قالب",
+    "status": "الحالة",
+    "actions": "إجراءات",
+    "active": "نشطة",
+    "inactive": "موقوفة",
+    "settings": "الإعدادات",
+    "empty": "لا توجد شركات بعد.",
+    "confirmDelete": "حذف الشركة \"{name}\"؟",
+    "importSettings": "استيراد إعدادات من شركة أخرى",
+    "chooseSource": "اختر شركة المصدر",
+    "import": "استيراد",
+    "imported": "تم استيراد الإعدادات"
+  },
+  "settings": {
+    "dayHours": "ساعات اليوم",
+    "graceMinutes": "دقائق السماح",
+    "hourlyLeaveHours": "ساعات الإجازة الزمنية/اليوم",
+    "hourlyLeaveCap": "السقف الشهري للإجازة الزمنية",
+    "hourlyLeaveApproval": "الإجازة الزمنية تحتاج موافقة",
+    "weekendDays": "أيام نهاية الأسبوع",
+    "notifyChannels": "قنوات الإشعار"
+  },
+  "days": {
+    "sat": "السبت",
+    "sun": "الأحد",
+    "mon": "الإثنين",
+    "tue": "الثلاثاء",
+    "wed": "الأربعاء",
+    "thu": "الخميس",
+    "fri": "الجمعة"
+  },
+  "channels": {
+    "email": "البريد",
+    "telegram": "تلكرام",
+    "fcm": "إشعارات الجوال"
   },
   "errors": {
     "forbiddenTitle": "لا تملك صلاحية الوصول",

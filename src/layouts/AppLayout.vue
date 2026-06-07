@@ -19,6 +19,7 @@ interface NavItem {
 }
 const allNavItems: NavItem[] = [
   { to: { name: 'dashboard' }, key: 'nav.dashboard', icon: '▦' },
+  { to: { name: 'companies' }, key: 'nav.companies', icon: '🏢', permission: 'companies.view' },
   { to: { name: 'users' }, key: 'nav.users', icon: '👥', permission: 'users.view' },
 ]
 // تُعرض العناصر التي يملك المستخدم صلاحيتها فقط (Super Admin يرى الكل).

@@ -30,6 +30,18 @@ const router = createRouter({
           component: () => import('@/features/home/HomeView.vue'),
         },
         {
+          path: 'companies',
+          name: 'companies',
+          component: () => import('@/features/companies/CompaniesListView.vue'),
+          meta: { permission: 'companies.view' },
+        },
+        {
+          path: 'companies/:id/settings',
+          name: 'company-settings',
+          component: () => import('@/features/companies/CompanySettingsView.vue'),
+          meta: { permission: 'companies.view' },
+        },
+        {
           path: 'users',
           name: 'users',
           component: () => import('@/features/users/UsersView.vue'),

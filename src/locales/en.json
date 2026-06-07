@@ -12,7 +12,16 @@
     "english": "English",
     "direction": "Direction",
     "toggleLanguage": "Toggle language",
-    "toggleTheme": "Toggle theme"
+    "toggleTheme": "Toggle theme",
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "loading": "Loading…",
+    "loadError": "Could not load data.",
+    "saveError": "Could not save changes."
   },
   "auth": {
     "loginSubtitle": "Enter your credentials to access the dashboard",
@@ -34,6 +43,7 @@
   },
   "nav": {
     "dashboard": "Dashboard",
+    "companies": "Companies",
     "users": "Users"
   },
   "home": {
@@ -44,6 +54,51 @@
   },
   "users": {
     "placeholder": "User management — to be detailed in FE-04."
+  },
+  "companies": {
+    "title": "Companies",
+    "create": "Add company",
+    "edit": "Edit company",
+    "name": "Name",
+    "slug": "Slug",
+    "timezone": "Timezone",
+    "baseCurrencyId": "Base currency ID",
+    "fromTemplate": "Create from template (copy settings)",
+    "noTemplate": "No template",
+    "status": "Status",
+    "actions": "Actions",
+    "active": "Active",
+    "inactive": "Inactive",
+    "settings": "Settings",
+    "empty": "No companies yet.",
+    "confirmDelete": "Delete company \"{name}\"?",
+    "importSettings": "Import settings from another company",
+    "chooseSource": "Choose source company",
+    "import": "Import",
+    "imported": "Settings imported"
+  },
+  "settings": {
+    "dayHours": "Day hours",
+    "graceMinutes": "Grace minutes",
+    "hourlyLeaveHours": "Hourly-leave hours/day",
+    "hourlyLeaveCap": "Hourly-leave monthly cap",
+    "hourlyLeaveApproval": "Hourly leave needs approval",
+    "weekendDays": "Weekend days",
+    "notifyChannels": "Notification channels"
+  },
+  "days": {
+    "sat": "Saturday",
+    "sun": "Sunday",
+    "mon": "Monday",
+    "tue": "Tuesday",
+    "wed": "Wednesday",
+    "thu": "Thursday",
+    "fri": "Friday"
+  },
+  "channels": {
+    "email": "Email",
+    "telegram": "Telegram",
+    "fcm": "Mobile push"
   },
   "errors": {
     "forbiddenTitle": "Access denied",
