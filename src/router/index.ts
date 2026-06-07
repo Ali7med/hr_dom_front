@@ -54,6 +54,12 @@ const router = createRouter({
           meta: { permission: 'roles.view' },
         },
         {
+          path: 'work-sites',
+          name: 'work-sites',
+          component: () => import('@/features/worksites/WorkSitesView.vue'),
+          meta: { permission: 'work_sites.view' },
+        },
+        {
           path: '403',
           name: 'forbidden',
           component: () => import('@/features/errors/ForbiddenView.vue'),
