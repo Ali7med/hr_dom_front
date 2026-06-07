@@ -14,6 +14,27 @@
     "toggleLanguage": "Toggle language",
     "toggleTheme": "Toggle theme"
   },
+  "auth": {
+    "loginSubtitle": "Enter your credentials to access the dashboard",
+    "username": "Username or email",
+    "usernamePlaceholder": "name{'@'}example.com",
+    "password": "Password",
+    "signIn": "Sign in",
+    "signingIn": "Signing in…",
+    "twoFactorSubtitle": "Enter the verification code from your authenticator app",
+    "code": "Verification code",
+    "verify": "Verify",
+    "verifying": "Verifying…",
+    "back": "Back",
+    "genericError": "Could not sign in. Check your details and try again."
+  },
+  "layout": {
+    "logout": "Sign out",
+    "menu": "Menu"
+  },
+  "nav": {
+    "dashboard": "Dashboard"
+  },
   "home": {
     "welcome": "Welcome to the dashboard",
     "ready": "Project ready: language (RTL/LTR) and theme switching work, API layer configured.",

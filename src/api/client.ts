@@ -1,4 +1,7 @@
-import axios, { type AxiosError } from 'axios'
+import axios, {
+  type AxiosError,
+  type InternalAxiosRequestConfig,
+} from 'axios'
 import { tokenStorage } from './tokenStorage'
 
 // الغلاف الموحّد لكل ردود الـ API: { data, meta, errors }
@@ -49,17 +52,68 @@ apiClient.interceptors.request.use((config) => {
   return config
 })
 
-// خطّاف يُستدعى عند 401 (تُسجّله طبقة التطبيق لإعادة التوجيه/التجديد في FE-01).
+// خطّاف يُستدعى عند انتهاء الجلسة نهائياً (تُسجّله طبقة التطبيق لإعادة التوجيه للدخول).
 let onUnauthorized: (() => void) | null = null
 export function setUnauthorizedHandler(handler: () => void): void {
   onUnauthorized = handler
 }
 
-// رد: وحّد الأخطاء في ApiException، وعالج 401 مركزياً.
+// مسارات يكون فيها 401 فشلَ مصادقة حقيقياً لا توكناً منتهياً — لا تُجدَّد.
+const NO_REFRESH = [
+  '/auth/login',
+  '/auth/2fa/verify',
+  '/auth/refresh',
+  '/auth/sso/exchange',
+]
+
+// تجديد توكن الوصول مرة واحدة متزامنة (single-flight) عبر axios مجرّد لتفادي التكرار.
+let refreshPromise: Promise<string | null> | null = null
+
+async function refreshAccessToken(): Promise<string | null> {
+  const refresh = tokenStorage.getRefresh()
+  if (!refresh) return null
+  try {
+    const res = await axios.post<Envelope<{ access_token: string; refresh_token: string | null }>>(
+      `${baseURL}/auth/refresh`,
+      { refresh_token: refresh },
+      { headers: { Accept: 'application/json' } },
+    )
+    const data = res.data.data
+    tokenStorage.set(data.access_token, data.refresh_token)
+    return data.access_token
+  } catch {
+    return null
+  }
+}
+
+type RetriableConfig = InternalAxiosRequestConfig & { _retry?: boolean }
+
+// رد: جدّد التوكن بصمت عند 401، وإلا وحّد الأخطاء في ApiException وأنهِ الجلسة.
 apiClient.interceptors.response.use(
   (response) => response,
-  (error: AxiosError<Envelope>) => {
+  async (error: AxiosError<Envelope>) => {
     const status = error.response?.status
+    const config = error.config as RetriableConfig | undefined
+    const url = config?.url ?? ''
+
+    const refreshable =
+      status === 401 &&
+      config !== undefined &&
+      !config._retry &&
+      !NO_REFRESH.some((path) => url.includes(path)) &&
+      tokenStorage.getRefresh() !== null
+
+    if (refreshable) {
+      config!._retry = true
+      refreshPromise = refreshPromise ?? refreshAccessToken()
+      const newToken = await refreshPromise
+      refreshPromise = null
+      if (newToken) {
+        config!.headers.Authorization = `Bearer ${newToken}`
+        return apiClient(config!)
+      }
+    }
+
     const errors: ApiError[] = error.response?.data?.errors ?? [
       { code: 'network_error', message: error.message },
     ]

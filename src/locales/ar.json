@@ -14,6 +14,27 @@
     "toggleLanguage": "تبديل اللغة",
     "toggleTheme": "تبديل المظهر"
   },
+  "auth": {
+    "loginSubtitle": "ادخل بياناتك للوصول إلى لوحة التحكم",
+    "username": "المعرّف أو البريد",
+    "usernamePlaceholder": "name{'@'}example.com",
+    "password": "كلمة المرور",
+    "signIn": "دخول",
+    "signingIn": "جارٍ الدخول…",
+    "twoFactorSubtitle": "أدخل رمز التحقّق من تطبيق المصادقة",
+    "code": "رمز التحقّق",
+    "verify": "تحقّق",
+    "verifying": "جارٍ التحقّق…",
+    "back": "رجوع",
+    "genericError": "تعذّر تسجيل الدخول. تحقّق من البيانات وحاول مجدداً."
+  },
+  "layout": {
+    "logout": "تسجيل الخروج",
+    "menu": "القائمة"
+  },
+  "nav": {
+    "dashboard": "لوحة التحكم"
+  },
   "home": {
     "welcome": "مرحباً بك في لوحة التحكم",
     "ready": "المشروع جاهز: تبديل اللغة (RTL/LTR) والمظهر يعمل، وطبقة الـ API مهيّأة.",
