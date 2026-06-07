@@ -262,6 +262,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/push-token": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** تسجيل/تحديث توكن الدفع (FCM) أو معرّف تلكرام للمستخدم الحالي */
+        put: operations["registerPushToken"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/monthly-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** حساب وإرسال الملخّص الشهري للموظف الحالي عند الطلب */
+        post: operations["sendMyMonthlySummary"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/payroll": {
         parameters: {
             query?: never;
@@ -279,15 +313,84 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/reports": {
+    "/reports/attendance": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** TODO: التقارير */
-        get: operations["listReports"];
+        /** تقرير حضور مجمّع لكل موظف خلال فترة (يتطلّب reports.view) */
+        get: operations["getAttendanceReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reports/late-absence": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** تقرير التأخير والغياب اليومي (يتطلّب reports.view) */
+        get: operations["getLateAbsenceReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reports/timesheet": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** كشف دوام موظف واحد يومياً (يتطلّب reports.view و user_id) */
+        get: operations["getTimesheetReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reports/exports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** قائمة طلبات تصدير التقارير للشركة (يتطلّب reports.view) */
+        get: operations["listReportExports"];
+        put?: never;
+        /** طلب تصدير تقرير غير متزامن عبر الطابور (يتطلّب reports.view) */
+        post: operations["createReportExport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reports/exports/{report_export}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** تنزيل ملف تصدير جاهز (يتطلّب reports.view) */
+        get: operations["downloadReportExport"];
         put?: never;
         post?: never;
         delete?: never;
@@ -673,6 +776,21 @@ export interface components {
          * @enum {string}
          */
         OvertimeMode: "manual" | "percent" | "fixed_per_hour";
+        /**
+         * @description نوع التقرير التشغيلي
+         * @enum {string}
+         */
+        ReportType: "attendance" | "late-absence" | "timesheet";
+        ReportExportCreate: {
+            type: components["schemas"]["ReportType"];
+            /**
+             * @description صيغة الملف المُصدَّر
+             * @enum {string}
+             */
+            format: "excel" | "pdf";
+            /** @description فلاتر التقرير (from/to/period/department_id/user_id) */
+            filters?: Record<string, never>;
+        };
     };
     responses: {
         /** @description استجابة خطأ موحّدة */
@@ -1032,6 +1150,31 @@ export interface operations {
             422: components["responses"]["ErrorResponse"];
         };
     };
+    registerPushToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    sendMyMonthlySummary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+        };
+    };
     listPayroll: {
         parameters: {
             query?: never;
@@ -1044,7 +1187,71 @@ export interface operations {
             200: components["responses"]["TodoResponse"];
         };
     };
-    listReports: {
+    getAttendanceReport: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+                period?: string;
+                department_id?: number;
+                user_id?: number;
+                export?: "excel" | "pdf";
+                per_page?: number;
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+        };
+    };
+    getLateAbsenceReport: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+                period?: string;
+                department_id?: number;
+                user_id?: number;
+                export?: "excel" | "pdf";
+                per_page?: number;
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+        };
+    };
+    getTimesheetReport: {
+        parameters: {
+            query: {
+                user_id: number;
+                from?: string;
+                to?: string;
+                period?: string;
+                export?: "excel" | "pdf";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    listReportExports: {
         parameters: {
             query?: never;
             header?: never;
@@ -1053,7 +1260,51 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            200: components["responses"]["TodoResponse"];
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+        };
+    };
+    createReportExport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReportExportCreate"];
+            };
+        };
+        responses: {
+            202: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    downloadReportExport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                report_export: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description ملف التصدير (Excel/PDF) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
+                };
+            };
+            403: components["responses"]["ErrorResponse"];
+            404: components["responses"]["ErrorResponse"];
+            409: components["responses"]["ErrorResponse"];
         };
     };
     listWebhooks: {
