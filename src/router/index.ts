@@ -1,6 +1,15 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
+declare module 'vue-router' {
+  interface RouteMeta {
+    requiresAuth?: boolean
+    guestOnly?: boolean
+    // صلاحية (أو صلاحيات، يكفي أيٌّ منها) مطلوبة للوصول للمسار.
+    permission?: string | string[]
+  }
+}
+
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -20,6 +29,17 @@ const router = createRouter({
           name: 'dashboard',
           component: () => import('@/features/home/HomeView.vue'),
         },
+        {
+          path: 'users',
+          name: 'users',
+          component: () => import('@/features/users/UsersView.vue'),
+          meta: { permission: 'users.view' },
+        },
+        {
+          path: '403',
+          name: 'forbidden',
+          component: () => import('@/features/errors/ForbiddenView.vue'),
+        },
       ],
     },
     {
@@ -29,7 +49,14 @@ const router = createRouter({
   ],
 })
 
-// حارس المصادقة + استبدال كود SSO.
+// يحوّل meta.permission إلى قائمة موحّدة.
+function requiredPermissions(permission: string | string[] | undefined): string[] {
+  if (typeof permission === 'string') return [permission]
+  if (Array.isArray(permission)) return permission
+  return []
+}
+
+// حارس المصادقة + الصلاحيات + استبدال كود SSO.
 router.beforeEach(async (to) => {
   const auth = useAuthStore()
 
@@ -52,6 +79,13 @@ router.beforeEach(async (to) => {
   if (to.meta.guestOnly && auth.isAuthenticated) {
     return { name: 'dashboard' }
   }
+
+  // حماية بالصلاحيات: من يفتقد الصلاحية يُحوَّل لصفحة 403 (Super Admin يتجاوز).
+  const perms = requiredPermissions(to.meta.permission)
+  if (perms.length > 0 && !auth.canAny(perms)) {
+    return { name: 'forbidden' }
+  }
+
   return true
 })
 

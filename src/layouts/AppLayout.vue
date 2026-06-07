@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { RouterView, useRouter } from 'vue-router'
+import { computed, ref } from 'vue'
+import { RouterView, useRouter, type RouteLocationRaw } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
@@ -10,8 +10,21 @@ const router = useRouter()
 const auth = useAuthStore()
 const ui = useUiStore()
 
-// روابط التنقّل — تُضاف وحدات FE اللاحقة هنا (الشركات/المستخدمون/…).
-const navItems = [{ to: { name: 'dashboard' }, key: 'nav.dashboard', icon: '▦' }]
+// روابط التنقّل — تُضاف وحدات FE اللاحقة هنا. كل عنصر قد يتطلّب صلاحية.
+interface NavItem {
+  to: RouteLocationRaw
+  key: string
+  icon: string
+  permission?: string
+}
+const allNavItems: NavItem[] = [
+  { to: { name: 'dashboard' }, key: 'nav.dashboard', icon: '▦' },
+  { to: { name: 'users' }, key: 'nav.users', icon: '👥', permission: 'users.view' },
+]
+// تُعرض العناصر التي يملك المستخدم صلاحيتها فقط (Super Admin يرى الكل).
+const navItems = computed(() =>
+  allNavItems.filter((item) => !item.permission || auth.can(item.permission)),
+)
 
 const sidebarOpen = ref(false)
 

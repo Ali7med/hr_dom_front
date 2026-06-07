@@ -5,12 +5,14 @@ import router from './router'
 import { i18n } from './locales'
 import { setUnauthorizedHandler } from './api/client'
 import { useAuthStore } from './stores/auth'
+import { vCan } from './directives/can'
 import './style.css'
 
 const app = createApp(App)
 
 app.use(createPinia())
 app.use(i18n)
+app.directive('can', vCan)
 
 // عند انتهاء الجلسة نهائياً (401 وفشل التجديد): نظّف الجلسة وأعِد التوجيه للدخول.
 setUnauthorizedHandler(() => {

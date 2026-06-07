@@ -33,11 +33,21 @@
     "menu": "Menu"
   },
   "nav": {
-    "dashboard": "Dashboard"
+    "dashboard": "Dashboard",
+    "users": "Users"
   },
   "home": {
     "welcome": "Welcome to the dashboard",
     "ready": "Project ready: language (RTL/LTR) and theme switching work, API layer configured.",
-    "apiBase": "API base URL"
+    "apiBase": "API base URL",
+    "superAdmin": "Super Admin"
+  },
+  "users": {
+    "placeholder": "User management — to be detailed in FE-04."
+  },
+  "errors": {
+    "forbiddenTitle": "Access denied",
+    "forbiddenBody": "You don't have the permission required to view this page. Contact your administrator if you think this is a mistake.",
+    "backToDashboard": "Back to dashboard"
   }
 }

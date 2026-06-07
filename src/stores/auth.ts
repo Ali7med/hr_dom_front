@@ -19,6 +19,21 @@ export const useAuthStore = defineStore('auth', () => {
   const isAuthenticated = computed(() => Boolean(accessToken.value))
   const roles = computed<string[]>(() => user.value?.roles ?? [])
   const permissions = computed<string[]>(() => user.value?.permissions ?? [])
+  const isSuperAdmin = computed(() => user.value?.is_super_admin === true)
+
+  // فحص صلاحية واحدة (مع تجاوز Super Admin).
+  function can(permission: string): boolean {
+    return isSuperAdmin.value || permissions.value.includes(permission)
+  }
+
+  // يكفي امتلاك أيٍّ من الصلاحيات المعطاة (قائمة فارغة = مسموح).
+  function canAny(perms: string[]): boolean {
+    return isSuperAdmin.value || perms.length === 0 || perms.some(can)
+  }
+
+  function hasRole(role: string): boolean {
+    return isSuperAdmin.value || roles.value.includes(role)
+  }
 
   function setTokens(access: string, refresh?: string | null): void {
     accessToken.value = access
@@ -104,6 +119,10 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     roles,
     permissions,
+    isSuperAdmin,
+    can,
+    canAny,
+    hasRole,
     setTokens,
     clear,
     fetchUser,

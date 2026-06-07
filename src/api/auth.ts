@@ -36,6 +36,8 @@ export interface AuthUser {
   two_factor_enabled: boolean
   roles: string[]
   permissions: string[]
+  // Super Admin يتجاوز كل فحوص الصلاحيات (لا تظهر أدواره/صلاحياته ضمن سياق الفريق).
+  is_super_admin: boolean
 }
 
 export const authApi = {
