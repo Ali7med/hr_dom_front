@@ -62,6 +62,33 @@
     "apiBase": "عنوان الـ API",
     "superAdmin": "مدير عام"
   },
+  "dashboard": {
+    "subtitle": "نظرة عامة على بيانات الشركة — شهر {period}",
+    "needsAction": "بحاجة إلى إجراء",
+    "pendingLeavesAction": "{n} طلب إجازة بانتظار الموافقة",
+    "pendingDevicesAction": "{n} طلب جهاز بانتظار الموافقة",
+    "attendanceTitle": "حضور الشهر الحالي",
+    "leavesTitle": "الإجازات حسب الحالة",
+    "usersTitle": "الموظفون حسب الحالة",
+    "payrollTitle": "رواتب {period}",
+    "payrollNet": "إجمالي صافي {n} كشف",
+    "viewPayroll": "عرض الكشوف",
+    "noPayroll": "لا توجد كشوف لهذا الشهر بعد.",
+    "noData": "لا توجد بيانات بعد.",
+    "days": "يوم",
+    "present": "حضور",
+    "absent": "غياب",
+    "late": "تأخير",
+    "onLeave": "إجازة",
+    "kpi": {
+      "activeUsers": "موظفون نشطون",
+      "departments": "الأقسام",
+      "workSites": "مواقع العمل",
+      "shifts": "الورديات",
+      "pendingLeaves": "إجازات معلّقة",
+      "pendingDevices": "أجهزة معلّقة"
+    }
+  },
   "users": {
     "create": "إضافة مستخدم",
     "edit": "تعديل المستخدم",

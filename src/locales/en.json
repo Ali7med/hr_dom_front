@@ -62,6 +62,33 @@
     "apiBase": "API base URL",
     "superAdmin": "Super Admin"
   },
+  "dashboard": {
+    "subtitle": "Company data overview — {period}",
+    "needsAction": "Needs action",
+    "pendingLeavesAction": "{n} leave requests awaiting approval",
+    "pendingDevicesAction": "{n} device requests awaiting approval",
+    "attendanceTitle": "This month's attendance",
+    "leavesTitle": "Leaves by status",
+    "usersTitle": "Employees by status",
+    "payrollTitle": "Payroll {period}",
+    "payrollNet": "Total net of {n} payslips",
+    "viewPayroll": "View payslips",
+    "noPayroll": "No payslips for this month yet.",
+    "noData": "No data yet.",
+    "days": "days",
+    "present": "Present",
+    "absent": "Absent",
+    "late": "Late",
+    "onLeave": "On leave",
+    "kpi": {
+      "activeUsers": "Active employees",
+      "departments": "Departments",
+      "workSites": "Work sites",
+      "shifts": "Shifts",
+      "pendingLeaves": "Pending leaves",
+      "pendingDevices": "Pending devices"
+    }
+  },
   "users": {
     "create": "Add user",
     "edit": "Edit user",
