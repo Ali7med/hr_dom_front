@@ -733,10 +733,64 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** TODO: إدارة الـ Webhooks */
+        /** قائمة Webhooks الشركة (بلا كشف السرّ) */
         get: operations["listWebhooks"];
         put?: never;
+        /** إنشاء Webhook — السرّ (HMAC) يُعرض مرّة واحدة فقط */
+        post: operations["createWebhook"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/webhooks/{webhook}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** تفاصيل Webhook */
+        get: operations["showWebhook"];
+        /** تعديل Webhook (مع خيار إعادة توليد السرّ) */
+        put: operations["updateWebhook"];
         post?: never;
+        /** حذف Webhook */
+        delete: operations["deleteWebhook"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/webhooks/{webhook}/deliveries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** سجلّ آخر محاولات التسليم لهذا الـ Webhook (للتشخيص) */
+        get: operations["listWebhookDeliveries"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/webhooks/{webhook}/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** إرسال حدث اختباري (webhook.test) للتحقّق من الاتصال — يُجدوَل في الخلفية */
+        post: operations["testWebhook"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1293,6 +1347,32 @@ export interface components {
             date: string;
             /** @example عيد الثورة */
             name: string;
+        };
+        /**
+         * @description الأحداث المدعومة للاشتراك في Webhooks (BE-41)
+         * @enum {string}
+         */
+        WebhookEvent: "attendance.checked_in" | "attendance.checked_out" | "payroll.generated";
+        WebhookInput: {
+            /**
+             * Format: uri
+             * @description عنوان HTTPS لاستقبال الأحداث (يُشترط https)
+             * @example https://erp.example.com/hooks/hr
+             */
+            url: string;
+            /** @description قائمة الأحداث المشترَك بها */
+            events: components["schemas"]["WebhookEvent"][];
+            /** @default true */
+            is_active: boolean;
+        };
+        /** @description كل الحقول اختيارية؛ regenerate_secret يُعيد توليد السرّ ويعرضه مرّة واحدة. */
+        WebhookUpdate: {
+            /** Format: uri */
+            url?: string;
+            events?: components["schemas"]["WebhookEvent"][];
+            is_active?: boolean;
+            /** @default false */
+            regenerate_secret: boolean;
         };
     };
     responses: {
@@ -2383,7 +2463,111 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            200: components["responses"]["TodoResponse"];
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+        };
+    };
+    createWebhook: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WebhookInput"];
+            };
+        };
+        responses: {
+            201: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    showWebhook: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                webhook: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+            404: components["responses"]["ErrorResponse"];
+        };
+    };
+    updateWebhook: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                webhook: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WebhookUpdate"];
+            };
+        };
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+            404: components["responses"]["ErrorResponse"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    deleteWebhook: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                webhook: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+            404: components["responses"]["ErrorResponse"];
+        };
+    };
+    listWebhookDeliveries: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                webhook: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+            404: components["responses"]["ErrorResponse"];
+        };
+    };
+    testWebhook: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                webhook: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            202: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+            404: components["responses"]["ErrorResponse"];
         };
     };
     listExternalClients: {
