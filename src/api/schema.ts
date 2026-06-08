@@ -358,6 +358,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/leave-types/{leave_type}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                leave_type: number;
+            };
+            cookie?: never;
+        };
+        /** عرض نوع إجازة (يتطلّب leaves.view) */
+        get: operations["showLeaveType"];
+        /** تعديل نوع إجازة (يتطلّب leaves.manage_balances) */
+        put: operations["updateLeaveType"];
+        post?: never;
+        /** حذف نوع إجازة (يتطلّب leaves.manage_balances) */
+        delete: operations["deleteLeaveType"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/leaves": {
         parameters: {
             query?: never;
@@ -370,6 +391,23 @@ export interface paths {
         put?: never;
         /** تقديم طلب إجازة (لنفسه أو بالنيابة للمخوّلين) */
         post: operations["createLeave"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/leaves/{leave}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** عرض طلب إجازة (يتطلّب leaves.view) */
+        get: operations["showLeave"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -968,6 +1006,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/audit-logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** قراءة سجلّ التدقيق (معزول بالشركة) — فلاتر action/actor_id/target_type/from/to + ترقيم */
+        get: operations["listAuditLogs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/version": {
         parameters: {
             query?: never;
@@ -1461,6 +1516,61 @@ export interface components {
         RebindRequestInput: {
             /** @description معرّف الجهاز الجديد المطلوب الربط به */
             new_device_uid: string;
+        };
+        LeaveTypeInput: {
+            /** @example إجازة سنوية */
+            name: string;
+            kind: components["schemas"]["LeaveKind"];
+            /**
+             * @description هل يتطلّب النوع موافقة قبل الاعتماد
+             * @default true
+             */
+            needs_approval: boolean;
+            /**
+             * @description على أي رصيد يؤثّر هذا النوع
+             * @enum {string}
+             */
+            affects_balance?: "normal" | "sick" | "none";
+            /**
+             * @description هل الإجازة مدفوعة
+             * @default true
+             */
+            is_paid: boolean;
+        };
+        LeaveRequestInput: {
+            leave_type_id: number;
+            /**
+             * Format: date
+             * @description بداية الإجازة
+             */
+            start_at: string;
+            /**
+             * Format: date
+             * @description نهاية الإجازة (≥ start_at)
+             */
+            end_at: string;
+            /**
+             * Format: double
+             * @description عدد الساعات (لإجازة من نوع hourly)
+             */
+            hours?: number;
+            /** @description لتقديم الطلب بالنيابة (يتطلّب leaves.approve أو users.manage) */
+            user_id?: number;
+            /** @enum {string} */
+            source?: "app" | "panel";
+            attachment_path?: string;
+        };
+        LeaveBalanceInput: {
+            /** @enum {string} */
+            balance_type: "normal" | "sick";
+            /** Format: double */
+            balance_days: number;
+            /**
+             * @description ضبط مطلق (set) أو زيادة (increment)
+             * @default set
+             * @enum {string}
+             */
+            mode: "set" | "increment";
         };
         /**
          * @description الأحداث المدعومة للاشتراك في Webhooks (BE-41)
@@ -2040,15 +2150,74 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LeaveTypeInput"];
+            };
+        };
         responses: {
             201: components["responses"]["EnvelopeOk"];
             422: components["responses"]["ErrorResponse"];
         };
     };
-    listLeaves: {
+    showLeaveType: {
         parameters: {
             query?: never;
+            header?: never;
+            path: {
+                leave_type: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            404: components["responses"]["ErrorResponse"];
+        };
+    };
+    updateLeaveType: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                leave_type: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LeaveTypeInput"];
+            };
+        };
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    deleteLeaveType: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                leave_type: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+        };
+    };
+    listLeaves: {
+        parameters: {
+            query?: {
+                user_id?: number;
+                status?: components["schemas"]["RequestStatus"];
+                from?: string;
+                to?: string;
+                per_page?: number;
+                page?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -2065,10 +2234,30 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LeaveRequestInput"];
+            };
+        };
         responses: {
             201: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
             422: components["responses"]["ErrorResponse"];
+        };
+    };
+    showLeave: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                leave: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            404: components["responses"]["ErrorResponse"];
         };
     };
     listMyLeaves: {
@@ -2137,7 +2326,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LeaveBalanceInput"];
+            };
+        };
         responses: {
             200: components["responses"]["EnvelopeOk"];
             422: components["responses"]["ErrorResponse"];
@@ -2889,6 +3082,26 @@ export interface operations {
             200: components["responses"]["EnvelopeOk"];
             403: components["responses"]["ErrorResponse"];
             422: components["responses"]["ErrorResponse"];
+        };
+    };
+    listAuditLogs: {
+        parameters: {
+            query?: {
+                action?: string;
+                actor_id?: number;
+                target_type?: string;
+                from?: string;
+                to?: string;
+                per_page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
         };
     };
     getVersion: {
