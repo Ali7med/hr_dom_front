@@ -27,6 +27,7 @@ const allNavItems: NavItem[] = [
   { to: { name: 'schedule' }, key: 'nav.schedule', icon: '🗓️', permission: ['shifts.manage', 'schedules.manage'] },
   { to: { name: 'device-requests' }, key: 'nav.deviceRequests', icon: '📱', permission: 'devices.rebind_approve' },
   { to: { name: 'leaves' }, key: 'nav.leaves', icon: '🌴', permission: 'leaves.view' },
+  { to: { name: 'reports' }, key: 'nav.reports', icon: '📊', permission: 'reports.view' },
 ]
 // تُعرض العناصر التي يملك المستخدم صلاحيتها فقط (Super Admin يرى الكل).
 const navItems = computed(() =>

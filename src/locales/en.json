@@ -51,7 +51,8 @@
     "worksites": "Work sites",
     "schedule": "Shifts & scheduling",
     "deviceRequests": "Device requests",
-    "leaves": "Leaves"
+    "leaves": "Leaves",
+    "reports": "Reports"
   },
   "home": {
     "welcome": "Welcome to the dashboard",
@@ -215,6 +216,44 @@
   "leaveBalanceType": {
     "normal": "Normal",
     "sick": "Sick"
+  },
+  "reports": {
+    "title": "Reports",
+    "attendance": "Attendance",
+    "lateAbsence": "Late & absence",
+    "timesheet": "Timesheet",
+    "from": "From",
+    "to": "To",
+    "period": "Month",
+    "department": "Department",
+    "allDepartments": "All departments",
+    "employee": "Employee",
+    "allEmployees": "All employees",
+    "chooseEmployee": "Choose an employee",
+    "generate": "Run report",
+    "exportExcel": "Export Excel",
+    "exportPdf": "Export PDF",
+    "exportError": "Could not export the report.",
+    "timesheetNeedsUser": "Timesheet requires selecting an employee.",
+    "rowsCount": "{n} rows",
+    "empty": "No data for the selected range.",
+    "col": {
+      "userId": "ID",
+      "employeeNo": "Employee no.",
+      "name": "Name",
+      "workingDays": "Working days",
+      "presentDays": "Present days",
+      "absentDays": "Absent days",
+      "leaveDays": "Leave days",
+      "lateDays": "Late days",
+      "lateMinutes": "Late minutes",
+      "date": "Date",
+      "incident": "Incident"
+    },
+    "incident": {
+      "late": "Late",
+      "absent": "Absent"
+    }
   },
   "permGroups": {
     "companies": "Companies",

@@ -51,7 +51,8 @@
     "worksites": "مواقع العمل",
     "schedule": "الورديات والجدولة",
     "deviceRequests": "طلبات الأجهزة",
-    "leaves": "الإجازات"
+    "leaves": "الإجازات",
+    "reports": "التقارير"
   },
   "home": {
     "welcome": "مرحباً بك في لوحة التحكم",
@@ -215,6 +216,44 @@
   "leaveBalanceType": {
     "normal": "اعتيادي",
     "sick": "مرضي"
+  },
+  "reports": {
+    "title": "التقارير",
+    "attendance": "الحضور",
+    "lateAbsence": "التأخير والغياب",
+    "timesheet": "كشف الدوام",
+    "from": "من تاريخ",
+    "to": "إلى تاريخ",
+    "period": "الشهر",
+    "department": "القسم",
+    "allDepartments": "كل الأقسام",
+    "employee": "الموظف",
+    "allEmployees": "كل الموظفين",
+    "chooseEmployee": "اختر موظفاً",
+    "generate": "عرض التقرير",
+    "exportExcel": "تصدير Excel",
+    "exportPdf": "تصدير PDF",
+    "exportError": "تعذّر تصدير التقرير.",
+    "timesheetNeedsUser": "كشف الدوام يتطلّب اختيار موظف.",
+    "rowsCount": "{n} سجل",
+    "empty": "لا توجد بيانات للفترة المحدّدة.",
+    "col": {
+      "userId": "المعرّف",
+      "employeeNo": "الرقم الوظيفي",
+      "name": "الاسم",
+      "workingDays": "أيام العمل",
+      "presentDays": "أيام الحضور",
+      "absentDays": "أيام الغياب",
+      "leaveDays": "أيام الإجازة",
+      "lateDays": "أيام التأخير",
+      "lateMinutes": "دقائق التأخير",
+      "date": "التاريخ",
+      "incident": "الحالة"
+    },
+    "incident": {
+      "late": "تأخير",
+      "absent": "غياب"
+    }
   },
   "permGroups": {
     "companies": "الشركات",

@@ -78,6 +78,12 @@ const router = createRouter({
           meta: { permission: 'leaves.view' },
         },
         {
+          path: 'reports',
+          name: 'reports',
+          component: () => import('@/features/reports/ReportsView.vue'),
+          meta: { permission: 'reports.view' },
+        },
+        {
           path: '403',
           name: 'forbidden',
           component: () => import('@/features/errors/ForbiddenView.vue'),

@@ -17,6 +17,12 @@
 
 ---
 
+## [2026-06-08] FE-09 — التقارير
+- ما أُنجز: شاشة تقارير في `hr_dom_front` (`src/features/reports/ReportsView.vue`): اختيار نوع التقرير (الحضور/التأخير والغياب/كشف الدوام) + فلاتر (من/إلى/الشهر/القسم/الموظف) + جدول ديناميكي يُبنى من `meta.report.headings` و`data` القادمين من الباك + تصدير مباشر Excel/PDF (تنزيل Blob). **بدون لمس العقد** (أنواع TypeScript يدوية في `src/api/reports.ts`) لتفادي التضارب مع جلسة الباك.
+- الملفات الرئيسية: `src/api/reports.ts`، `src/features/reports/ReportsView.vue`، `src/router/index.ts`، `src/layouts/AppLayout.vue`، `src/locales/{ar,en}.json`.
+- قرارات/ملاحظات: الأعمدة ديناميكية (عناوين معروفة تُترجَم، وأي عمود آخر يُعرض بمفتاحه). كشف الدوام يتطلّب اختيار موظف. التصدير عبر `responseType: 'blob'` + `saveBlob`. الصلاحية `reports.view`. لم يُلمَس العقد ولا الباك. الحالة `review`.
+- الاختبارات: `type-check`+`build` خضراء، لا أخطاء console. تحقّق حيّ (Acme Admin): تقرير الحضور 200 (جدول مترجَم، صفّان)، التأخير والغياب 200 (أعمدة مختلفة، ٤ صفوف)، وتصدير Excel `?export=excel` 200.
+
 ## [2026-06-08] FE-08 — إدارة الإجازات والموافقات
 - ما أُنجز: وحدة بثلاثة تبويبات في `hr_dom_front` (`src/features/leaves/LeavesView.vue`): **الطلبات** (قائمة بفلتر حالة + موافقة/رفض للمعلّقة + تقديم بالنيابة)، **أنواع الإجازات** (CRUD: الصنف/يتطلّب موافقة/يؤثّر على الرصيد/مدفوعة)، و**الأرصدة** (اختيار موظف → عرض أرصدته + ضبط set/increment). وتحت Contract-First: **استُكمل عقد BE-20** (مسارات `{id}` + فلاتر + أجسام الطلبات + مخطّطات Input) ثم أُعيد توليد الأنواع.
 - الملفات الرئيسية: `src/api/leaves.ts`، `src/features/leaves/LeavesView.vue`، `src/router/index.ts`، `src/layouts/AppLayout.vue`، `src/locales/{ar,en}.json`، و`src/api/schema.ts` (مُعاد توليده).
