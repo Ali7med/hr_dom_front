@@ -1,0 +1,54 @@
+# WORKLOG — سجل العمل (hr_dom_front)
+
+> مدخلة بعد كل تاسك: ماذا أُنجز، الملفات الرئيسية، القرارات، الاختبارات.
+>
+> القالب (انسخه لكل مدخلة جديدة، الأحدث في الأعلى):
+>
+> ```
+> ## [التاريخ] <task-id> — <العنوان>
+> - ما أُنجز:
+> - الملفات الرئيسية:
+> - قرارات/ملاحظات:
+> - الاختبارات:
+> ```
+>
+> **ملاحظة:** المدخلات أدناه **بأثر رجعي** — أُعيد بناؤها من `git log` لأن السجل أُضيف بعد بدء العمل.
+> التفاصيل الموسّعة (تحقّق حيّ، قرارات الباك المُمكِّنة) في `hr_dom_docs/WORKLOG.md` (السجل الموحّد).
+
+---
+
+## [2026-06-07] FE-05 — محرّر المواقع على الخريطة
+- ما أُنجز: وحدة مواقع العمل — قائمة/إنشاء/تعديل/حذف، ومحرّر خريطة (Leaflet + OpenStreetMap) لرسم نطاق geofence بالنقر (مضلّع) مع تراجع/مسح وتحميل المضلّع القائم. تُبنى الهندسة كـ GeoJSON Polygon (حلقة مغلقة، [lng,lat]) مع حساب المركز تلقائياً. الإجراءات بـ `v-can` (`work_sites.view`/`manage`).
+- الملفات الرئيسية: `src/api/worksites.ts`، `src/components/GeofenceMap.vue`، `src/features/worksites/WorkSitesView.vue`، `src/router/index.ts`، `src/layouts/AppLayout.vue`، `src/locales/{ar,en}.json` (+ حزمة `leaflet`).
+- قرارات/ملاحظات: Leaflet+OSM (مجاني بلا مفتاح، يناسب RTL). رسم المضلّع بالنقر دون leaflet-draw. الخريطة في chunk كسول يُحمَّل عند `/work-sites`. `circleMarker` للرؤوس لتفادي مشكلة أيقونات Leaflet مع الباندلر.
+- الاختبارات: `type-check` و`build` يمرّان، لا أخطاء console؛ تحقّق حيّ مقابل الباك (حفظ موقع وإرجاعه GeoJSON صالحاً).
+
+## [2026-06-07] FE-04 — المستخدمون والأدوار والصلاحيات
+- ما أُنجز: وحدة المستخدمين — قائمة/بحث/ترقيم، إنشاء/تعديل/حذف مستخدم (قسم، حالة، أدوار)، إدارة الأدوار مع منتقي صلاحيات مجمّع حسب المجال، وإسناد صلاحيات مباشرة لمستخدم. الإجراءات بـ `v-can` (`users.manage`/`roles.manage`/`permissions.assign`).
+- الملفات الرئيسية: `src/api/{users,roles}.ts`، `src/components/PermissionPicker.vue`، `src/features/{users/UsersView,roles/RolesView}.vue`، `src/router/index.ts`، `src/layouts/AppLayout.vue`، `src/locales/{ar,en}.json`.
+- قرارات/ملاحظات: محرّر الصلاحيات المباشرة بدلالة استبدال (مع تحذير) لأن `GET /users/{id}` لا يُرجِع الصلاحيات الحالية — تحسين باك مقترح لاحقاً.
+- الاختبارات: `type-check` و`build` يمرّان؛ تحقّق حيّ مقابل الباك (Company Admin).
+
+## [2026-06-07] FE-03 — الشركات والإعدادات
+- ما أُنجز: وحدة الشركات — قائمة/إنشاء/تعديل/حذف، وصفحة إعدادات الشركة (ساعات اليوم، دقائق السماح، أيام نهاية الأسبوع، الإجازة الزمنية، قنوات الإشعار)، واستيراد الإعدادات من شركة قالب. الإجراءات بـ `v-can="'companies.manage'"`، والمسارات بـ `companies.view`.
+- الملفات الرئيسية: `src/api/companies.ts`، `src/features/companies/{CompaniesListView,CompanySettingsView}.vue`، `src/router/index.ts`، `src/layouts/AppLayout.vue`، `src/locales/{ar,en}.json`.
+- قرارات/ملاحظات: لا يوجد `GET /currencies` بعد فـ`base_currency_id` حقل رقمي اختياري.
+- الاختبارات: `type-check` و`build` يمرّان؛ تحقّق حيّ مقابل الباك (إنشاء شركة + حفظ إعدادات + استيراد قالب).
+
+## [2026-06-07] FE-02 — الحماية بالصلاحيات
+- ما أُنجز: طبقة تخويل — `can()/canAny()/hasRole()` و`isSuperAdmin` في متجر الجلسة، توجيه `v-can`، حارس مسارات على `meta.permission` يحوّل لصفحة 403، صفحة 403 ودّية، وفلترة روابط الشريط الجانبي بالصلاحية. أُضيف مسار `/users` محميّ بـ `users.view` كأول مستهلك.
+- الملفات الرئيسية: `src/stores/auth.ts`، `src/directives/can.ts`، `src/router/index.ts`، `src/layouts/AppLayout.vue`، `src/features/{errors/ForbiddenView,users/UsersView,home/HomeView}.vue`، `src/api/auth.ts`، `src/locales/{ar,en}.json`.
+- قرارات/ملاحظات: Super Admin يتجاوز كل الفحوص عبر `is_super_admin` من الـ API. فلترة قوائم التنقّل عبر `can()`، و`v-can` للعناصر المفردة. (مكّنه تغيير باك: `is_super_admin` في `/auth/me`.)
+- الاختبارات: `type-check` و`build` يمرّان؛ تحقّق متصفّح حيّ مقابل الباك.
+
+## [2026-06-07] FE-01 — الدخول والتخطيط والثيم (+SSO)
+- ما أُنجز: دخول كامل — شاشة دخول (مُعرّف/كلمة مرور) مع خطوة 2FA، واستبدال كود SSO داخل حارس الموجّه مع مسح الكود من الرابط، وتجديد توكن صامت (single-flight) عند 401، ومتجر جلسة كامل، وتخطيط رئيسي (Sidebar/Topbar) مع تبديل لغة/مظهر ودعم RTL، وحُرّاس مصادقة.
+- الملفات الرئيسية: `src/api/auth.ts`، `src/api/client.ts`، `src/stores/auth.ts`، `src/features/auth/LoginView.vue`، `src/layouts/AppLayout.vue`، `src/router/index.ts`، `src/main.ts`، `src/locales/{ar,en}.json`.
+- قرارات/ملاحظات: استبدال SSO داخل `beforeEach` لا عبر `replaceState`. تهريب `@` في رسائل i18n عبر `{'@'}`.
+- الاختبارات: `npm run type-check` و`npm run build` يمرّان؛ تحقّق متصفّح (إعادة توجيه الحارس، تبديل اللغة/المظهر/RTL، مسح كود SSO).
+
+## [2026-06-07] FE-00 — تهيئة Vue 3
+- ما أُنجز: مشروع Vue 3 + Vite + TypeScript مع Tailwind v4 / Pinia / vue-i18n (RTL + ثيم). إعداد `apiClient` (axios + الغلاف `{data,meta,errors}`)، وتوليد الأنواع من العقد (`npm run generate:api` → `src/api/schema.ts`).
+- الملفات الرئيسية: هيكل المشروع، `src/api/client.ts`، `src/locales/`، `src/stores/ui.ts`، `vite.config.ts`، `src/style.css`.
+- قرارات/ملاحظات: Contract-First — العميل يُولَّد من العقد (لا نداءات API يدوية). العربية افتراضية + RTL، النمط الغامق عبر `.dark` على `<html>`.
+- الاختبارات: تشغيل المشروع فارغاً + تدقيق العقد.

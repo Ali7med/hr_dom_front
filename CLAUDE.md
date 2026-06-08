@@ -34,3 +34,23 @@
 - فرع لكل تاسك: `feature/<task-id>` (مثل `feature/FE-01`).
 - Conventional Commits: `feat(FE-01): ...`.
 - حدّث حالة التاسك في `hr_dom_docs/PROGRESS.md`.
+- **لا دمج بلا أخضر:** لا يُدمج فرع قبل أن يمرّ `npm run type-check` و`npm run build`.
+- لا تكسر/تحذف/تعيد هيكلة بنية قائمة (وحدات، مسارات، أنواع مولّدة)؛ ابنِ فوقها فقط.
+
+## الذاكرة المرتبطة (اقرأها)
+@CONVENTIONS.md
+@WORKLOG.md
+@PROGRESS.md
+
+(`CONVENTIONS.md`/`WORKLOG.md`/`PROGRESS.md` نسخ محلية لهذا المستودع؛ لوحة التتبّع الموحّدة والعقد في `hr_dom_docs`.)
+
+## طقس كل تاسك (Definition of Done)
+1. المتطلّب مُنفّذ ويعمل وفق وصف التاسك.
+2. `npm run type-check` و`npm run build` يمرّان بلا أخطاء، ولا أخطاء console.
+3. لأي تغيير يمسّ العقد: أُعيد توليد الأنواع عبر `npm run generate:api`.
+4. حالة التاسك مُحدّثة في `PROGRESS.md` (المحلي + `hr_dom_docs`) + مدخلة في `WORKLOG.md`.
+5. مراجعة عبر Pull Request قبل الدمج.
+
+## للتعديل على ميزة قائمة
+اقرأ `WORKLOG.md` وكود الميزة (`src/features/<feature>/`) أولاً، عدّل على فرع جديد، ثم شغّل
+`npm run type-check` و`npm run build` للتأكّد أن القديم لم ينكسر قبل الدمج.
