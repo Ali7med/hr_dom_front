@@ -255,6 +255,91 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/devices/bind": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** ربط جهاز للمستخدم الحالي */
+        post: operations["bindDevice"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/devices/rebind-request": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** طلب إعادة ربط جهاز جديد للمستخدم الحالي (ينشئ طلباً معلّقاً) */
+        post: operations["requestRebind"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/devices/rebind-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** قائمة طلبات إعادة الربط المعلّقة للشركة (يتطلّب devices.rebind_approve) */
+        get: operations["listRebindRequests"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/devices/rebind-requests/{rebind_request}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** الموافقة على طلب إعادة ربط معلّق (يتطلّب devices.rebind_approve) */
+        post: operations["approveRebind"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/devices/rebind-requests/{rebind_request}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** رفض طلب إعادة ربط معلّق (يتطلّب devices.rebind_approve) */
+        post: operations["rejectRebind"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/leave-types": {
         parameters: {
             query?: never;
@@ -1348,6 +1433,18 @@ export interface components {
             /** @example عيد الثورة */
             name: string;
         };
+        BindDeviceInput: {
+            /** @description المعرّف الفريد للجهاز */
+            device_uid: string;
+            /** @enum {string} */
+            platform: "android" | "ios";
+            /** @description المفتاح العام للجهاز (اختياري) */
+            public_key?: string | null;
+        };
+        RebindRequestInput: {
+            /** @description معرّف الجهاز الجديد المطلوب الربط به */
+            new_device_uid: string;
+        };
         /**
          * @description الأحداث المدعومة للاشتراك في Webhooks (BE-41)
          * @enum {string}
@@ -1802,6 +1899,87 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: components["responses"]["TodoResponse"];
+        };
+    };
+    bindDevice: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BindDeviceInput"];
+            };
+        };
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    requestRebind: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RebindRequestInput"];
+            };
+        };
+        responses: {
+            201: components["responses"]["EnvelopeOk"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    listRebindRequests: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+        };
+    };
+    approveRebind: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rebind_request: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+            404: components["responses"]["ErrorResponse"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    rejectRebind: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rebind_request: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+            404: components["responses"]["ErrorResponse"];
+            422: components["responses"]["ErrorResponse"];
         };
     };
     listLeaveTypes: {

@@ -66,6 +66,12 @@ const router = createRouter({
           meta: { permission: ['shifts.manage', 'schedules.manage'] },
         },
         {
+          path: 'device-requests',
+          name: 'device-requests',
+          component: () => import('@/features/devices/DeviceRebindView.vue'),
+          meta: { permission: 'devices.rebind_approve' },
+        },
+        {
           path: '403',
           name: 'forbidden',
           component: () => import('@/features/errors/ForbiddenView.vue'),

@@ -47,7 +47,8 @@
     "users": "Users",
     "roles": "Roles",
     "worksites": "Work sites",
-    "schedule": "Shifts & scheduling"
+    "schedule": "Shifts & scheduling",
+    "deviceRequests": "Device requests"
   },
   "home": {
     "welcome": "Welcome to the dashboard",
@@ -144,6 +145,20 @@
     "holidayName": "Holiday name",
     "emptyHolidays": "No holidays yet.",
     "confirmDeleteHoliday": "Delete holiday \"{name}\"?"
+  },
+  "devices": {
+    "title": "Device rebind requests",
+    "subtitle": "Review and approve or reject employee requests to bind new devices.",
+    "refresh": "Refresh",
+    "employee": "Employee",
+    "employeeNo": "Employee no.",
+    "newDeviceUid": "New device UID",
+    "requestedAt": "Requested at",
+    "approve": "Approve",
+    "reject": "Reject",
+    "empty": "No pending requests.",
+    "confirmApprove": "Approve device request for \"{name}\"?",
+    "confirmReject": "Reject device request for \"{name}\"?"
   },
   "permGroups": {
     "companies": "Companies",

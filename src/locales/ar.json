@@ -47,7 +47,8 @@
     "users": "المستخدمون",
     "roles": "الأدوار",
     "worksites": "مواقع العمل",
-    "schedule": "الورديات والجدولة"
+    "schedule": "الورديات والجدولة",
+    "deviceRequests": "طلبات الأجهزة"
   },
   "home": {
     "welcome": "مرحباً بك في لوحة التحكم",
@@ -144,6 +145,20 @@
     "holidayName": "اسم العطلة",
     "emptyHolidays": "لا توجد عطل بعد.",
     "confirmDeleteHoliday": "حذف العطلة \"{name}\"؟"
+  },
+  "devices": {
+    "title": "طلبات إعادة ربط الأجهزة",
+    "subtitle": "راجع طلبات الموظفين لربط أجهزة جديدة ووافِق عليها أو ارفضها.",
+    "refresh": "تحديث",
+    "employee": "الموظف",
+    "employeeNo": "الرقم الوظيفي",
+    "newDeviceUid": "معرّف الجهاز الجديد",
+    "requestedAt": "تاريخ الطلب",
+    "approve": "موافقة",
+    "reject": "رفض",
+    "empty": "لا توجد طلبات معلّقة.",
+    "confirmApprove": "الموافقة على طلب جهاز \"{name}\"؟",
+    "confirmReject": "رفض طلب جهاز \"{name}\"؟"
   },
   "permGroups": {
     "companies": "الشركات",

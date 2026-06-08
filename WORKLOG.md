@@ -17,6 +17,12 @@
 
 ---
 
+## [2026-06-08] FE-07 — موافقات إعادة ربط الأجهزة
+- ما أُنجز: شاشة لوحة التحكم لطلبات إعادة ربط الأجهزة المعلّقة (`src/features/devices/DeviceRebindView.vue`): قائمة الطلبات (الموظف + الرقم الوظيفي + معرّف الجهاز الجديد + تاريخ الطلب) مع زرّي **موافقة/رفض** وتحديث، كلها بـ `v-can="'devices.rebind_approve'"`. وتحت Contract-First **وُثِّق عقد BE-11 أولاً** (كان غائباً) ثم أُعيد توليد الأنواع.
+- الملفات الرئيسية: `src/api/devices.ts`، `src/features/devices/DeviceRebindView.vue`، `src/router/index.ts`، `src/layouts/AppLayout.vue`، `src/locales/{ar,en}.json`، و`src/api/schema.ts` (مُعاد توليده).
+- قرارات/ملاحظات: العقد لـ BE-11 وُثّق في `hr_dom_docs` (وسم `Devices` + `BindDeviceInput`/`RebindRequestInput`). يُقصّ `created_at` إلى `YYYY-MM-DD`. الإجراءات تعطّل الصف أثناء التنفيذ. الحالة `review`.
+- الاختبارات: `type-check` و`build` خضراء، لا أخطاء console. تحقّق حيّ مقابل الباك (Acme Admin): GET rebind-requests = 200 (حالة فارغة)، أُنشئ طلب تجريبي POST rebind-request = 201، ظهر في القائمة (Acme Admin/A001)، ثم موافقة POST approve = 200 وخرج من القائمة.
+
 ## [2026-06-08] FE-06 — الورديات والجدولة والعطل
 - ما أُنجز: وحدة بثلاثة تبويبات في `hr_dom_front`: **الورديات** (`/shifts` — اسم، بدء/انتهاء، ساعات، دقائق سماح، وسم «تمتد بعد منتصف الليل»)، **جداول الموظفين** (`/schedules` — إسناد موظف لوردية بنمط أسبوعي أو تاريخ محدّد، مع عرض «كل <يوم>»)، و**العطل الرسمية** (`/holidays` — تاريخ + اسم). CRUD كامل لكلٍّ بـ `v-can`.
 - الملفات الرئيسية: `src/api/schedule.ts`، `src/features/schedule/ScheduleView.vue`، `src/router/index.ts`، `src/layouts/AppLayout.vue`، `src/locales/{ar,en}.json`، و`src/api/schema.ts` (مُعاد توليده).
