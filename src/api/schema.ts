@@ -943,8 +943,25 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** TODO: مزامنة/استيراد الموظفين */
+        /** مزامنة دفعة موظفين (JSON) — upsert حسب employee_no داخل الشركة */
         post: operations["postEmployeesSync"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** استيراد الموظفين من ملف Excel/CSV (upsert حسب employee_no) — يتطلّب users.manage */
+        post: operations["importUsers"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1470,6 +1487,28 @@ export interface components {
             is_active?: boolean;
             /** @default false */
             regenerate_secret: boolean;
+        };
+        EmployeeSyncItem: {
+            /** @description المعرّف الوظيفي (فريد داخل الشركة — مفتاح الـ upsert) */
+            employee_no: string;
+            name: string;
+            /** Format: email */
+            email: string;
+            phone?: string | null;
+            /** @description اسم القسم — يُنشأ تلقائياً إن لم يوجد داخل الشركة */
+            department?: string | null;
+            /**
+             * @default active
+             * @enum {string}
+             */
+            status: "active" | "suspended" | "left";
+            /** @description أسماء أدوار ضمن الشركة (افتراضياً Employee) */
+            roles?: string[];
+            /** @description كلمة مرور اختيارية (تُولَّد عشوائياً عند الإنشاء بدونها) */
+            password?: string | null;
+        };
+        EmployeeSyncInput: {
+            employees: components["schemas"]["EmployeeSyncItem"][];
         };
     };
     responses: {
@@ -2817,15 +2856,39 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
-        responses: {
-            /** @description TODO */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmployeeSyncInput"];
             };
+        };
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    importUsers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /**
+                     * Format: binary
+                     * @description ملف xlsx/xls/csv برؤوس أعمدة (employee_no, name, email, phone, department, status, roles)
+                     */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+            422: components["responses"]["ErrorResponse"];
         };
     };
     getVersion: {
