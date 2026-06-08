@@ -72,6 +72,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/attendance/check-out": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** تسجيل انصراف (check-out) */
+        post: operations["postAttendanceCheckOut"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/attendance/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** مزامنة دفعة تسجيلات مخزّنة دون نت (BE-14) */
+        post: operations["postAttendanceSync"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/attendance/manual": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** إضافة حضور يدوية بصلاحية (يتطلّب attendance.manual_add) */
+        post: operations["postAttendanceManual"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/companies": {
         parameters: {
             query?: never;
@@ -79,10 +130,49 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** TODO: قائمة الشركات */
+        /** قائمة الشركات (يتطلّب companies.view) */
         get: operations["listCompanies"];
         put?: never;
+        /** إنشاء شركة (يتطلّب companies.manage) */
+        post: operations["createCompany"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{company}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                company: number;
+            };
+            cookie?: never;
+        };
+        /** عرض شركة (يتطلّب companies.view) */
+        get: operations["showCompany"];
+        /** تعديل شركة (يتطلّب companies.manage) */
+        put: operations["updateCompany"];
         post?: never;
+        /** حذف شركة (يتطلّب companies.manage) */
+        delete: operations["deleteCompany"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{company}/import-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** استيراد إعدادات شركة من شركة قالب (يتطلّب companies.manage) */
+        post: operations["importCompanySettings"];
         delete?: never;
         options?: never;
         head?: never;
@@ -96,10 +186,52 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** TODO: قائمة المستخدمين */
+        /** قائمة المستخدمين (فلاتر/بحث/ترقيم — يتطلّب users.view) */
         get: operations["listUsers"];
         put?: never;
+        /** إنشاء مستخدم (يتطلّب users.manage) */
+        post: operations["createUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{user}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user: number;
+            };
+            cookie?: never;
+        };
+        /** عرض مستخدم (يتطلّب users.view) */
+        get: operations["showUser"];
+        /** تعديل مستخدم (يتطلّب users.manage) */
+        put: operations["updateUser"];
         post?: never;
+        /** حذف مستخدم (يتطلّب users.manage) */
+        delete: operations["deleteUser"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{user}/work-sites": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user: number;
+            };
+            cookie?: never;
+        };
+        /** مواقع عمل المستخدم (يتطلّب work_sites.view) */
+        get: operations["listUserWorkSites"];
+        put?: never;
+        /** مزامنة مواقع عمل المستخدم (يتطلّب work_sites.manage) */
+        post: operations["syncUserWorkSites"];
         delete?: never;
         options?: never;
         head?: never;
@@ -113,11 +245,54 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** TODO: قائمة مواقع العمل */
+        /** قائمة مواقع العمل (يتطلّب work_sites.view) */
         get: operations["listWorkSites"];
         put?: never;
-        post?: never;
+        /** إنشاء موقع عمل بسياج GeoJSON (يتطلّب work_sites.manage) */
+        post: operations["createWorkSite"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/work-sites/{work_site}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                work_site: number;
+            };
+            cookie?: never;
+        };
+        /** عرض موقع عمل (يتطلّب work_sites.view) */
+        get: operations["showWorkSite"];
+        /** تعديل موقع عمل (يتطلّب work_sites.manage) */
+        put: operations["updateWorkSite"];
+        post?: never;
+        /** حذف موقع عمل (يتطلّب work_sites.manage) */
+        delete: operations["deleteWorkSite"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/departments/{department}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                department: number;
+            };
+            cookie?: never;
+        };
+        /** عرض قسم (يتطلّب departments.view) */
+        get: operations["showDepartment"];
+        /** تعديل قسم (يتطلّب departments.manage) */
+        put: operations["updateDepartment"];
+        post?: never;
+        /** حذف قسم (يتطلّب departments.manage) */
+        delete: operations["deleteDepartment"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1194,6 +1369,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/roles/{role}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                role: number;
+            };
+            cookie?: never;
+        };
+        /** عرض دور وصلاحياته (يتطلّب roles.view) */
+        get: operations["showRole"];
+        /** تعديل دور وصلاحياته (يتطلّب roles.manage) */
+        put: operations["updateRole"];
+        post?: never;
+        /** حذف دور (يتطلّب roles.manage) */
+        delete: operations["deleteRole"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/permissions": {
         parameters: {
             query?: never;
@@ -1797,6 +1993,50 @@ export interface operations {
             422: components["responses"]["ErrorResponse"];
         };
     };
+    postAttendanceCheckOut: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CheckInRequest"];
+            };
+        };
+        responses: {
+            201: components["responses"]["EnvelopeOk"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    postAttendanceSync: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    postAttendanceManual: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
     listCompanies: {
         parameters: {
             query?: never;
@@ -1806,7 +2046,83 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            200: components["responses"]["TodoResponse"];
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+        };
+    };
+    createCompany: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    showCompany: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                company: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            404: components["responses"]["ErrorResponse"];
+        };
+    };
+    updateCompany: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                company: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+        };
+    };
+    deleteCompany: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                company: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+        };
+    };
+    importCompanySettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                company: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+            422: components["responses"]["ErrorResponse"];
         };
     };
     listUsers: {
@@ -1818,7 +2134,97 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            200: components["responses"]["TodoResponse"];
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+        };
+    };
+    createUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    showUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            404: components["responses"]["ErrorResponse"];
+        };
+    };
+    updateUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+        };
+    };
+    deleteUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+        };
+    };
+    listUserWorkSites: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+        };
+    };
+    syncUserWorkSites: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
         };
     };
     listWorkSites: {
@@ -1830,7 +2236,112 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            200: components["responses"]["TodoResponse"];
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+        };
+    };
+    createWorkSite: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    showWorkSite: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                work_site: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            404: components["responses"]["ErrorResponse"];
+        };
+    };
+    updateWorkSite: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                work_site: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+        };
+    };
+    deleteWorkSite: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                work_site: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+        };
+    };
+    showDepartment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                department: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            404: components["responses"]["ErrorResponse"];
+        };
+    };
+    updateDepartment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                department: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+        };
+    };
+    deleteDepartment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                department: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
         };
     };
     listShifts: {
@@ -3238,6 +3749,51 @@ export interface operations {
         responses: {
             201: components["responses"]["EnvelopeOk"];
             422: components["responses"]["ErrorResponse"];
+        };
+    };
+    showRole: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                role: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            404: components["responses"]["ErrorResponse"];
+        };
+    };
+    updateRole: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                role: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+        };
+    };
+    deleteRole: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                role: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
         };
     };
     listPermissions: {
