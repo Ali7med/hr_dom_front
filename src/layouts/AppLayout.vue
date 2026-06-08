@@ -15,7 +15,8 @@ interface NavItem {
   to: RouteLocationRaw
   key: string
   icon: string
-  permission?: string
+  // صلاحية واحدة أو قائمة (يكفي أيٌّ منها) لإظهار العنصر.
+  permission?: string | string[]
 }
 const allNavItems: NavItem[] = [
   { to: { name: 'dashboard' }, key: 'nav.dashboard', icon: '▦' },
@@ -23,10 +24,13 @@ const allNavItems: NavItem[] = [
   { to: { name: 'users' }, key: 'nav.users', icon: '👥', permission: 'users.view' },
   { to: { name: 'roles' }, key: 'nav.roles', icon: '🛡️', permission: 'roles.view' },
   { to: { name: 'work-sites' }, key: 'nav.worksites', icon: '📍', permission: 'work_sites.view' },
+  { to: { name: 'schedule' }, key: 'nav.schedule', icon: '🗓️', permission: ['shifts.manage', 'schedules.manage'] },
 ]
 // تُعرض العناصر التي يملك المستخدم صلاحيتها فقط (Super Admin يرى الكل).
 const navItems = computed(() =>
-  allNavItems.filter((item) => !item.permission || auth.can(item.permission)),
+  allNavItems.filter(
+    (item) => !item.permission || auth.canAny(typeof item.permission === 'string' ? [item.permission] : item.permission),
+  ),
 )
 
 const sidebarOpen = ref(false)

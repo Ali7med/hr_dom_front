@@ -60,6 +60,12 @@ const router = createRouter({
           meta: { permission: 'work_sites.view' },
         },
         {
+          path: 'schedule',
+          name: 'schedule',
+          component: () => import('@/features/schedule/ScheduleView.vue'),
+          meta: { permission: ['shifts.manage', 'schedules.manage'] },
+        },
+        {
           path: '403',
           name: 'forbidden',
           component: () => import('@/features/errors/ForbiddenView.vue'),

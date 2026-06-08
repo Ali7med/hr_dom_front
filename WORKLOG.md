@@ -17,6 +17,12 @@
 
 ---
 
+## [2026-06-08] FE-06 — الورديات والجدولة والعطل
+- ما أُنجز: وحدة بثلاثة تبويبات في `hr_dom_front`: **الورديات** (`/shifts` — اسم، بدء/انتهاء، ساعات، دقائق سماح، وسم «تمتد بعد منتصف الليل»)، **جداول الموظفين** (`/schedules` — إسناد موظف لوردية بنمط أسبوعي أو تاريخ محدّد، مع عرض «كل <يوم>»)، و**العطل الرسمية** (`/holidays` — تاريخ + اسم). CRUD كامل لكلٍّ بـ `v-can`.
+- الملفات الرئيسية: `src/api/schedule.ts`، `src/features/schedule/ScheduleView.vue`، `src/router/index.ts`، `src/layouts/AppLayout.vue`، `src/locales/{ar,en}.json`، و`src/api/schema.ts` (مُعاد توليده).
+- قرارات/ملاحظات: تحت Contract-First **وُثِّق العقد لـ BE-12 أولاً** (كان نائب TODO) في `hr_dom_docs` ثم أُعيد توليد الأنواع. الصلاحيات: الورديات/العطل بـ `shifts.manage`، الجداول بـ `schedules.manage` (لا `.view` في الباك)؛ المسار محميّ بـ canAny للاثنتين، وعنصر التنقّل يدعم قائمة صلاحيات. `weekday` باصطلاح Carbon (0=الأحد…6=السبت). يُقصّ التاريخ القادم من الباك (ISO كامل) إلى `YYYY-MM-DD` للعرض ولحقول `type=date`. الوقت يُقصّ إلى `HH:MM`. الحالة `review`.
+- الاختبارات: `type-check` و`build` يمرّان (chunk كسول 15.9KB)، لا أخطاء console. تحقّق حيّ مقابل الباك (Acme Admin): إنشاء وردية (201)، إسناد جدول أسبوعي «كل الأحد» (201)، إضافة عطلة (201)، وحذف عطلة (200) — كلها عبر الشبكة الحيّة.
+
 ## [2026-06-07] FE-05 — محرّر المواقع على الخريطة
 - ما أُنجز: وحدة مواقع العمل — قائمة/إنشاء/تعديل/حذف، ومحرّر خريطة (Leaflet + OpenStreetMap) لرسم نطاق geofence بالنقر (مضلّع) مع تراجع/مسح وتحميل المضلّع القائم. تُبنى الهندسة كـ GeoJSON Polygon (حلقة مغلقة، [lng,lat]) مع حساب المركز تلقائياً. الإجراءات بـ `v-can` (`work_sites.view`/`manage`).
 - الملفات الرئيسية: `src/api/worksites.ts`، `src/components/GeofenceMap.vue`، `src/features/worksites/WorkSitesView.vue`، `src/router/index.ts`، `src/layouts/AppLayout.vue`، `src/locales/{ar,en}.json` (+ حزمة `leaflet`).

@@ -130,11 +130,109 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** TODO: قائمة الورديات */
+        /** قائمة الورديات (يتطلّب shifts.manage) */
         get: operations["listShifts"];
         put?: never;
-        post?: never;
+        /** إنشاء وردية (يتطلّب shifts.manage) */
+        post: operations["createShift"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/shifts/{shift}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shift: number;
+            };
+            cookie?: never;
+        };
+        /** عرض وردية (يتطلّب shifts.manage) */
+        get: operations["showShift"];
+        /** تعديل وردية (يتطلّب shifts.manage) */
+        put: operations["updateShift"];
+        post?: never;
+        /** حذف وردية (يتطلّب shifts.manage) */
+        delete: operations["deleteShift"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/schedules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** قائمة جداول الموظفين (فلاتر user_id/from/to) (يتطلّب schedules.manage) */
+        get: operations["listSchedules"];
+        put?: never;
+        /** إسناد موظف إلى وردية بتاريخ أو نمط أسبوعي (يتطلّب schedules.manage) */
+        post: operations["createSchedule"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/schedules/{schedule}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schedule: number;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /** تعديل جدول (يتطلّب schedules.manage) */
+        put: operations["updateSchedule"];
+        post?: never;
+        /** حذف جدول (يتطلّب schedules.manage) */
+        delete: operations["deleteSchedule"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/holidays": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** قائمة العطل الرسمية للشركة (يتطلّب shifts.manage) */
+        get: operations["listHolidays"];
+        put?: never;
+        /** إضافة عطلة رسمية (يتطلّب shifts.manage) */
+        post: operations["createHoliday"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/holidays/{holiday}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                holiday: number;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /** تعديل عطلة رسمية (يتطلّب shifts.manage) */
+        put: operations["updateHoliday"];
+        post?: never;
+        /** حذف عطلة رسمية (يتطلّب shifts.manage) */
+        delete: operations["deleteHoliday"];
         options?: never;
         head?: never;
         patch?: never;
@@ -296,6 +394,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/payroll/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** توليد/إعادة توليد كشوف رواتب لفترة شهرية (يتطلّب payroll.generate) */
+        post: operations["generatePayroll"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/payroll": {
         parameters: {
             query?: never;
@@ -303,8 +418,42 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** TODO: كشوف الرواتب */
+        /** قائمة كشوف الرواتب (فلاتر period/user_id) (يتطلّب payroll.view) */
         get: operations["listPayroll"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/payroll/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** تصدير كشوف فترة مباشرةً إلى Excel/PDF (يتطلّب payroll.view) */
+        get: operations["exportPayroll"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/payroll/{payroll}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** تفاصيل كشف راتب (يتطلّب payroll.view) */
+        get: operations["getPayroll"];
         put?: never;
         post?: never;
         delete?: never;
@@ -399,6 +548,184 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/currencies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** قائمة العملات (يتطلّب currencies.view) */
+        get: operations["listCurrencies"];
+        put?: never;
+        /** إنشاء عملة (يتطلّب currencies.manage) */
+        post: operations["createCurrency"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/currencies/{currency}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** تعديل عملة (يتطلّب currencies.manage) */
+        put: operations["updateCurrency"];
+        post?: never;
+        /** حذف عملة غير مستخدمة (يتطلّب currencies.manage) */
+        delete: operations["deleteCurrency"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/fx-rates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** قائمة أسعار الصرف (فلتر اختياري currency_id) (يتطلّب currencies.view) */
+        get: operations["listFxRates"];
+        put?: never;
+        /** إضافة/تحديث سعر صرف لعملة بتاريخ سريان (يتطلّب currencies.manage) */
+        post: operations["upsertFxRate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/fx/convert": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** تحويل مبلغ بين عملتين بسعر تاريخ محدّد (يتطلّب currencies.view) */
+        get: operations["convertFx"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/salary-rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** قائمة قواعد رواتب الشركة (يتطلّب payroll.view) */
+        get: operations["listSalaryRules"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{user}/salary-rule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** قاعدة راتب موظف (يتطلّب payroll.view) */
+        get: operations["getUserSalaryRule"];
+        /** ضبط/تعديل قاعدة راتب موظف — قاعدة واحدة لكل موظف (يتطلّب payroll.manage_rules) */
+        put: operations["upsertUserSalaryRule"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/penalty-rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** شرائح عقوبات التأخير/الغياب (يتطلّب payroll.view) */
+        get: operations["listPenaltyRules"];
+        put?: never;
+        /** إنشاء شريحة عقوبة (يتطلّب payroll.manage_rules) */
+        post: operations["createPenaltyRule"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/penalty-rules/{penalty_rule}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** تعديل شريحة عقوبة (يتطلّب payroll.manage_rules) */
+        put: operations["updatePenaltyRule"];
+        post?: never;
+        /** حذف شريحة عقوبة (يتطلّب payroll.manage_rules) */
+        delete: operations["deletePenaltyRule"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/bonuses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** قائمة المكافآت/البدلات/الخصومات (فلاتر user_id/period/type) (يتطلّب payroll.view) */
+        get: operations["listBonuses"];
+        put?: never;
+        /** إضافة مكافأة/بدل/خصم لموظف لشهر (يتطلّب payroll.manage_rules) */
+        post: operations["createBonus"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/bonuses/{bonus}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** تعديل مكافأة/بدل/خصم (يتطلّب payroll.manage_rules) */
+        put: operations["updateBonus"];
+        post?: never;
+        /** حذف مكافأة/بدل/خصم (يتطلّب payroll.manage_rules) */
+        delete: operations["deleteBonus"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/webhooks": {
         parameters: {
             query?: never;
@@ -408,6 +735,58 @@ export interface paths {
         };
         /** TODO: إدارة الـ Webhooks */
         get: operations["listWebhooks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integration/clients": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** قائمة عملاء OAuth2 الخارجيين للشركة (يتطلّب integration.manage) */
+        get: operations["listExternalClients"];
+        put?: never;
+        /** إنشاء عميل client_credentials — السرّ يُعرض مرّة واحدة (يتطلّب integration.manage) */
+        post: operations["createExternalClient"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integration/clients/{client}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** إبطال عميل خارجي (يتطلّب integration.manage) */
+        delete: operations["revokeExternalClient"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integration/ping": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** فحص حياة للأنظمة الخارجية — يتطلّب توكن client_credentials بنطاق integration */
+        get: operations["integrationPing"];
         put?: never;
         post?: never;
         delete?: never;
@@ -791,6 +1170,130 @@ export interface components {
             /** @description فلاتر التقرير (from/to/period/department_id/user_id) */
             filters?: Record<string, never>;
         };
+        CurrencyInput: {
+            /**
+             * @description رمز ISO 4217 (يُخزَّن بأحرف كبيرة)
+             * @example USD
+             */
+            code: string;
+            /** @example US Dollar */
+            name: string;
+            /** @example $ */
+            symbol?: string | null;
+        };
+        FxRateInput: {
+            /** @description معرّف العملة */
+            currency_id: number;
+            /**
+             * Format: double
+             * @description قيمة وحدة من العملة مقابل العملة الأساسية المرجعية (IQD)
+             * @example 1300
+             */
+            rate_to_base: number;
+            /**
+             * Format: date
+             * @description تاريخ سريان السعر
+             */
+            effective_date: string;
+        };
+        SalaryRuleInput: {
+            /** Format: double */
+            base_salary: number;
+            currency_id: number;
+            overtime_mode: components["schemas"]["OvertimeMode"];
+            /**
+             * Format: double
+             * @description قيمة الإضافي (مطلوبة لكل وضع عدا manual)
+             */
+            overtime_value?: number | null;
+        };
+        PenaltyRuleInput: {
+            /** @enum {string} */
+            applies_to: "late" | "absence";
+            from_minutes: number;
+            /** @description نهاية النطاق (null = فما فوق) */
+            to_minutes?: number | null;
+            deduction_type: components["schemas"]["DeductionType"];
+            /**
+             * Format: double
+             * @description قيمة الخصم (نسبة ≤ 100 عند percent)
+             */
+            value: number;
+        };
+        BonusInput: {
+            user_id: number;
+            /**
+             * @description شهر بصيغة YYYY-MM
+             * @example 2026-06
+             */
+            period: string;
+            /** @enum {string} */
+            type: "bonus" | "allowance" | "deduction";
+            /** Format: double */
+            amount: number;
+            currency_id: number;
+            reason: string;
+        };
+        PayrollGenerateInput: {
+            /**
+             * @description الشهر المستهدف YYYY-MM
+             * @example 2026-06
+             */
+            period: string;
+            /** @description لتوليد كشف موظف واحد فقط (اختياري) */
+            user_id?: number | null;
+        };
+        ShiftInput: {
+            /** @example الوردية الصباحية */
+            name: string;
+            /**
+             * @description وقت البدء (HH:MM أو HH:MM:SS)
+             * @example 08:00
+             */
+            start_time: string;
+            /**
+             * @description وقت الانتهاء (HH:MM أو HH:MM:SS)
+             * @example 16:00
+             */
+            end_time: string;
+            /**
+             * Format: double
+             * @description عدد ساعات الوردية
+             * @example 8
+             */
+            hours: number;
+            /**
+             * @description دقائق السماح قبل احتساب التأخير
+             * @default 0
+             */
+            grace_minutes: number;
+            /** @description هل تمتدّ الوردية بعد منتصف الليل (يُضبط تلقائياً عند end_time ≤ start_time) */
+            crosses_midnight?: boolean;
+        };
+        /** @description يجب تحديد إمّا work_date (تاريخ محدّد) أو weekday (نمط أسبوعي متكرّر). */
+        ScheduleInput: {
+            /** @description معرّف الموظف (ضمن الشركة) */
+            user_id: number;
+            /** @description معرّف الوردية (ضمن الشركة) */
+            shift_id: number;
+            /**
+             * Format: date
+             * @description تاريخ يوم العمل (بديل weekday)
+             */
+            work_date?: string | null;
+            /** @description النمط الأسبوعي باصطلاح Carbon: 0=الأحد … 6=السبت (بديل work_date) */
+            weekday?: number | null;
+        };
+        HolidayInput: {
+            /**
+             * Format: date
+             * @description تاريخ العطلة (فريد لكل شركة)
+             * @example 2026-07-14
+             */
+            date: string;
+            /** @example عيد الثورة */
+            name: string;
+        };
     };
     responses: {
         /** @description استجابة خطأ موحّدة */
@@ -1013,7 +1516,200 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            200: components["responses"]["TodoResponse"];
+            200: components["responses"]["EnvelopeOk"];
+        };
+    };
+    createShift: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShiftInput"];
+            };
+        };
+        responses: {
+            201: components["responses"]["EnvelopeOk"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    showShift: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shift: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            404: components["responses"]["ErrorResponse"];
+        };
+    };
+    updateShift: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shift: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShiftInput"];
+            };
+        };
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    deleteShift: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                shift: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+        };
+    };
+    listSchedules: {
+        parameters: {
+            query?: {
+                user_id?: number;
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+        };
+    };
+    createSchedule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScheduleInput"];
+            };
+        };
+        responses: {
+            201: components["responses"]["EnvelopeOk"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    updateSchedule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schedule: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScheduleInput"];
+            };
+        };
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    deleteSchedule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schedule: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+        };
+    };
+    listHolidays: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+        };
+    };
+    createHoliday: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HolidayInput"];
+            };
+        };
+        responses: {
+            201: components["responses"]["EnvelopeOk"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    updateHoliday: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                holiday: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HolidayInput"];
+            };
+        };
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    deleteHoliday: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                holiday: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
         };
     };
     listAttendance: {
@@ -1175,16 +1871,80 @@ export interface operations {
             200: components["responses"]["EnvelopeOk"];
         };
     };
-    listPayroll: {
+    generatePayroll: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PayrollGenerateInput"];
+            };
+        };
+        responses: {
+            201: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    listPayroll: {
+        parameters: {
+            query?: {
+                period?: string;
+                user_id?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
         requestBody?: never;
         responses: {
-            200: components["responses"]["TodoResponse"];
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+        };
+    };
+    exportPayroll: {
+        parameters: {
+            query: {
+                period: string;
+                format: "excel" | "pdf";
+                user_id?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description ملف الكشوف (Excel/PDF) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
+                };
+            };
+            403: components["responses"]["ErrorResponse"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    getPayroll: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                payroll: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+            404: components["responses"]["ErrorResponse"];
         };
     };
     getAttendanceReport: {
@@ -1307,6 +2067,313 @@ export interface operations {
             409: components["responses"]["ErrorResponse"];
         };
     };
+    listCurrencies: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+        };
+    };
+    createCurrency: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CurrencyInput"];
+            };
+        };
+        responses: {
+            201: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    updateCurrency: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                currency: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CurrencyInput"];
+            };
+        };
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    deleteCurrency: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                currency: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    listFxRates: {
+        parameters: {
+            query?: {
+                currency_id?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+        };
+    };
+    upsertFxRate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FxRateInput"];
+            };
+        };
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            201: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    convertFx: {
+        parameters: {
+            query: {
+                from: string;
+                to: string;
+                amount: number;
+                date?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    listSalaryRules: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+        };
+    };
+    getUserSalaryRule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+            404: components["responses"]["ErrorResponse"];
+        };
+    };
+    upsertUserSalaryRule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalaryRuleInput"];
+            };
+        };
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            201: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+            404: components["responses"]["ErrorResponse"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    listPenaltyRules: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+        };
+    };
+    createPenaltyRule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PenaltyRuleInput"];
+            };
+        };
+        responses: {
+            201: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    updatePenaltyRule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                penalty_rule: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PenaltyRuleInput"];
+            };
+        };
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    deletePenaltyRule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                penalty_rule: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+        };
+    };
+    listBonuses: {
+        parameters: {
+            query?: {
+                user_id?: number;
+                period?: string;
+                type?: "bonus" | "allowance" | "deduction";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+        };
+    };
+    createBonus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BonusInput"];
+            };
+        };
+        responses: {
+            201: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    updateBonus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bonus: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BonusInput"];
+            };
+        };
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    deleteBonus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bonus: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+        };
+    };
     listWebhooks: {
         parameters: {
             query?: never;
@@ -1317,6 +2384,68 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: components["responses"]["TodoResponse"];
+        };
+    };
+    listExternalClients: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+        };
+    };
+    createExternalClient: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    name: string;
+                };
+            };
+        };
+        responses: {
+            201: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    revokeExternalClient: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                client: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+            404: components["responses"]["ErrorResponse"];
+        };
+    };
+    integrationPing: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            401: components["responses"]["ErrorResponse"];
         };
     };
     postEmployeesSync: {
