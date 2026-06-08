@@ -64,6 +64,19 @@
   },
   "dashboard": {
     "subtitle": "Company data overview — {period}",
+    "customize": "Customize",
+    "done": "Done",
+    "dragHint": "Drag widgets to rearrange, or add/remove. Your layout is saved automatically.",
+    "addWidget": "Add widget",
+    "allAdded": "All widgets added.",
+    "resetDefault": "Reset default",
+    "removeWidget": "Remove widget",
+    "emptyLayout": "Your dashboard is empty — click \"Customize\" and add widgets.",
+    "w": {
+      "quickActions": "Quick actions",
+      "kpis": "Key metrics",
+      "payroll": "Payroll summary"
+    },
     "needsAction": "Needs action",
     "pendingLeavesAction": "{n} leave requests awaiting approval",
     "pendingDevicesAction": "{n} device requests awaiting approval",

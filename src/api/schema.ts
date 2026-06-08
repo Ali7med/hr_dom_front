@@ -21,6 +21,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/health/ready": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** فحص جاهزية عميق (قاعدة البيانات/الكاش/الطابور) — للمراقبة والنشر (BE-46) */
+        get: operations["getHealthReady"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/login": {
         parameters: {
             query?: never;
@@ -1900,6 +1917,19 @@ export interface operations {
                     };
                 };
             };
+        };
+    };
+    getHealthReady: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            503: components["responses"]["ErrorResponse"];
         };
     };
     postAuthLogin: {
