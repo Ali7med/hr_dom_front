@@ -17,6 +17,12 @@
 
 ---
 
+## [2026-06-08] FE-10 — واجهة الرواتب
+- ما أُنجز: شاشة رواتب في `hr_dom_front` (`src/features/payroll/PayrollView.vue`): فلتر الشهر/الموظف، عرض كشوف الفترة (قائمة: الموظف/الشهر/الأساسي/الخصومات/الصافي بعملة الكشف)، توليد الرواتب (`payroll.generate`)، تصدير Excel/PDF مباشر، ولوحة تفاصيل الكشف (الأساسي/الإضافي/المكافآت/الخصومات/الصافي + breakdown: أيام العمل/الأجر اليومي/التأخير/الغياب…). **بدون لمس العقد** (أنواع يدوية في `src/api/payroll.ts`).
+- الملفات الرئيسية: `src/api/payroll.ts`، `src/features/payroll/PayrollView.vue`، `src/router/index.ts`، `src/layouts/AppLayout.vue`، `src/locales/{ar,en}.json`.
+- قرارات/ملاحظات: أُعيد استخدام `saveBlob` من `reports.ts` للتنزيل. الصلاحيات: عرض/تصدير `payroll.view`، توليد `payroll.generate`. لم يُلمَس العقد ولا الباك. الحالة `review`.
+- الاختبارات: `type-check`+`build` خضراء، لا أخطاء console. تحقّق حيّ جزئي (Acme Admin): الشاشة تُحمّل، `GET /payroll` = 200 (فارغ)، الفلاتر/الأزرار تعمل. **مسار البيانات الكامل (توليد كشف + تفاصيل) لم يُتحقَّق حيّاً** لأنه يتطلّب تهيئة عملة + قاعدة راتب لموظف — وهي تهيئة بيانات من نطاق جلسة الباك (احتُرم الحدّ، لم أُنشئها).
+
 ## [2026-06-08] FE-09 — التقارير
 - ما أُنجز: شاشة تقارير في `hr_dom_front` (`src/features/reports/ReportsView.vue`): اختيار نوع التقرير (الحضور/التأخير والغياب/كشف الدوام) + فلاتر (من/إلى/الشهر/القسم/الموظف) + جدول ديناميكي يُبنى من `meta.report.headings` و`data` القادمين من الباك + تصدير مباشر Excel/PDF (تنزيل Blob). **بدون لمس العقد** (أنواع TypeScript يدوية في `src/api/reports.ts`) لتفادي التضارب مع جلسة الباك.
 - الملفات الرئيسية: `src/api/reports.ts`، `src/features/reports/ReportsView.vue`، `src/router/index.ts`، `src/layouts/AppLayout.vue`، `src/locales/{ar,en}.json`.

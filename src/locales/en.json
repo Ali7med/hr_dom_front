@@ -52,7 +52,8 @@
     "schedule": "Shifts & scheduling",
     "deviceRequests": "Device requests",
     "leaves": "Leaves",
-    "reports": "Reports"
+    "reports": "Reports",
+    "payroll": "Payroll"
   },
   "home": {
     "welcome": "Welcome to the dashboard",
@@ -253,6 +254,42 @@
     "incident": {
       "late": "Late",
       "absent": "Absent"
+    }
+  },
+  "payroll": {
+    "title": "Payroll",
+    "period": "Month",
+    "employee": "Employee",
+    "allEmployees": "All employees",
+    "view": "View payslips",
+    "generate": "Generate payroll",
+    "exportExcel": "Export Excel",
+    "exportPdf": "Export PDF",
+    "exportError": "Could not export payslips.",
+    "periodRequired": "Select a month first.",
+    "confirmGenerate": "Generate/regenerate payroll for {period}?",
+    "generated": "Generated {n} payslips.",
+    "empty": "No payslips. Pick a month and view or generate.",
+    "base": "Base salary",
+    "overtime": "Overtime",
+    "bonuses": "Bonuses",
+    "deductions": "Deductions",
+    "lateDeduction": "Late deduction",
+    "absenceDeduction": "Absence deduction",
+    "unpaidLeaveDeduction": "Unpaid leave deduction",
+    "net": "Net",
+    "details": "Details",
+    "payslipOf": "Payslip — {name} — {period}",
+    "breakdown": "Breakdown",
+    "bd": {
+      "working_days": "Working days",
+      "daily_rate": "Daily rate",
+      "hourly_rate": "Hourly rate",
+      "late_days": "Late days",
+      "absent_days": "Absent days",
+      "unpaid_leave_days": "Unpaid leave days",
+      "overtime_hours": "Overtime hours",
+      "overtime_mode": "Overtime mode"
     }
   },
   "permGroups": {

@@ -52,7 +52,8 @@
     "schedule": "الورديات والجدولة",
     "deviceRequests": "طلبات الأجهزة",
     "leaves": "الإجازات",
-    "reports": "التقارير"
+    "reports": "التقارير",
+    "payroll": "الرواتب"
   },
   "home": {
     "welcome": "مرحباً بك في لوحة التحكم",
@@ -253,6 +254,42 @@
     "incident": {
       "late": "تأخير",
       "absent": "غياب"
+    }
+  },
+  "payroll": {
+    "title": "الرواتب",
+    "period": "الشهر",
+    "employee": "الموظف",
+    "allEmployees": "كل الموظفين",
+    "view": "عرض الكشوف",
+    "generate": "توليد الرواتب",
+    "exportExcel": "تصدير Excel",
+    "exportPdf": "تصدير PDF",
+    "exportError": "تعذّر تصدير الكشوف.",
+    "periodRequired": "اختر الشهر أولاً.",
+    "confirmGenerate": "توليد/إعادة توليد رواتب شهر {period}؟",
+    "generated": "تم توليد {n} كشف راتب.",
+    "empty": "لا توجد كشوف. اختر شهراً واعرض أو ولّد.",
+    "base": "الراتب الأساسي",
+    "overtime": "الإضافي",
+    "bonuses": "المكافآت",
+    "deductions": "الخصومات",
+    "lateDeduction": "خصم التأخير",
+    "absenceDeduction": "خصم الغياب",
+    "unpaidLeaveDeduction": "خصم إجازة غير مدفوعة",
+    "net": "الصافي",
+    "details": "تفاصيل",
+    "payslipOf": "كشف {name} — {period}",
+    "breakdown": "التفصيل",
+    "bd": {
+      "working_days": "أيام العمل",
+      "daily_rate": "الأجر اليومي",
+      "hourly_rate": "أجر الساعة",
+      "late_days": "أيام التأخير",
+      "absent_days": "أيام الغياب",
+      "unpaid_leave_days": "إجازات غير مدفوعة",
+      "overtime_hours": "ساعات إضافية",
+      "overtime_mode": "نمط الإضافي"
     }
   },
   "permGroups": {

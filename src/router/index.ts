@@ -84,6 +84,12 @@ const router = createRouter({
           meta: { permission: 'reports.view' },
         },
         {
+          path: 'payroll',
+          name: 'payroll',
+          component: () => import('@/features/payroll/PayrollView.vue'),
+          meta: { permission: 'payroll.view' },
+        },
+        {
           path: '403',
           name: 'forbidden',
           component: () => import('@/features/errors/ForbiddenView.vue'),
