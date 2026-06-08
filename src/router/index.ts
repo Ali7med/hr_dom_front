@@ -90,6 +90,12 @@ const router = createRouter({
           meta: { permission: 'payroll.view' },
         },
         {
+          path: 'payroll-config',
+          name: 'payroll-config',
+          component: () => import('@/features/payroll-config/PayrollConfigView.vue'),
+          meta: { permission: ['payroll.view', 'currencies.view'] },
+        },
+        {
           path: '403',
           name: 'forbidden',
           component: () => import('@/features/errors/ForbiddenView.vue'),

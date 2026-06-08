@@ -17,6 +17,12 @@
 
 ---
 
+## [2026-06-08] FE-11 — قواعد الرواتب (عملات/قواعد راتب/عقوبات/مكافآت)
+- ما أُنجز: شاشة إدارة بأربعة تبويبات في `hr_dom_front` (`src/features/payroll-config/PayrollConfigView.vue`) فوق BE-30/BE-31: **العملات** (CRUD)، **قواعد الراتب** لكل موظف (أساسي/عملة/نمط الإضافي)، **شرائح العقوبات** (تأخير/غياب، نطاق دقائق، نسبة/ثابت)، و**المكافآت/البدلات/الخصومات** (لكل موظف/شهر). **بدون لمس العقد** (أنواع يدوية في `src/api/payrollConfig.ts`). أُنشئت لسدّ فجوة: BE-31 كان بلا واجهة.
+- الملفات الرئيسية: `src/api/payrollConfig.ts`، `src/features/payroll-config/PayrollConfigView.vue`، `src/router/index.ts`، `src/layouts/AppLayout.vue`، `src/locales/{ar,en}.json`.
+- قرارات/ملاحظات: الصلاحيات: العملات `currencies.view`/`currencies.manage`، الباقي `payroll.view`/`payroll.manage_rules`؛ المسار/التنقّل canAny. اختيار الموظف في قاعدة الراتب يحمّل قاعدته الحالية. لم يُلمَس العقد ولا الباك. الحالة `review`.
+- الاختبارات: `type-check`+`build` خضراء، لا أخطاء console. تحقّق حيّ (Acme Admin): كل القراءات 200 (عملات/قواعد/عقوبات/مكافآت)؛ **إنشاء عملة IQD (201)** و**ضبط قاعدة راتب لـ Test Worker (1,000,000 IQD)** عبر الواجهة — بهذا تكتمل تهيئة بيانات FE-10. (توليد كشف الراتب نفسه مُنع بحاجز الأمان — خطوة واحدة يقوم بها المستخدم.)
+
 ## [2026-06-08] FE-10 — واجهة الرواتب
 - ما أُنجز: شاشة رواتب في `hr_dom_front` (`src/features/payroll/PayrollView.vue`): فلتر الشهر/الموظف، عرض كشوف الفترة (قائمة: الموظف/الشهر/الأساسي/الخصومات/الصافي بعملة الكشف)، توليد الرواتب (`payroll.generate`)، تصدير Excel/PDF مباشر، ولوحة تفاصيل الكشف (الأساسي/الإضافي/المكافآت/الخصومات/الصافي + breakdown: أيام العمل/الأجر اليومي/التأخير/الغياب…). **بدون لمس العقد** (أنواع يدوية في `src/api/payroll.ts`).
 - الملفات الرئيسية: `src/api/payroll.ts`، `src/features/payroll/PayrollView.vue`، `src/router/index.ts`، `src/layouts/AppLayout.vue`، `src/locales/{ar,en}.json`.

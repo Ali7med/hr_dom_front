@@ -29,6 +29,7 @@ const allNavItems: NavItem[] = [
   { to: { name: 'leaves' }, key: 'nav.leaves', icon: '🌴', permission: 'leaves.view' },
   { to: { name: 'reports' }, key: 'nav.reports', icon: '📊', permission: 'reports.view' },
   { to: { name: 'payroll' }, key: 'nav.payroll', icon: '💰', permission: 'payroll.view' },
+  { to: { name: 'payroll-config' }, key: 'nav.payrollConfig', icon: '⚙️', permission: ['payroll.view', 'currencies.view'] },
 ]
 // تُعرض العناصر التي يملك المستخدم صلاحيتها فقط (Super Admin يرى الكل).
 const navItems = computed(() =>
