@@ -709,6 +709,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** جلب تفضيلات المستخدم الحالي (تخطيط لوحة المعلومات…) */
+        get: operations["getMyPreferences"];
+        /** حفظ/دمج تفضيلات المستخدم الحالي (دمج سطحي مع المخزّن) */
+        put: operations["updateMyPreferences"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/payroll/generate": {
         parameters: {
             query?: never;
@@ -1830,6 +1848,15 @@ export interface components {
             /** @description كلمة مرور اختيارية (تُولَّد عشوائياً عند الإنشاء بدونها) */
             password?: string | null;
         };
+        /** @description كائن تفضيلات حرّ (دمج سطحي مع المخزّن). يبدأ بتخطيط لوحة المعلومات وقابل للتوسّع لاحقاً (اللغة/الثيم…). يُنصح بحدّ أقصى للحجم 16KB. */
+        UserPreferencesInput: {
+            dashboard?: {
+                /** @description ترتيب بطاقات لوحة المعلومات */
+                layout?: string[];
+            };
+        } & {
+            [key: string]: unknown;
+        };
         EmployeeSyncInput: {
             employees: components["schemas"]["EmployeeSyncItem"][];
         };
@@ -2900,6 +2927,35 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: components["responses"]["EnvelopeOk"];
+        };
+    };
+    getMyPreferences: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+        };
+    };
+    updateMyPreferences: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserPreferencesInput"];
+            };
+        };
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            422: components["responses"]["ErrorResponse"];
         };
     };
     generatePayroll: {
