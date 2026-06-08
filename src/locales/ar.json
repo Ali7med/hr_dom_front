@@ -21,7 +21,9 @@
     "delete": "حذف",
     "loading": "جارٍ التحميل…",
     "loadError": "تعذّر تحميل البيانات.",
-    "saveError": "تعذّر حفظ التغييرات."
+    "saveError": "تعذّر حفظ التغييرات.",
+    "yes": "نعم",
+    "no": "لا"
   },
   "auth": {
     "loginSubtitle": "ادخل بياناتك للوصول إلى لوحة التحكم",
@@ -48,7 +50,8 @@
     "roles": "الأدوار",
     "worksites": "مواقع العمل",
     "schedule": "الورديات والجدولة",
-    "deviceRequests": "طلبات الأجهزة"
+    "deviceRequests": "طلبات الأجهزة",
+    "leaves": "الإجازات"
   },
   "home": {
     "welcome": "مرحباً بك في لوحة التحكم",
@@ -159,6 +162,59 @@
     "empty": "لا توجد طلبات معلّقة.",
     "confirmApprove": "الموافقة على طلب جهاز \"{name}\"؟",
     "confirmReject": "رفض طلب جهاز \"{name}\"؟"
+  },
+  "leaves": {
+    "title": "إدارة الإجازات والموافقات",
+    "tabRequests": "الطلبات",
+    "tabTypes": "أنواع الإجازات",
+    "tabBalances": "الأرصدة",
+    "status": "الحالة",
+    "allStatuses": "كل الحالات",
+    "employee": "الموظف",
+    "type": "النوع",
+    "period": "المدّة",
+    "startAt": "من تاريخ",
+    "endAt": "إلى تاريخ",
+    "newRequest": "طلب بالنيابة",
+    "approve": "موافقة",
+    "reject": "رفض",
+    "emptyRequests": "لا توجد طلبات.",
+    "confirmApprove": "الموافقة على إجازة \"{name}\"؟",
+    "confirmReject": "رفض إجازة \"{name}\"؟",
+    "addType": "إضافة نوع",
+    "editType": "تعديل النوع",
+    "typeName": "اسم النوع",
+    "kind": "الصنف",
+    "affectsBalance": "يؤثّر على الرصيد",
+    "affectsNone": "لا يؤثّر",
+    "needsApproval": "يتطلّب موافقة",
+    "isPaid": "مدفوعة",
+    "emptyTypes": "لا توجد أنواع إجازات بعد.",
+    "confirmDeleteType": "حذف نوع الإجازة \"{name}\"؟",
+    "chooseEmployee": "اختر موظفاً",
+    "balanceType": "نوع الرصيد",
+    "days": "الأيام",
+    "emptyBalances": "لا توجد أرصدة لهذا الموظف.",
+    "setBalance": "ضبط رصيد",
+    "mode": "الوضع",
+    "modeSet": "ضبط مطلق",
+    "modeIncrement": "زيادة"
+  },
+  "leaveKind": {
+    "hourly": "زمنية",
+    "daily": "يومية",
+    "long": "طويلة",
+    "sick": "مرضية"
+  },
+  "leaveStatus": {
+    "pending": "معلّقة",
+    "approved": "معتمدة",
+    "rejected": "مرفوضة",
+    "auto": "تلقائية"
+  },
+  "leaveBalanceType": {
+    "normal": "اعتيادي",
+    "sick": "مرضي"
   },
   "permGroups": {
     "companies": "الشركات",

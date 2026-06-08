@@ -21,7 +21,9 @@
     "delete": "Delete",
     "loading": "Loading…",
     "loadError": "Could not load data.",
-    "saveError": "Could not save changes."
+    "saveError": "Could not save changes.",
+    "yes": "Yes",
+    "no": "No"
   },
   "auth": {
     "loginSubtitle": "Enter your credentials to access the dashboard",
@@ -48,7 +50,8 @@
     "roles": "Roles",
     "worksites": "Work sites",
     "schedule": "Shifts & scheduling",
-    "deviceRequests": "Device requests"
+    "deviceRequests": "Device requests",
+    "leaves": "Leaves"
   },
   "home": {
     "welcome": "Welcome to the dashboard",
@@ -159,6 +162,59 @@
     "empty": "No pending requests.",
     "confirmApprove": "Approve device request for \"{name}\"?",
     "confirmReject": "Reject device request for \"{name}\"?"
+  },
+  "leaves": {
+    "title": "Leave management & approvals",
+    "tabRequests": "Requests",
+    "tabTypes": "Leave types",
+    "tabBalances": "Balances",
+    "status": "Status",
+    "allStatuses": "All statuses",
+    "employee": "Employee",
+    "type": "Type",
+    "period": "Period",
+    "startAt": "From",
+    "endAt": "To",
+    "newRequest": "Request on behalf",
+    "approve": "Approve",
+    "reject": "Reject",
+    "emptyRequests": "No requests.",
+    "confirmApprove": "Approve leave for \"{name}\"?",
+    "confirmReject": "Reject leave for \"{name}\"?",
+    "addType": "Add type",
+    "editType": "Edit type",
+    "typeName": "Type name",
+    "kind": "Kind",
+    "affectsBalance": "Affects balance",
+    "affectsNone": "None",
+    "needsApproval": "Needs approval",
+    "isPaid": "Paid",
+    "emptyTypes": "No leave types yet.",
+    "confirmDeleteType": "Delete leave type \"{name}\"?",
+    "chooseEmployee": "Choose an employee",
+    "balanceType": "Balance type",
+    "days": "Days",
+    "emptyBalances": "No balances for this employee.",
+    "setBalance": "Set balance",
+    "mode": "Mode",
+    "modeSet": "Set absolute",
+    "modeIncrement": "Increment"
+  },
+  "leaveKind": {
+    "hourly": "Hourly",
+    "daily": "Daily",
+    "long": "Long",
+    "sick": "Sick"
+  },
+  "leaveStatus": {
+    "pending": "Pending",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "auto": "Auto"
+  },
+  "leaveBalanceType": {
+    "normal": "Normal",
+    "sick": "Sick"
   },
   "permGroups": {
     "companies": "Companies",

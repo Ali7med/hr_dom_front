@@ -17,6 +17,12 @@
 
 ---
 
+## [2026-06-08] FE-08 — إدارة الإجازات والموافقات
+- ما أُنجز: وحدة بثلاثة تبويبات في `hr_dom_front` (`src/features/leaves/LeavesView.vue`): **الطلبات** (قائمة بفلتر حالة + موافقة/رفض للمعلّقة + تقديم بالنيابة)، **أنواع الإجازات** (CRUD: الصنف/يتطلّب موافقة/يؤثّر على الرصيد/مدفوعة)، و**الأرصدة** (اختيار موظف → عرض أرصدته + ضبط set/increment). وتحت Contract-First: **استُكمل عقد BE-20** (مسارات `{id}` + فلاتر + أجسام الطلبات + مخطّطات Input) ثم أُعيد توليد الأنواع.
+- الملفات الرئيسية: `src/api/leaves.ts`، `src/features/leaves/LeavesView.vue`، `src/router/index.ts`، `src/layouts/AppLayout.vue`، `src/locales/{ar,en}.json`، و`src/api/schema.ts` (مُعاد توليده).
+- قرارات/ملاحظات: الصلاحيات: عرض `leaves.view`، اعتماد/رفض `leaves.approve`، أنواع/أرصدة `leaves.manage_balances`. يُقصّ التاريخ ISO إلى `YYYY-MM-DD`. أخطاء الباك (مثل «الرصيد غير كافٍ») تُعرض في تنبيه عبر `ApiException`. الحالة `review`.
+- الاختبارات: `type-check` و`build` خضراء، لا أخطاء console. سلسلة حيّة كاملة مقابل الباك (Acme Admin): إنشاء نوع «إجازة سنوية» (201) → طلب بالنيابة لـ Test Worker (201، معلّقة) → موافقة مرفوضة بـ«الرصيد غير كافٍ» (عُرض الخطأ) → ضبط رصيد اعتيادي 10 (200) → موافقة ناجحة (الحالة «معتمدة»).
+
 ## [2026-06-08] FE-07 — موافقات إعادة ربط الأجهزة
 - ما أُنجز: شاشة لوحة التحكم لطلبات إعادة ربط الأجهزة المعلّقة (`src/features/devices/DeviceRebindView.vue`): قائمة الطلبات (الموظف + الرقم الوظيفي + معرّف الجهاز الجديد + تاريخ الطلب) مع زرّي **موافقة/رفض** وتحديث، كلها بـ `v-can="'devices.rebind_approve'"`. وتحت Contract-First **وُثِّق عقد BE-11 أولاً** (كان غائباً) ثم أُعيد توليد الأنواع.
 - الملفات الرئيسية: `src/api/devices.ts`، `src/features/devices/DeviceRebindView.vue`، `src/router/index.ts`، `src/layouts/AppLayout.vue`، `src/locales/{ar,en}.json`، و`src/api/schema.ts` (مُعاد توليده).

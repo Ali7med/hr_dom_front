@@ -72,6 +72,12 @@ const router = createRouter({
           meta: { permission: 'devices.rebind_approve' },
         },
         {
+          path: 'leaves',
+          name: 'leaves',
+          component: () => import('@/features/leaves/LeavesView.vue'),
+          meta: { permission: 'leaves.view' },
+        },
+        {
           path: '403',
           name: 'forbidden',
           component: () => import('@/features/errors/ForbiddenView.vue'),
