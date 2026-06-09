@@ -45,7 +45,9 @@
   "layout": {
     "logout": "Sign out",
     "menu": "Menu",
-    "collapse": "Collapse"
+    "collapse": "Collapse",
+    "pin": "Pin menu",
+    "unpin": "Unpin menu"
   },
   "nav": {
     "dashboard": "Dashboard",

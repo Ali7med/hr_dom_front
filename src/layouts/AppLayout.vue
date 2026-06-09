@@ -53,16 +53,24 @@ const pageTitle = computed(() => {
   return t('app.title')
 })
 
-// طيّ الشريط الجانبي إلى شريط أيقونات على الشاشات الكبيرة (محفوظ).
-// الشريط ظاهر دائماً على كل الشاشات (أيقونات على الصغيرة، كامل على الكبيرة).
-const COLLAPSE_KEY = 'hr_dom.sidebar.collapsed'
-const collapsed = ref(localStorage.getItem(COLLAPSE_KEY) === '1')
-function toggleCollapse(): void {
-  collapsed.value = !collapsed.value
-  localStorage.setItem(COLLAPSE_KEY, collapsed.value ? '1' : '0')
+// سلوك الشريط الجانبي:
+// - افتراضياً مغلق (شريط أيقونات)، ينفتح عند التمرير/التركيز ويُغلق عند المغادرة.
+// - زر «التثبيت» بالأسفل يجعله ثابتاً مفتوحاً (يلغي الانغلاق التلقائي). الحالة محفوظة.
+const PIN_KEY = 'hr_dom.sidebar.pinned'
+const pinned = ref(localStorage.getItem(PIN_KEY) === '1')
+const hovered = ref(false)
+const expanded = computed(() => pinned.value || hovered.value)
+const showLabels = computed(() => expanded.value)
+function togglePin(): void {
+  pinned.value = !pinned.value
+  localStorage.setItem(PIN_KEY, pinned.value ? '1' : '0')
+  hovered.value = false
 }
-// تُعرض التسميات فقط على الشاشات الكبيرة وعند عدم الطيّ — الباقي شريط أيقونات.
-const showLabels = computed(() => !collapsed.value)
+// عند خروج التركيز من الشريط بالكامل (لوحة المفاتيح) → أغلقه إن لم يكن مثبّتاً.
+function onSidebarFocusOut(e: FocusEvent): void {
+  const aside = e.currentTarget as HTMLElement
+  if (!aside.contains(e.relatedTarget as Node | null)) hovered.value = false
+}
 
 // قائمة المستخدم المنبثقة.
 const userMenu = ref()
@@ -88,21 +96,28 @@ async function onLogout(): Promise<void> {
 
 <template>
   <div class="flex min-h-svh bg-surface-50 text-surface-800 dark:bg-surface-950 dark:text-surface-100">
-    <!-- ===== الشريط الجانبي (ظاهر دائماً على كل الشاشات: أيقونات صغيراً، كامل كبيراً) ===== -->
+    <!-- حاجز يحجز عرض الشريط في التخطيط (عرض الرِيل عند عدم التثبيت، كامل عند التثبيت) -->
+    <div class="shrink-0 transition-[width] duration-200" :class="pinned ? 'w-64' : 'w-[4.75rem]'" aria-hidden="true" />
+
+    <!-- ===== الشريط الجانبي (مغلق افتراضياً، ينفتح بالتمرير، أو ثابت عند التثبيت) ===== -->
     <aside
-      class="sticky top-0 z-30 flex h-svh w-[4.75rem] shrink-0 flex-col border-e border-surface-200 bg-white transition-[width] duration-200 dark:border-surface-800 dark:bg-surface-900"
-      :class="collapsed ? 'lg:w-[4.75rem]' : 'lg:w-64'"
+      class="fixed inset-y-0 start-0 z-40 flex h-svh flex-col border-e border-surface-200 bg-white transition-[width] duration-200 dark:border-surface-800 dark:bg-surface-900"
+      :class="[expanded ? 'w-64' : 'w-[4.75rem]', !pinned && expanded ? 'shadow-2xl' : '']"
+      @mouseenter="hovered = true"
+      @mouseleave="hovered = false"
+      @focusin="hovered = true"
+      @focusout="onSidebarFocusOut"
     >
       <!-- الشعار -->
-      <div class="flex h-16 items-center gap-3 border-b border-surface-200 px-3 dark:border-surface-800" :class="showLabels ? 'lg:px-5' : 'justify-center'">
+      <div class="flex h-16 items-center gap-3 border-b border-surface-200 px-3 dark:border-surface-800" :class="showLabels ? 'px-5' : 'justify-center'">
         <span class="grid size-9 shrink-0 place-items-center rounded-xl bg-primary text-primary-contrast">
           <i class="pi pi-clock text-lg" />
         </span>
-        <span v-if="showLabels" class="hidden truncate text-base font-bold tracking-tight lg:inline">{{ t('app.title') }}</span>
+        <span v-if="showLabels" class="truncate text-base font-bold tracking-tight">{{ t('app.title') }}</span>
       </div>
 
       <!-- روابط التنقّل -->
-      <nav class="flex-1 space-y-1 overflow-y-auto p-2 lg:p-3">
+      <nav class="flex-1 space-y-1 overflow-y-auto overflow-x-hidden p-2">
         <RouterLink
           v-for="item in navItems"
           :key="item.key"
@@ -110,24 +125,29 @@ async function onLogout(): Promise<void> {
           v-tooltip="{ value: t(item.key), disabled: showLabels, showDelay: 120 }"
           class="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-surface-600 transition hover:bg-surface-100 hover:text-surface-900 dark:text-surface-300 dark:hover:bg-surface-800 dark:hover:text-white"
           active-class="!bg-primary-50 !text-primary-700 dark:!bg-primary-500/15 dark:!text-primary-300"
-          :class="showLabels ? 'justify-center lg:justify-start' : 'justify-center'"
-          @click="userMenu?.hide?.()"
+          :class="showLabels ? 'justify-start' : 'justify-center'"
         >
           <i :class="item.icon" class="shrink-0 text-lg" />
-          <span v-if="showLabels" class="hidden truncate lg:inline">{{ t(item.key) }}</span>
+          <span v-if="showLabels" class="truncate">{{ t(item.key) }}</span>
         </RouterLink>
       </nav>
 
-      <!-- زر الطيّ (شاشات كبيرة فقط) -->
-      <div class="hidden border-t border-surface-200 p-3 dark:border-surface-800 lg:block">
+      <!-- زر التثبيت (يجعل القائمة ثابتة مفتوحة بدل الانغلاق التلقائي) -->
+      <div class="border-t border-surface-200 p-2 dark:border-surface-800">
         <button
           type="button"
-          class="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-surface-500 transition hover:bg-surface-100 dark:text-surface-400 dark:hover:bg-surface-800"
-          :class="collapsed ? 'justify-center' : ''"
-          @click="toggleCollapse"
+          v-tooltip="{ value: pinned ? t('layout.unpin') : t('layout.pin'), disabled: showLabels, showDelay: 120 }"
+          class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition"
+          :class="[
+            showLabels ? 'justify-start' : 'justify-center',
+            pinned
+              ? 'bg-primary-50 text-primary-700 dark:bg-primary-500/15 dark:text-primary-300'
+              : 'text-surface-500 hover:bg-surface-100 dark:text-surface-400 dark:hover:bg-surface-800',
+          ]"
+          @click="togglePin"
         >
-          <i class="pi text-lg" :class="collapsed ? 'pi-angle-double-right rtl:pi-angle-double-left' : 'pi-angle-double-left rtl:pi-angle-double-right'" />
-          <span v-if="!collapsed" class="truncate">{{ t('layout.collapse') }}</span>
+          <i class="pi shrink-0 text-lg" :class="pinned ? 'pi-lock' : 'pi-lock-open'" />
+          <span v-if="showLabels" class="truncate">{{ pinned ? t('layout.unpin') : t('layout.pin') }}</span>
         </button>
       </div>
     </aside>
