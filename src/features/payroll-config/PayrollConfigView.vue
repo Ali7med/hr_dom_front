@@ -1,6 +1,20 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useConfirm } from 'primevue/useconfirm'
+import { useToast } from 'primevue/usetoast'
+import Tabs from 'primevue/tabs'
+import TabList from 'primevue/tablist'
+import Tab from 'primevue/tab'
+import TabPanels from 'primevue/tabpanels'
+import TabPanel from 'primevue/tabpanel'
+import DataTable from 'primevue/datatable'
+import Column from 'primevue/column'
+import Button from 'primevue/button'
+import Dialog from 'primevue/dialog'
+import InputText from 'primevue/inputtext'
+import InputNumber from 'primevue/inputnumber'
+import Select from 'primevue/select'
 import { ApiException } from '@/api/client'
 import {
   currenciesApi, salaryRulesApi, penaltyRulesApi, bonusesApi,
@@ -8,13 +22,16 @@ import {
   type OvertimeMode, type PenaltyAppliesTo, type DeductionType, type BonusType,
 } from '@/api/payrollConfig'
 import { usersApi, type User } from '@/api/users'
+import PageHeader from '@/components/PageHeader.vue'
 
 const { t } = useI18n()
+const confirm = useConfirm()
+const toast = useToast()
 
 type Tab = 'currencies' | 'salary' | 'penalties' | 'bonuses'
 const tab = ref<Tab>('currencies')
-const error = ref('')
 const saving = ref(false)
+const loading = ref(false)
 
 const currencies = ref<Currency[]>([])
 const salaryRules = ref<SalaryRule[]>([])
@@ -24,6 +41,9 @@ const users = ref<User[]>([])
 
 function messageFor(e: unknown, fallback: string): string {
   return e instanceof ApiException ? e.message : fallback
+}
+function notifyError(e: unknown, fallback: string): void {
+  toast.add({ severity: 'error', summary: t('common.error'), detail: messageFor(e, fallback), life: 4000 })
 }
 const userName = (id: number) => users.value.find((u) => u.id === id)?.name ?? `#${id}`
 const curCode = (id: number) => currencies.value.find((c) => c.id === id)?.code ?? `#${id}`
@@ -40,18 +60,31 @@ function openCurrency(c?: Currency) {
   curForm.code = c?.code ?? ''; curForm.name = c?.name ?? ''; curForm.symbol = c?.symbol ?? ''
 }
 async function submitCurrency() {
-  saving.value = true; error.value = ''
+  saving.value = true
   try {
     const payload = { code: curForm.code.toUpperCase(), name: curForm.name, symbol: curForm.symbol || null }
     if (curForm.id === null) await currenciesApi.create(payload)
     else await currenciesApi.update(curForm.id, payload)
-    curForm.open = false; await loadCurrencies()
-  } catch (e) { error.value = messageFor(e, t('common.saveError')) } finally { saving.value = false }
+    curForm.open = false
+    toast.add({ severity: 'success', summary: t('common.saved'), life: 2500 })
+    await loadCurrencies()
+  } catch (e) { notifyError(e, t('common.saveError')) } finally { saving.value = false }
 }
-async function removeCurrency(c: Currency) {
-  if (!window.confirm(t('payConfig.confirmDeleteCurrency', { code: c.code }))) return
-  error.value = ''
-  try { await currenciesApi.remove(c.id); await loadCurrencies() } catch (e) { error.value = messageFor(e, t('common.saveError')) }
+function removeCurrency(c: Currency) {
+  confirm.require({
+    message: t('payConfig.confirmDeleteCurrency', { code: c.code }),
+    header: t('common.delete'),
+    icon: 'pi pi-exclamation-triangle',
+    acceptProps: { severity: 'danger', label: t('common.delete') },
+    rejectProps: { severity: 'secondary', outlined: true, label: t('common.cancel') },
+    accept: async () => {
+      try {
+        await currenciesApi.remove(c.id)
+        toast.add({ severity: 'success', summary: t('common.deleted'), life: 2500 })
+        await loadCurrencies()
+      } catch (e) { notifyError(e, t('common.saveError')) }
+    },
+  })
 }
 
 // ===== قواعد الراتب =====
@@ -77,7 +110,7 @@ async function onSalaryUserChange() {
   } catch { /* لا قاعدة بعد */ }
 }
 async function submitSalary() {
-  saving.value = true; error.value = ''
+  saving.value = true
   try {
     await salaryRulesApi.upsert(salForm.user_id, {
       base_salary: salForm.base_salary,
@@ -85,8 +118,10 @@ async function submitSalary() {
       overtime_mode: salForm.overtime_mode,
       overtime_value: salForm.overtime_mode === 'manual' ? null : salForm.overtime_value,
     })
-    salForm.open = false; await loadSalary()
-  } catch (e) { error.value = messageFor(e, t('common.saveError')) } finally { saving.value = false }
+    salForm.open = false
+    toast.add({ severity: 'success', summary: t('common.saved'), life: 2500 })
+    await loadSalary()
+  } catch (e) { notifyError(e, t('common.saveError')) } finally { saving.value = false }
 }
 
 // ===== العقوبات =====
@@ -100,7 +135,7 @@ function openPenalty(p?: PenaltyRule) {
   penForm.value = p ? Number(p.value) : 0
 }
 async function submitPenalty() {
-  saving.value = true; error.value = ''
+  saving.value = true
   try {
     const payload = {
       applies_to: penForm.applies_to, from_minutes: penForm.from_minutes,
@@ -109,13 +144,26 @@ async function submitPenalty() {
     }
     if (penForm.id === null) await penaltyRulesApi.create(payload)
     else await penaltyRulesApi.update(penForm.id, payload)
-    penForm.open = false; await loadPenalties()
-  } catch (e) { error.value = messageFor(e, t('common.saveError')) } finally { saving.value = false }
+    penForm.open = false
+    toast.add({ severity: 'success', summary: t('common.saved'), life: 2500 })
+    await loadPenalties()
+  } catch (e) { notifyError(e, t('common.saveError')) } finally { saving.value = false }
 }
-async function removePenalty(p: PenaltyRule) {
-  if (!window.confirm(t('payConfig.confirmDeletePenalty'))) return
-  error.value = ''
-  try { await penaltyRulesApi.remove(p.id); await loadPenalties() } catch (e) { error.value = messageFor(e, t('common.saveError')) }
+function removePenalty(p: PenaltyRule) {
+  confirm.require({
+    message: t('payConfig.confirmDeletePenalty'),
+    header: t('common.delete'),
+    icon: 'pi pi-exclamation-triangle',
+    acceptProps: { severity: 'danger', label: t('common.delete') },
+    rejectProps: { severity: 'secondary', outlined: true, label: t('common.cancel') },
+    accept: async () => {
+      try {
+        await penaltyRulesApi.remove(p.id)
+        toast.add({ severity: 'success', summary: t('common.deleted'), life: 2500 })
+        await loadPenalties()
+      } catch (e) { notifyError(e, t('common.saveError')) }
+    },
+  })
 }
 
 // ===== المكافآت =====
@@ -130,186 +178,509 @@ function openBonus(b?: Bonus) {
   bonForm.reason = b?.reason ?? ''
 }
 async function submitBonus() {
-  saving.value = true; error.value = ''
+  saving.value = true
   try {
     const payload = { user_id: bonForm.user_id, period: bonForm.period, type: bonForm.type, amount: bonForm.amount, currency_id: bonForm.currency_id, reason: bonForm.reason }
     if (bonForm.id === null) await bonusesApi.create(payload)
     else await bonusesApi.update(bonForm.id, payload)
-    bonForm.open = false; await loadBonuses()
-  } catch (e) { error.value = messageFor(e, t('common.saveError')) } finally { saving.value = false }
+    bonForm.open = false
+    toast.add({ severity: 'success', summary: t('common.saved'), life: 2500 })
+    await loadBonuses()
+  } catch (e) { notifyError(e, t('common.saveError')) } finally { saving.value = false }
 }
-async function removeBonus(b: Bonus) {
-  if (!window.confirm(t('payConfig.confirmDeleteBonus'))) return
-  error.value = ''
-  try { await bonusesApi.remove(b.id); await loadBonuses() } catch (e) { error.value = messageFor(e, t('common.saveError')) }
+function removeBonus(b: Bonus) {
+  confirm.require({
+    message: t('payConfig.confirmDeleteBonus'),
+    header: t('common.delete'),
+    icon: 'pi pi-exclamation-triangle',
+    acceptProps: { severity: 'danger', label: t('common.delete') },
+    rejectProps: { severity: 'secondary', outlined: true, label: t('common.cancel') },
+    accept: async () => {
+      try {
+        await bonusesApi.remove(b.id)
+        toast.add({ severity: 'success', summary: t('common.deleted'), life: 2500 })
+        await loadBonuses()
+      } catch (e) { notifyError(e, t('common.saveError')) }
+    },
+  })
 }
 
-const tabs: { key: Tab; label: string }[] = [
-  { key: 'currencies', label: 'payConfig.tabCurrencies' },
-  { key: 'salary', label: 'payConfig.tabSalary' },
-  { key: 'penalties', label: 'payConfig.tabPenalties' },
-  { key: 'bonuses', label: 'payConfig.tabBonuses' },
-]
 const canPickCurrencyUser = computed(() => currencies.value.length > 0 && users.value.length > 0)
 
 onMounted(async () => {
-  error.value = ''
+  loading.value = true
   try {
     const [us] = await Promise.all([usersApi.list({ per_page: 100 })])
     users.value = us.data
     await Promise.all([loadCurrencies(), loadSalary(), loadPenalties(), loadBonuses()])
-  } catch (e) { error.value = messageFor(e, t('common.loadError')) }
+  } catch (e) { notifyError(e, t('common.loadError')) } finally { loading.value = false }
 })
 </script>
 
 <template>
   <div class="mx-auto max-w-5xl">
-    <h1 class="mb-6 text-2xl font-bold text-slate-900 dark:text-white">{{ t('payConfig.title') }}</h1>
+    <PageHeader :title="t('payConfig.title')" />
 
-    <div class="mb-6 flex flex-wrap gap-1 border-b border-slate-200 dark:border-slate-800">
-      <button v-for="tb in tabs" :key="tb.key" type="button"
-        class="-mb-px border-b-2 px-4 py-2 text-sm font-medium transition"
-        :class="tab === tb.key ? 'border-indigo-600 text-indigo-700 dark:text-indigo-300' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'"
-        @click="tab = tb.key">{{ t(tb.label) }}</button>
-    </div>
+    <Tabs :value="tab" @update:value="(v) => (tab = v as Tab)">
+      <TabList>
+        <Tab value="currencies">{{ t('payConfig.tabCurrencies') }}</Tab>
+        <Tab value="salary">{{ t('payConfig.tabSalary') }}</Tab>
+        <Tab value="penalties">{{ t('payConfig.tabPenalties') }}</Tab>
+        <Tab value="bonuses">{{ t('payConfig.tabBonuses') }}</Tab>
+      </TabList>
 
-    <p v-if="error" class="mb-4 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:bg-rose-950 dark:text-rose-300" role="alert">{{ error }}</p>
+      <TabPanels>
+        <!-- ===== العملات ===== -->
+        <TabPanel value="currencies">
+          <div class="mb-4 flex justify-end">
+            <Button v-can="'currencies.create'" :label="t('payConfig.addCurrency')" icon="pi pi-plus" @click="openCurrency()" />
+          </div>
+          <div class="overflow-hidden rounded-2xl border border-surface-200 bg-white dark:border-surface-800 dark:bg-surface-900">
+            <DataTable
+              :value="currencies"
+              :loading="loading"
+              paginator
+              :rows="10"
+              :rows-per-page-options="[10, 20, 50]"
+              data-key="id"
+              striped-rows
+              removable-sort
+            >
+              <template #empty>
+                <p class="py-6 text-center text-sm text-surface-500">{{ t('payConfig.emptyCurrencies') }}</p>
+              </template>
+              <Column field="code" :header="t('payConfig.code')" sortable>
+                <template #body="{ data }">
+                  <span class="font-medium text-surface-900 dark:text-white" dir="ltr">{{ data.code }}</span>
+                </template>
+              </Column>
+              <Column field="name" :header="t('payConfig.currencyName')" sortable>
+                <template #body="{ data }"><span class="text-surface-500">{{ data.name }}</span></template>
+              </Column>
+              <Column field="symbol" :header="t('payConfig.symbol')">
+                <template #body="{ data }"><span class="text-surface-500">{{ data.symbol || '—' }}</span></template>
+              </Column>
+              <Column :header="t('companies.actions')" class="text-end">
+                <template #body="{ data }">
+                  <div class="flex justify-end gap-1">
+                    <Button
+                      v-can="'currencies.update'"
+                      v-tooltip.top="t('common.edit')"
+                      icon="pi pi-pencil"
+                      severity="secondary"
+                      text
+                      rounded
+                      @click="openCurrency(data)"
+                    />
+                    <Button
+                      v-can="'currencies.delete'"
+                      v-tooltip.top="t('common.delete')"
+                      icon="pi pi-trash"
+                      severity="danger"
+                      text
+                      rounded
+                      @click="removeCurrency(data)"
+                    />
+                  </div>
+                </template>
+              </Column>
+            </DataTable>
+          </div>
+        </TabPanel>
 
-    <!-- ===== العملات ===== -->
-    <section v-if="tab === 'currencies'">
-      <div class="mb-4 flex justify-end"><button v-can="'currencies.create'" type="button" class="btn-primary" @click="openCurrency()">{{ t('payConfig.addCurrency') }}</button></div>
-      <form v-if="curForm.open" class="mb-6 space-y-4 rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900" @submit.prevent="submitCurrency">
-        <h2 class="font-semibold">{{ curForm.id === null ? t('payConfig.addCurrency') : t('payConfig.editCurrency') }}</h2>
-        <div class="grid gap-4 sm:grid-cols-3">
-          <label class="block text-sm"><span class="lbl">{{ t('payConfig.code') }}</span><input v-model="curForm.code" type="text" required maxlength="3" minlength="3" class="field uppercase" placeholder="USD" /></label>
-          <label class="block text-sm"><span class="lbl">{{ t('payConfig.currencyName') }}</span><input v-model="curForm.name" type="text" required maxlength="50" class="field" /></label>
-          <label class="block text-sm"><span class="lbl">{{ t('payConfig.symbol') }}</span><input v-model="curForm.symbol" type="text" maxlength="8" class="field" /></label>
+        <!-- ===== قواعد الراتب ===== -->
+        <TabPanel value="salary">
+          <div class="mb-4 flex justify-end">
+            <Button v-can="'salary_rules.manage'" :label="t('payConfig.setSalary')" icon="pi pi-plus" :disabled="!canPickCurrencyUser" @click="openSalary()" />
+          </div>
+          <p v-if="!canPickCurrencyUser" class="mb-4 text-sm text-amber-600 dark:text-amber-400">{{ t('payConfig.needCurrencyUser') }}</p>
+          <div class="overflow-hidden rounded-2xl border border-surface-200 bg-white dark:border-surface-800 dark:bg-surface-900">
+            <DataTable
+              :value="salaryRules"
+              :loading="loading"
+              paginator
+              :rows="10"
+              :rows-per-page-options="[10, 20, 50]"
+              data-key="id"
+              striped-rows
+              removable-sort
+            >
+              <template #empty>
+                <p class="py-6 text-center text-sm text-surface-500">{{ t('payConfig.emptySalary') }}</p>
+              </template>
+              <Column :header="t('payConfig.employee')">
+                <template #body="{ data }">
+                  <span class="font-medium text-surface-900 dark:text-white">{{ userName(data.user_id) }}</span>
+                </template>
+              </Column>
+              <Column :header="t('payConfig.baseSalary')">
+                <template #body="{ data }">
+                  <span class="text-surface-500" dir="ltr">{{ Number(data.base_salary).toLocaleString('en-US') }}</span>
+                </template>
+              </Column>
+              <Column :header="t('payConfig.currency')">
+                <template #body="{ data }">
+                  <span class="text-surface-500" dir="ltr">{{ data.currency?.code ?? curCode(data.currency_id) }}</span>
+                </template>
+              </Column>
+              <Column :header="t('payConfig.overtimeMode')">
+                <template #body="{ data }">
+                  <span class="text-surface-500">{{ t('payConfig.ot' + (data.overtime_mode === 'manual' ? 'Manual' : data.overtime_mode === 'percent' ? 'Percent' : 'Fixed')) }}</span>
+                </template>
+              </Column>
+              <Column :header="t('companies.actions')" class="text-end">
+                <template #body="{ data }">
+                  <div class="flex justify-end">
+                    <Button
+                      v-can="'salary_rules.manage'"
+                      v-tooltip.top="t('common.edit')"
+                      icon="pi pi-pencil"
+                      severity="secondary"
+                      text
+                      rounded
+                      @click="openSalary(data)"
+                    />
+                  </div>
+                </template>
+              </Column>
+            </DataTable>
+          </div>
+        </TabPanel>
+
+        <!-- ===== العقوبات ===== -->
+        <TabPanel value="penalties">
+          <div class="mb-4 flex justify-end">
+            <Button v-can="'penalty_rules.create'" :label="t('payConfig.addPenalty')" icon="pi pi-plus" @click="openPenalty()" />
+          </div>
+          <div class="overflow-hidden rounded-2xl border border-surface-200 bg-white dark:border-surface-800 dark:bg-surface-900">
+            <DataTable
+              :value="penalties"
+              :loading="loading"
+              paginator
+              :rows="10"
+              :rows-per-page-options="[10, 20, 50]"
+              data-key="id"
+              striped-rows
+              removable-sort
+            >
+              <template #empty>
+                <p class="py-6 text-center text-sm text-surface-500">{{ t('payConfig.emptyPenalties') }}</p>
+              </template>
+              <Column :header="t('payConfig.appliesTo')">
+                <template #body="{ data }">
+                  <span class="font-medium text-surface-900 dark:text-white">{{ t('payConfig.' + data.applies_to) }}</span>
+                </template>
+              </Column>
+              <Column :header="t('payConfig.range')">
+                <template #body="{ data }">
+                  <span class="text-surface-500" dir="ltr">{{ data.from_minutes }}–{{ data.to_minutes ?? '∞' }} {{ t('payConfig.min') }}</span>
+                </template>
+              </Column>
+              <Column :header="t('payConfig.deductionType')">
+                <template #body="{ data }"><span class="text-surface-500">{{ t('payConfig.' + data.deduction_type) }}</span></template>
+              </Column>
+              <Column :header="t('payConfig.value')">
+                <template #body="{ data }">
+                  <span class="text-surface-500" dir="ltr">{{ data.value }}{{ data.deduction_type === 'percent' ? '%' : '' }}</span>
+                </template>
+              </Column>
+              <Column :header="t('companies.actions')" class="text-end">
+                <template #body="{ data }">
+                  <div class="flex justify-end gap-1">
+                    <Button
+                      v-can="'penalty_rules.update'"
+                      v-tooltip.top="t('common.edit')"
+                      icon="pi pi-pencil"
+                      severity="secondary"
+                      text
+                      rounded
+                      @click="openPenalty(data)"
+                    />
+                    <Button
+                      v-can="'penalty_rules.delete'"
+                      v-tooltip.top="t('common.delete')"
+                      icon="pi pi-trash"
+                      severity="danger"
+                      text
+                      rounded
+                      @click="removePenalty(data)"
+                    />
+                  </div>
+                </template>
+              </Column>
+            </DataTable>
+          </div>
+        </TabPanel>
+
+        <!-- ===== المكافآت ===== -->
+        <TabPanel value="bonuses">
+          <div class="mb-4 flex justify-end">
+            <Button v-can="'bonuses.create'" :label="t('payConfig.addBonus')" icon="pi pi-plus" :disabled="!canPickCurrencyUser" @click="openBonus()" />
+          </div>
+          <div class="overflow-hidden rounded-2xl border border-surface-200 bg-white dark:border-surface-800 dark:bg-surface-900">
+            <DataTable
+              :value="bonuses"
+              :loading="loading"
+              paginator
+              :rows="10"
+              :rows-per-page-options="[10, 20, 50]"
+              data-key="id"
+              striped-rows
+              removable-sort
+            >
+              <template #empty>
+                <p class="py-6 text-center text-sm text-surface-500">{{ t('payConfig.emptyBonuses') }}</p>
+              </template>
+              <Column :header="t('payConfig.employee')">
+                <template #body="{ data }">
+                  <span class="font-medium text-surface-900 dark:text-white">{{ data.user?.name ?? userName(data.user_id) }}</span>
+                </template>
+              </Column>
+              <Column :header="t('payConfig.period')">
+                <template #body="{ data }"><span class="text-surface-500" dir="ltr">{{ data.period }}</span></template>
+              </Column>
+              <Column :header="t('payConfig.bonusType')">
+                <template #body="{ data }"><span class="text-surface-500">{{ t('payConfig.' + data.type) }}</span></template>
+              </Column>
+              <Column :header="t('payConfig.amount')">
+                <template #body="{ data }">
+                  <span class="text-surface-500" dir="ltr">{{ Number(data.amount).toLocaleString('en-US') }} {{ data.currency?.code ?? curCode(data.currency_id) }}</span>
+                </template>
+              </Column>
+              <Column :header="t('payConfig.reason')">
+                <template #body="{ data }"><span class="text-surface-500">{{ data.reason }}</span></template>
+              </Column>
+              <Column :header="t('companies.actions')" class="text-end">
+                <template #body="{ data }">
+                  <div class="flex justify-end gap-1">
+                    <Button
+                      v-can="'bonuses.update'"
+                      v-tooltip.top="t('common.edit')"
+                      icon="pi pi-pencil"
+                      severity="secondary"
+                      text
+                      rounded
+                      @click="openBonus(data)"
+                    />
+                    <Button
+                      v-can="'bonuses.delete'"
+                      v-tooltip.top="t('common.delete')"
+                      icon="pi pi-trash"
+                      severity="danger"
+                      text
+                      rounded
+                      @click="removeBonus(data)"
+                    />
+                  </div>
+                </template>
+              </Column>
+            </DataTable>
+          </div>
+        </TabPanel>
+      </TabPanels>
+    </Tabs>
+
+    <!-- نموذج العملة -->
+    <Dialog
+      v-model:visible="curForm.open"
+      modal
+      :header="curForm.id === null ? t('payConfig.addCurrency') : t('payConfig.editCurrency')"
+      :style="{ width: '34rem' }"
+      :breakpoints="{ '640px': '95vw' }"
+    >
+      <form class="grid gap-4 pt-2 sm:grid-cols-3" @submit.prevent="submitCurrency">
+        <label class="block text-sm">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('payConfig.code') }}</span>
+          <InputText v-model="curForm.code" required maxlength="3" minlength="3" class="uppercase" placeholder="USD" fluid />
+        </label>
+        <label class="block text-sm">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('payConfig.currencyName') }}</span>
+          <InputText v-model="curForm.name" required maxlength="50" fluid />
+        </label>
+        <label class="block text-sm">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('payConfig.symbol') }}</span>
+          <InputText v-model="curForm.symbol" maxlength="8" fluid />
+        </label>
+        <div class="mt-2 flex justify-end gap-2 sm:col-span-3">
+          <Button type="button" :label="t('common.cancel')" severity="secondary" text @click="curForm.open = false" />
+          <Button type="submit" :label="saving ? t('common.saving') : t('common.save')" icon="pi pi-check" :loading="saving" />
         </div>
-        <div class="flex gap-3"><button type="submit" :disabled="saving" class="btn-primary disabled:opacity-60">{{ saving ? t('common.saving') : t('common.save') }}</button><button type="button" class="btn-ghost" @click="curForm.open = false">{{ t('common.cancel') }}</button></div>
       </form>
-      <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-        <p v-if="!currencies.length" class="p-6 text-sm text-slate-500">{{ t('payConfig.emptyCurrencies') }}</p>
-        <table v-else class="w-full text-start text-sm">
-          <thead class="bg-slate-50 text-xs uppercase text-slate-500 dark:bg-slate-800 dark:text-slate-400"><tr><th class="px-4 py-3 text-start">{{ t('payConfig.code') }}</th><th class="px-4 py-3 text-start">{{ t('payConfig.currencyName') }}</th><th class="px-4 py-3 text-start">{{ t('payConfig.symbol') }}</th><th class="px-4 py-3 text-end">{{ t('companies.actions') }}</th></tr></thead>
-          <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-            <tr v-for="c in currencies" :key="c.id">
-              <td class="px-4 py-3 font-medium text-slate-900 dark:text-white" dir="ltr">{{ c.code }}</td>
-              <td class="px-4 py-3 text-slate-500">{{ c.name }}</td>
-              <td class="px-4 py-3 text-slate-500">{{ c.symbol || '—' }}</td>
-              <td class="px-4 py-3"><div class="flex justify-end gap-3"><button v-can="'currencies.update'" type="button" class="text-slate-600 hover:underline dark:text-slate-300" @click="openCurrency(c)">{{ t('common.edit') }}</button><button v-can="'currencies.delete'" type="button" class="text-rose-600 hover:underline dark:text-rose-400" @click="removeCurrency(c)">{{ t('common.delete') }}</button></div></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
+    </Dialog>
 
-    <!-- ===== قواعد الراتب ===== -->
-    <section v-else-if="tab === 'salary'">
-      <div class="mb-4 flex justify-end"><button v-can="'salary_rules.manage'" type="button" class="btn-primary disabled:opacity-50" :disabled="!canPickCurrencyUser" @click="openSalary()">{{ t('payConfig.setSalary') }}</button></div>
-      <p v-if="!canPickCurrencyUser" class="mb-4 text-sm text-amber-600 dark:text-amber-400">{{ t('payConfig.needCurrencyUser') }}</p>
-      <form v-if="salForm.open" class="mb-6 space-y-4 rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900" @submit.prevent="submitSalary">
-        <h2 class="font-semibold">{{ t('payConfig.setSalary') }}</h2>
-        <div class="grid gap-4 sm:grid-cols-2">
-          <label class="block text-sm"><span class="lbl">{{ t('payConfig.employee') }}</span><select v-model.number="salForm.user_id" class="field" @change="onSalaryUserChange"><option v-for="u in users" :key="u.id" :value="u.id">{{ u.name }}</option></select></label>
-          <label class="block text-sm"><span class="lbl">{{ t('payConfig.baseSalary') }}</span><input v-model.number="salForm.base_salary" type="number" min="0" step="0.01" required class="field" /></label>
-          <label class="block text-sm"><span class="lbl">{{ t('payConfig.currency') }}</span><select v-model.number="salForm.currency_id" required class="field"><option v-for="c in currencies" :key="c.id" :value="c.id">{{ c.code }}</option></select></label>
-          <label class="block text-sm"><span class="lbl">{{ t('payConfig.overtimeMode') }}</span><select v-model="salForm.overtime_mode" class="field"><option value="manual">{{ t('payConfig.otManual') }}</option><option value="percent">{{ t('payConfig.otPercent') }}</option><option value="fixed_per_hour">{{ t('payConfig.otFixed') }}</option></select></label>
-          <label v-if="salForm.overtime_mode !== 'manual'" class="block text-sm"><span class="lbl">{{ t('payConfig.overtimeValue') }}</span><input v-model.number="salForm.overtime_value" type="number" min="0" step="0.01" class="field" /></label>
+    <!-- نموذج قاعدة الراتب -->
+    <Dialog
+      v-model:visible="salForm.open"
+      modal
+      :header="t('payConfig.setSalary')"
+      :style="{ width: '34rem' }"
+      :breakpoints="{ '640px': '95vw' }"
+    >
+      <form class="grid gap-4 pt-2 sm:grid-cols-2" @submit.prevent="submitSalary">
+        <label class="block text-sm">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('payConfig.employee') }}</span>
+          <Select
+            v-model="salForm.user_id"
+            :options="users"
+            option-label="name"
+            option-value="id"
+            fluid
+            @change="onSalaryUserChange"
+          />
+        </label>
+        <label class="block text-sm">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('payConfig.baseSalary') }}</span>
+          <InputNumber v-model="salForm.base_salary" :min="0" :min-fraction-digits="0" :max-fraction-digits="2" fluid />
+        </label>
+        <label class="block text-sm">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('payConfig.currency') }}</span>
+          <Select
+            v-model="salForm.currency_id"
+            :options="currencies"
+            option-label="code"
+            option-value="id"
+            fluid
+          />
+        </label>
+        <label class="block text-sm">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('payConfig.overtimeMode') }}</span>
+          <Select
+            v-model="salForm.overtime_mode"
+            :options="[
+              { value: 'manual', label: t('payConfig.otManual') },
+              { value: 'percent', label: t('payConfig.otPercent') },
+              { value: 'fixed_per_hour', label: t('payConfig.otFixed') },
+            ]"
+            option-label="label"
+            option-value="value"
+            fluid
+          />
+        </label>
+        <label v-if="salForm.overtime_mode !== 'manual'" class="block text-sm">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('payConfig.overtimeValue') }}</span>
+          <InputNumber v-model="salForm.overtime_value" :min="0" :min-fraction-digits="0" :max-fraction-digits="2" fluid />
+        </label>
+        <div class="mt-2 flex justify-end gap-2 sm:col-span-2">
+          <Button type="button" :label="t('common.cancel')" severity="secondary" text @click="salForm.open = false" />
+          <Button type="submit" :label="saving ? t('common.saving') : t('common.save')" icon="pi pi-check" :loading="saving" />
         </div>
-        <div class="flex gap-3"><button type="submit" :disabled="saving" class="btn-primary disabled:opacity-60">{{ saving ? t('common.saving') : t('common.save') }}</button><button type="button" class="btn-ghost" @click="salForm.open = false">{{ t('common.cancel') }}</button></div>
       </form>
-      <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-        <p v-if="!salaryRules.length" class="p-6 text-sm text-slate-500">{{ t('payConfig.emptySalary') }}</p>
-        <table v-else class="w-full text-start text-sm">
-          <thead class="bg-slate-50 text-xs uppercase text-slate-500 dark:bg-slate-800 dark:text-slate-400"><tr><th class="px-4 py-3 text-start">{{ t('payConfig.employee') }}</th><th class="px-4 py-3 text-start">{{ t('payConfig.baseSalary') }}</th><th class="px-4 py-3 text-start">{{ t('payConfig.currency') }}</th><th class="px-4 py-3 text-start">{{ t('payConfig.overtimeMode') }}</th><th class="px-4 py-3 text-end">{{ t('companies.actions') }}</th></tr></thead>
-          <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-            <tr v-for="r in salaryRules" :key="r.id">
-              <td class="px-4 py-3 font-medium text-slate-900 dark:text-white">{{ userName(r.user_id) }}</td>
-              <td class="px-4 py-3 text-slate-500" dir="ltr">{{ Number(r.base_salary).toLocaleString('en-US') }}</td>
-              <td class="px-4 py-3 text-slate-500" dir="ltr">{{ r.currency?.code ?? curCode(r.currency_id) }}</td>
-              <td class="px-4 py-3 text-slate-500">{{ t('payConfig.ot' + (r.overtime_mode === 'manual' ? 'Manual' : r.overtime_mode === 'percent' ? 'Percent' : 'Fixed')) }}</td>
-              <td class="px-4 py-3"><div class="flex justify-end"><button v-can="'salary_rules.manage'" type="button" class="text-slate-600 hover:underline dark:text-slate-300" @click="openSalary(r)">{{ t('common.edit') }}</button></div></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
+    </Dialog>
 
-    <!-- ===== العقوبات ===== -->
-    <section v-else-if="tab === 'penalties'">
-      <div class="mb-4 flex justify-end"><button v-can="'penalty_rules.create'" type="button" class="btn-primary" @click="openPenalty()">{{ t('payConfig.addPenalty') }}</button></div>
-      <form v-if="penForm.open" class="mb-6 space-y-4 rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900" @submit.prevent="submitPenalty">
-        <h2 class="font-semibold">{{ penForm.id === null ? t('payConfig.addPenalty') : t('payConfig.editPenalty') }}</h2>
-        <div class="grid gap-4 sm:grid-cols-2">
-          <label class="block text-sm"><span class="lbl">{{ t('payConfig.appliesTo') }}</span><select v-model="penForm.applies_to" class="field"><option value="late">{{ t('payConfig.late') }}</option><option value="absence">{{ t('payConfig.absence') }}</option></select></label>
-          <label class="block text-sm"><span class="lbl">{{ t('payConfig.deductionType') }}</span><select v-model="penForm.deduction_type" class="field"><option value="percent">{{ t('payConfig.percent') }}</option><option value="fixed">{{ t('payConfig.fixed') }}</option></select></label>
-          <label class="block text-sm"><span class="lbl">{{ t('payConfig.fromMinutes') }}</span><input v-model.number="penForm.from_minutes" type="number" min="0" required class="field" /></label>
-          <label class="block text-sm"><span class="lbl">{{ t('payConfig.toMinutes') }}</span><input v-model="penForm.to_minutes" type="number" min="0" class="field" :placeholder="t('payConfig.openEnded')" /></label>
-          <label class="block text-sm"><span class="lbl">{{ t('payConfig.value') }}</span><input v-model.number="penForm.value" type="number" min="0" step="0.01" required class="field" /></label>
+    <!-- نموذج العقوبة -->
+    <Dialog
+      v-model:visible="penForm.open"
+      modal
+      :header="penForm.id === null ? t('payConfig.addPenalty') : t('payConfig.editPenalty')"
+      :style="{ width: '34rem' }"
+      :breakpoints="{ '640px': '95vw' }"
+    >
+      <form class="grid gap-4 pt-2 sm:grid-cols-2" @submit.prevent="submitPenalty">
+        <label class="block text-sm">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('payConfig.appliesTo') }}</span>
+          <Select
+            v-model="penForm.applies_to"
+            :options="[
+              { value: 'late', label: t('payConfig.late') },
+              { value: 'absence', label: t('payConfig.absence') },
+            ]"
+            option-label="label"
+            option-value="value"
+            fluid
+          />
+        </label>
+        <label class="block text-sm">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('payConfig.deductionType') }}</span>
+          <Select
+            v-model="penForm.deduction_type"
+            :options="[
+              { value: 'percent', label: t('payConfig.percent') },
+              { value: 'fixed', label: t('payConfig.fixed') },
+            ]"
+            option-label="label"
+            option-value="value"
+            fluid
+          />
+        </label>
+        <label class="block text-sm">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('payConfig.fromMinutes') }}</span>
+          <InputNumber v-model="penForm.from_minutes" :min="0" :use-grouping="false" fluid />
+        </label>
+        <label class="block text-sm">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('payConfig.toMinutes') }}</span>
+          <InputNumber :model-value="penForm.to_minutes === '' ? null : penForm.to_minutes" @update:model-value="penForm.to_minutes = ($event ?? '')" :min="0" :use-grouping="false" :placeholder="t('payConfig.openEnded')" fluid />
+        </label>
+        <label class="block text-sm">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('payConfig.value') }}</span>
+          <InputNumber v-model="penForm.value" :min="0" :min-fraction-digits="0" :max-fraction-digits="2" fluid />
+        </label>
+        <div class="mt-2 flex justify-end gap-2 sm:col-span-2">
+          <Button type="button" :label="t('common.cancel')" severity="secondary" text @click="penForm.open = false" />
+          <Button type="submit" :label="saving ? t('common.saving') : t('common.save')" icon="pi pi-check" :loading="saving" />
         </div>
-        <div class="flex gap-3"><button type="submit" :disabled="saving" class="btn-primary disabled:opacity-60">{{ saving ? t('common.saving') : t('common.save') }}</button><button type="button" class="btn-ghost" @click="penForm.open = false">{{ t('common.cancel') }}</button></div>
       </form>
-      <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-        <p v-if="!penalties.length" class="p-6 text-sm text-slate-500">{{ t('payConfig.emptyPenalties') }}</p>
-        <table v-else class="w-full text-start text-sm">
-          <thead class="bg-slate-50 text-xs uppercase text-slate-500 dark:bg-slate-800 dark:text-slate-400"><tr><th class="px-4 py-3 text-start">{{ t('payConfig.appliesTo') }}</th><th class="px-4 py-3 text-start">{{ t('payConfig.range') }}</th><th class="px-4 py-3 text-start">{{ t('payConfig.deductionType') }}</th><th class="px-4 py-3 text-start">{{ t('payConfig.value') }}</th><th class="px-4 py-3 text-end">{{ t('companies.actions') }}</th></tr></thead>
-          <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-            <tr v-for="p in penalties" :key="p.id">
-              <td class="px-4 py-3 font-medium text-slate-900 dark:text-white">{{ t('payConfig.' + p.applies_to) }}</td>
-              <td class="px-4 py-3 text-slate-500" dir="ltr">{{ p.from_minutes }}–{{ p.to_minutes ?? '∞' }} {{ t('payConfig.min') }}</td>
-              <td class="px-4 py-3 text-slate-500">{{ t('payConfig.' + p.deduction_type) }}</td>
-              <td class="px-4 py-3 text-slate-500" dir="ltr">{{ p.value }}{{ p.deduction_type === 'percent' ? '%' : '' }}</td>
-              <td class="px-4 py-3"><div class="flex justify-end gap-3"><button v-can="'penalty_rules.update'" type="button" class="text-slate-600 hover:underline dark:text-slate-300" @click="openPenalty(p)">{{ t('common.edit') }}</button><button v-can="'penalty_rules.delete'" type="button" class="text-rose-600 hover:underline dark:text-rose-400" @click="removePenalty(p)">{{ t('common.delete') }}</button></div></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
+    </Dialog>
 
-    <!-- ===== المكافآت ===== -->
-    <section v-else>
-      <div class="mb-4 flex justify-end"><button v-can="'bonuses.create'" type="button" class="btn-primary disabled:opacity-50" :disabled="!canPickCurrencyUser" @click="openBonus()">{{ t('payConfig.addBonus') }}</button></div>
-      <form v-if="bonForm.open" class="mb-6 space-y-4 rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900" @submit.prevent="submitBonus">
-        <h2 class="font-semibold">{{ bonForm.id === null ? t('payConfig.addBonus') : t('payConfig.editBonus') }}</h2>
-        <div class="grid gap-4 sm:grid-cols-2">
-          <label class="block text-sm"><span class="lbl">{{ t('payConfig.employee') }}</span><select v-model.number="bonForm.user_id" class="field"><option v-for="u in users" :key="u.id" :value="u.id">{{ u.name }}</option></select></label>
-          <label class="block text-sm"><span class="lbl">{{ t('payConfig.period') }}</span><input v-model="bonForm.period" type="month" required class="field" /></label>
-          <label class="block text-sm"><span class="lbl">{{ t('payConfig.bonusType') }}</span><select v-model="bonForm.type" class="field"><option value="bonus">{{ t('payConfig.bonus') }}</option><option value="allowance">{{ t('payConfig.allowance') }}</option><option value="deduction">{{ t('payConfig.deduction') }}</option></select></label>
-          <label class="block text-sm"><span class="lbl">{{ t('payConfig.amount') }}</span><input v-model.number="bonForm.amount" type="number" step="0.01" required class="field" /></label>
-          <label class="block text-sm"><span class="lbl">{{ t('payConfig.currency') }}</span><select v-model.number="bonForm.currency_id" required class="field"><option v-for="c in currencies" :key="c.id" :value="c.id">{{ c.code }}</option></select></label>
-          <label class="block text-sm"><span class="lbl">{{ t('payConfig.reason') }}</span><input v-model="bonForm.reason" type="text" required maxlength="255" class="field" /></label>
+    <!-- نموذج المكافأة -->
+    <Dialog
+      v-model:visible="bonForm.open"
+      modal
+      :header="bonForm.id === null ? t('payConfig.addBonus') : t('payConfig.editBonus')"
+      :style="{ width: '34rem' }"
+      :breakpoints="{ '640px': '95vw' }"
+    >
+      <form class="grid gap-4 pt-2 sm:grid-cols-2" @submit.prevent="submitBonus">
+        <label class="block text-sm">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('payConfig.employee') }}</span>
+          <Select
+            v-model="bonForm.user_id"
+            :options="users"
+            option-label="name"
+            option-value="id"
+            fluid
+          />
+        </label>
+        <label class="block text-sm">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('payConfig.period') }}</span>
+          <InputText v-model="bonForm.period" type="month" required fluid />
+        </label>
+        <label class="block text-sm">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('payConfig.bonusType') }}</span>
+          <Select
+            v-model="bonForm.type"
+            :options="[
+              { value: 'bonus', label: t('payConfig.bonus') },
+              { value: 'allowance', label: t('payConfig.allowance') },
+              { value: 'deduction', label: t('payConfig.deduction') },
+            ]"
+            option-label="label"
+            option-value="value"
+            fluid
+          />
+        </label>
+        <label class="block text-sm">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('payConfig.amount') }}</span>
+          <InputNumber v-model="bonForm.amount" :min-fraction-digits="0" :max-fraction-digits="2" fluid />
+        </label>
+        <label class="block text-sm">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('payConfig.currency') }}</span>
+          <Select
+            v-model="bonForm.currency_id"
+            :options="currencies"
+            option-label="code"
+            option-value="id"
+            fluid
+          />
+        </label>
+        <label class="block text-sm">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('payConfig.reason') }}</span>
+          <InputText v-model="bonForm.reason" required maxlength="255" fluid />
+        </label>
+        <div class="mt-2 flex justify-end gap-2 sm:col-span-2">
+          <Button type="button" :label="t('common.cancel')" severity="secondary" text @click="bonForm.open = false" />
+          <Button type="submit" :label="saving ? t('common.saving') : t('common.save')" icon="pi pi-check" :loading="saving" />
         </div>
-        <div class="flex gap-3"><button type="submit" :disabled="saving" class="btn-primary disabled:opacity-60">{{ saving ? t('common.saving') : t('common.save') }}</button><button type="button" class="btn-ghost" @click="bonForm.open = false">{{ t('common.cancel') }}</button></div>
       </form>
-      <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-        <p v-if="!bonuses.length" class="p-6 text-sm text-slate-500">{{ t('payConfig.emptyBonuses') }}</p>
-        <table v-else class="w-full text-start text-sm">
-          <thead class="bg-slate-50 text-xs uppercase text-slate-500 dark:bg-slate-800 dark:text-slate-400"><tr><th class="px-4 py-3 text-start">{{ t('payConfig.employee') }}</th><th class="px-4 py-3 text-start">{{ t('payConfig.period') }}</th><th class="px-4 py-3 text-start">{{ t('payConfig.bonusType') }}</th><th class="px-4 py-3 text-start">{{ t('payConfig.amount') }}</th><th class="px-4 py-3 text-start">{{ t('payConfig.reason') }}</th><th class="px-4 py-3 text-end">{{ t('companies.actions') }}</th></tr></thead>
-          <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-            <tr v-for="b in bonuses" :key="b.id">
-              <td class="px-4 py-3 font-medium text-slate-900 dark:text-white">{{ b.user?.name ?? userName(b.user_id) }}</td>
-              <td class="px-4 py-3 text-slate-500" dir="ltr">{{ b.period }}</td>
-              <td class="px-4 py-3 text-slate-500">{{ t('payConfig.' + b.type) }}</td>
-              <td class="px-4 py-3 text-slate-500" dir="ltr">{{ Number(b.amount).toLocaleString('en-US') }} {{ b.currency?.code ?? curCode(b.currency_id) }}</td>
-              <td class="px-4 py-3 text-slate-500">{{ b.reason }}</td>
-              <td class="px-4 py-3"><div class="flex justify-end gap-3"><button v-can="'bonuses.update'" type="button" class="text-slate-600 hover:underline dark:text-slate-300" @click="openBonus(b)">{{ t('common.edit') }}</button><button v-can="'bonuses.delete'" type="button" class="text-rose-600 hover:underline dark:text-rose-400" @click="removeBonus(b)">{{ t('common.delete') }}</button></div></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
+    </Dialog>
   </div>
 </template>
-
-<style scoped>
-.field { width: 100%; border-radius: 0.5rem; border: 1px solid rgb(203 213 225); background: #fff; padding: 0.5rem 0.75rem; font-size: 0.875rem; color: rgb(15 23 42); outline: none; }
-.field:focus { border-color: rgb(99 102 241); box-shadow: 0 0 0 2px rgb(99 102 241 / 0.3); }
-.uppercase { text-transform: uppercase; }
-:global(.dark) .field { border-color: rgb(51 65 85); background: rgb(30 41 59); color: #fff; }
-.lbl { margin-bottom: 0.25rem; display: block; font-weight: 500; font-size: 0.875rem; color: rgb(51 65 85); }
-:global(.dark) .lbl { color: rgb(203 213 225); }
-.btn-primary { border-radius: 0.5rem; background: rgb(79 70 229); padding: 0.5rem 1rem; font-size: 0.875rem; font-weight: 500; color: #fff; transition: background 0.15s; }
-.btn-primary:hover { background: rgb(67 56 202); }
-.btn-ghost { border-radius: 0.5rem; padding: 0.5rem 1rem; font-size: 0.875rem; font-weight: 500; color: rgb(71 85 105); }
-:global(.dark) .btn-ghost { color: rgb(148 163 184); }
-</style>

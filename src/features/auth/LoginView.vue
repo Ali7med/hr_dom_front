@@ -2,6 +2,10 @@
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+import Button from 'primevue/button'
+import InputText from 'primevue/inputtext'
+import Password from 'primevue/password'
+import Message from 'primevue/message'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
 import { ApiException } from '@/api/client'
@@ -65,116 +69,109 @@ function backToCredentials(): void {
 </script>
 
 <template>
-  <div class="flex min-h-svh items-center justify-center bg-slate-50 px-6 py-12 dark:bg-slate-950">
+  <div class="flex min-h-svh items-center justify-center bg-surface-50 px-6 py-12 dark:bg-surface-950">
     <div class="w-full max-w-sm">
       <!-- مبدّلات اللغة/المظهر -->
       <div class="mb-6 flex justify-end gap-2">
-        <button
+        <Button
           type="button"
-          class="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium transition hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+          severity="secondary"
+          outlined
+          size="small"
+          :label="ui.locale === 'ar' ? 'EN' : 'ع'"
           :title="t('common.toggleLanguage')"
           @click="ui.toggleLocale()"
-        >
-          {{ ui.locale === 'ar' ? 'EN' : 'ع' }}
-        </button>
-        <button
+        />
+        <Button
           type="button"
-          class="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium transition hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+          severity="secondary"
+          outlined
+          size="small"
+          :icon="ui.theme === 'dark' ? 'pi pi-sun' : 'pi pi-moon'"
           :title="t('common.toggleTheme')"
           @click="ui.toggleTheme()"
-        >
-          {{ ui.theme === 'dark' ? '☀' : '☾' }}
-        </button>
+        />
       </div>
 
-      <div
-        class="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900"
-      >
+      <div class="rounded-2xl border border-surface-200 bg-white p-8 shadow-sm dark:border-surface-800 dark:bg-surface-900">
         <header class="mb-6 text-center">
-          <h1 class="text-2xl font-bold text-slate-900 dark:text-white">
-            {{ t('app.title') }}
-          </h1>
-          <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          <span class="mx-auto mb-3 grid size-12 place-items-center rounded-2xl bg-primary text-primary-contrast">
+            <i class="pi pi-clock !text-xl" />
+          </span>
+          <h1 class="text-2xl font-bold text-surface-900 dark:text-white">{{ t('app.title') }}</h1>
+          <p class="mt-1 text-sm text-surface-500 dark:text-surface-400">
             {{ step === 'credentials' ? t('auth.loginSubtitle') : t('auth.twoFactorSubtitle') }}
           </p>
         </header>
 
-        <p
-          v-if="error"
-          class="mb-4 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:bg-rose-950 dark:text-rose-300"
-          role="alert"
-        >
-          {{ error }}
-        </p>
+        <Message v-if="error" severity="error" :closable="false" class="mb-4">{{ error }}</Message>
 
         <!-- الخطوة 1: بيانات الدخول -->
         <form v-if="step === 'credentials'" class="space-y-4" @submit.prevent="submitCredentials">
           <div>
-            <label for="username" class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+            <label for="username" class="mb-1.5 block text-sm font-medium text-surface-700 dark:text-surface-300">
               {{ t('auth.username') }}
             </label>
-            <input
+            <InputText
               id="username"
               v-model="username"
-              type="text"
               autocomplete="username"
               required
               :placeholder="t('auth.usernamePlaceholder')"
-              class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+              fluid
             />
           </div>
           <div>
-            <label for="password" class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+            <label for="password" class="mb-1.5 block text-sm font-medium text-surface-700 dark:text-surface-300">
               {{ t('auth.password') }}
             </label>
-            <input
-              id="password"
+            <Password
               v-model="password"
-              type="password"
-              autocomplete="current-password"
-              required
-              class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+              input-id="password"
+              :feedback="false"
+              toggle-mask
+              :input-props="{ autocomplete: 'current-password', required: true }"
+              fluid
             />
           </div>
-          <button
+          <Button
             type="submit"
-            :disabled="auth.loading"
-            class="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {{ auth.loading ? t('auth.signingIn') : t('auth.signIn') }}
-          </button>
+            :loading="auth.loading"
+            :label="auth.loading ? t('auth.signingIn') : t('auth.signIn')"
+            fluid
+          />
         </form>
 
         <!-- الخطوة 2: التحقّق بخطوتين -->
         <form v-else class="space-y-4" @submit.prevent="submitTwoFactor">
           <div>
-            <label for="code" class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+            <label for="code" class="mb-1.5 block text-sm font-medium text-surface-700 dark:text-surface-300">
               {{ t('auth.code') }}
             </label>
-            <input
+            <InputText
               id="code"
               v-model="code"
-              type="text"
               inputmode="numeric"
               autocomplete="one-time-code"
               required
-              class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-center font-mono text-lg tracking-widest text-slate-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+              class="text-center font-mono !text-lg tracking-widest"
+              fluid
             />
           </div>
-          <button
+          <Button
             type="submit"
-            :disabled="auth.loading"
-            class="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {{ auth.loading ? t('auth.verifying') : t('auth.verify') }}
-          </button>
-          <button
+            :loading="auth.loading"
+            :label="auth.loading ? t('auth.verifying') : t('auth.verify')"
+            fluid
+          />
+          <Button
             type="button"
-            class="w-full rounded-lg px-4 py-2 text-sm font-medium text-slate-600 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+            severity="secondary"
+            text
+            :label="t('auth.back')"
+            fluid
             @click="backToCredentials"
-          >
-            {{ t('auth.back') }}
-          </button>
+          />
         </form>
       </div>
     </div>

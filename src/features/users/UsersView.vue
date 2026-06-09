@@ -1,6 +1,18 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useConfirm } from 'primevue/useconfirm'
+import { useToast } from 'primevue/usetoast'
+import DataTable, { type DataTablePageEvent } from 'primevue/datatable'
+import Column from 'primevue/column'
+import Button from 'primevue/button'
+import Dialog from 'primevue/dialog'
+import InputText from 'primevue/inputtext'
+import Select from 'primevue/select'
+import MultiSelect from 'primevue/multiselect'
+import Tag from 'primevue/tag'
+import IconField from 'primevue/iconfield'
+import InputIcon from 'primevue/inputicon'
 import { ApiException } from '@/api/client'
 import {
   usersApi,
@@ -12,8 +24,11 @@ import {
 } from '@/api/users'
 import { rolesApi, permissionsApi, type Role } from '@/api/roles'
 import PermissionPicker from '@/components/PermissionPicker.vue'
+import PageHeader from '@/components/PageHeader.vue'
 
 const { t } = useI18n()
+const confirm = useConfirm()
+const toast = useToast()
 
 const STATUSES: UserStatus[] = ['active', 'suspended', 'left']
 
@@ -27,7 +42,6 @@ const page = ref(1)
 
 const loading = ref(false)
 const saving = ref(false)
-const error = ref('')
 
 // نموذج إنشاء/تعديل المستخدم.
 const showForm = ref(false)
@@ -50,16 +64,18 @@ const directPermissions = ref<string[]>([])
 function messageFor(e: unknown, fallback: string): string {
   return e instanceof ApiException ? e.message : fallback
 }
+function notifyError(e: unknown, fallback: string): void {
+  toast.add({ severity: 'error', summary: t('common.error'), detail: messageFor(e, fallback), life: 4000 })
+}
 
 async function loadUsers(): Promise<void> {
   loading.value = true
-  error.value = ''
   try {
     const res = await usersApi.list({ search: search.value || undefined, page: page.value })
     users.value = res.data
     pagination.value = res.pagination ?? null
   } catch (e) {
-    error.value = messageFor(e, t('common.loadError'))
+    notifyError(e, t('common.loadError'))
   } finally {
     loading.value = false
   }
@@ -78,12 +94,6 @@ async function loadRefs(): Promise<void> {
   } catch {
     // المراجع اختيارية للعرض؛ تجاهل الأخطاء غير الحرجة.
   }
-}
-
-function toggleRole(name: string): void {
-  const i = form.roles.indexOf(name)
-  if (i === -1) form.roles.push(name)
-  else form.roles.splice(i, 1)
 }
 
 function openCreate(): void {
@@ -107,7 +117,6 @@ function openEdit(u: User): void {
 
 async function submit(): Promise<void> {
   saving.value = true
-  error.value = ''
   try {
     if (editingId.value === null) {
       await usersApi.create({
@@ -125,23 +134,32 @@ async function submit(): Promise<void> {
       await usersApi.update(editingId.value, payload)
     }
     showForm.value = false
+    toast.add({ severity: 'success', summary: t('common.saved'), life: 2500 })
     await loadUsers()
   } catch (e) {
-    error.value = messageFor(e, t('common.saveError'))
+    notifyError(e, t('common.saveError'))
   } finally {
     saving.value = false
   }
 }
 
-async function remove(u: User): Promise<void> {
-  if (!window.confirm(t('users.confirmDelete', { name: u.name }))) return
-  error.value = ''
-  try {
-    await usersApi.remove(u.id)
-    await loadUsers()
-  } catch (e) {
-    error.value = messageFor(e, t('common.saveError'))
-  }
+function remove(u: User): void {
+  confirm.require({
+    message: t('users.confirmDelete', { name: u.name }),
+    header: t('common.delete'),
+    icon: 'pi pi-exclamation-triangle',
+    acceptProps: { severity: 'danger', label: t('common.delete') },
+    rejectProps: { severity: 'secondary', outlined: true, label: t('common.cancel') },
+    accept: async () => {
+      try {
+        await usersApi.remove(u.id)
+        toast.add({ severity: 'success', summary: t('common.deleted'), life: 2500 })
+        await loadUsers()
+      } catch (e) {
+        notifyError(e, t('common.saveError'))
+      }
+    },
+  })
 }
 
 function openPermissions(u: User): void {
@@ -152,12 +170,12 @@ function openPermissions(u: User): void {
 async function saveDirectPermissions(): Promise<void> {
   if (!permUser.value) return
   saving.value = true
-  error.value = ''
   try {
     await usersApi.syncDirectPermissions(permUser.value.id, directPermissions.value)
     permUser.value = null
+    toast.add({ severity: 'success', summary: t('common.saved'), life: 2500 })
   } catch (e) {
-    error.value = messageFor(e, t('common.saveError'))
+    notifyError(e, t('common.saveError'))
   } finally {
     saving.value = false
   }
@@ -173,6 +191,17 @@ function goPage(p: number): void {
   loadUsers()
 }
 
+// ترقيم من جهة الخادم: صفحة DataTable تُترجَم إلى رقم صفحة (1-based).
+function onPage(e: DataTablePageEvent): void {
+  goPage(e.page + 1)
+}
+
+function statusSeverity(status: UserStatus): string {
+  if (status === 'active') return 'success'
+  if (status === 'suspended') return 'warn'
+  return 'secondary'
+}
+
 onMounted(() => {
   loadUsers()
   loadRefs()
@@ -181,149 +210,199 @@ onMounted(() => {
 
 <template>
   <div class="mx-auto max-w-5xl">
-    <div class="mb-6 flex items-center justify-between gap-4">
-      <h1 class="text-2xl font-bold text-slate-900 dark:text-white">{{ t('nav.users') }}</h1>
-      <button
-        v-can="'users.create'"
-        type="button"
-        class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700"
-        @click="openCreate"
-      >
-        {{ t('users.create') }}
-      </button>
-    </div>
+    <PageHeader :title="t('nav.users')">
+      <template #actions>
+        <Button v-can="'users.create'" :label="t('users.create')" icon="pi pi-plus" @click="openCreate" />
+      </template>
+    </PageHeader>
 
     <form class="mb-4 flex gap-2" @submit.prevent="doSearch">
-      <input v-model="search" type="search" :placeholder="t('users.searchPlaceholder')" class="w-full max-w-xs rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white" />
-      <button type="submit" class="rounded-lg border border-slate-300 px-4 py-2 text-sm dark:border-slate-700">{{ t('users.search') }}</button>
+      <IconField class="w-full max-w-xs">
+        <InputIcon class="pi pi-search" />
+        <InputText v-model="search" type="search" :placeholder="t('users.searchPlaceholder')" fluid />
+      </IconField>
+      <Button type="submit" :label="t('users.search')" severity="secondary" outlined />
     </form>
-
-    <p v-if="error" class="mb-4 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:bg-rose-950 dark:text-rose-300" role="alert">{{ error }}</p>
-
-    <!-- نموذج المستخدم -->
-    <form v-if="showForm" class="mb-6 space-y-4 rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900" @submit.prevent="submit">
-      <h2 class="font-semibold">{{ editingId === null ? t('users.create') : t('users.edit') }}</h2>
-      <div class="grid gap-4 sm:grid-cols-2">
-        <label class="block text-sm"><span class="lbl">{{ t('users.name') }}</span><input v-model="form.name" type="text" required class="field" /></label>
-        <label class="block text-sm"><span class="lbl">{{ t('users.employeeNo') }}</span><input v-model="form.employee_no" type="text" required class="field" /></label>
-        <label class="block text-sm"><span class="lbl">{{ t('users.email') }}</span><input v-model="form.email" type="email" required class="field" /></label>
-        <label class="block text-sm"><span class="lbl">{{ t('users.phone') }}</span><input v-model="form.phone" type="text" class="field" /></label>
-        <label class="block text-sm">
-          <span class="lbl">{{ t('users.password') }} <span v-if="editingId !== null" class="text-xs text-slate-400">({{ t('users.passwordKeep') }})</span></span>
-          <input v-model="form.password" type="password" :required="editingId === null" autocomplete="new-password" class="field" />
-        </label>
-        <label class="block text-sm">
-          <span class="lbl">{{ t('users.department') }}</span>
-          <select v-model.number="form.department_id" class="field">
-            <option :value="null">{{ t('users.noDepartment') }}</option>
-            <option v-for="d in departments" :key="d.id" :value="d.id">{{ d.name }}</option>
-          </select>
-        </label>
-        <label class="block text-sm">
-          <span class="lbl">{{ t('users.status') }}</span>
-          <select v-model="form.status" class="field">
-            <option v-for="s in STATUSES" :key="s" :value="s">{{ t('userStatus.' + s) }}</option>
-          </select>
-        </label>
-      </div>
-      <div>
-        <p class="lbl">{{ t('users.roles') }}</p>
-        <div class="flex flex-wrap gap-3">
-          <span v-if="!roles.length" class="text-xs text-slate-400">{{ t('users.noRoles') }}</span>
-          <label v-for="r in roles" :key="r.id" class="flex items-center gap-2 text-sm">
-            <input type="checkbox" class="size-4" :checked="form.roles.includes(r.name)" @change="toggleRole(r.name)" />
-            {{ r.name }}
-          </label>
-        </div>
-      </div>
-      <div class="flex gap-3">
-        <button type="submit" :disabled="saving" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700 disabled:opacity-60">{{ saving ? t('common.saving') : t('common.save') }}</button>
-        <button type="button" class="rounded-lg px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400" @click="showForm = false">{{ t('common.cancel') }}</button>
-      </div>
-    </form>
-
-    <!-- محرّر الصلاحيات المباشرة -->
-    <div v-if="permUser" class="mb-6 space-y-4 rounded-2xl border border-amber-300 bg-amber-50/50 p-6 dark:border-amber-800 dark:bg-amber-950/30">
-      <h2 class="font-semibold">{{ t('users.directPermissionsFor', { name: permUser.name }) }}</h2>
-      <p class="rounded-lg bg-amber-100 px-3 py-2 text-xs text-amber-800 dark:bg-amber-900 dark:text-amber-200">{{ t('users.directPermissionsWarning') }}</p>
-      <PermissionPicker v-model="directPermissions" :all="allPermissions" />
-      <div class="flex gap-3">
-        <button type="button" :disabled="saving" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700 disabled:opacity-60" @click="saveDirectPermissions">{{ saving ? t('common.saving') : t('common.save') }}</button>
-        <button type="button" class="rounded-lg px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400" @click="permUser = null">{{ t('common.cancel') }}</button>
-      </div>
-    </div>
 
     <!-- الجدول -->
-    <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-      <p v-if="loading" class="p-6 text-sm text-slate-500">{{ t('common.loading') }}</p>
-      <p v-else-if="!users.length" class="p-6 text-sm text-slate-500">{{ t('users.empty') }}</p>
-      <table v-else class="w-full text-start text-sm">
-        <thead class="bg-slate-50 text-xs uppercase text-slate-500 dark:bg-slate-800 dark:text-slate-400">
-          <tr>
-            <th class="px-4 py-3 text-start">{{ t('users.name') }}</th>
-            <th class="px-4 py-3 text-start">{{ t('users.employeeNo') }}</th>
-            <th class="px-4 py-3 text-start">{{ t('users.email') }}</th>
-            <th class="px-4 py-3 text-start">{{ t('users.status') }}</th>
-            <th class="px-4 py-3 text-start">{{ t('users.roles') }}</th>
-            <th class="px-4 py-3 text-end">{{ t('companies.actions') }}</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-          <tr v-for="u in users" :key="u.id">
-            <td class="px-4 py-3 font-medium text-slate-900 dark:text-white">{{ u.name }}</td>
-            <td class="px-4 py-3 font-mono text-xs text-slate-500">{{ u.employee_no || '—' }}</td>
-            <td class="px-4 py-3 text-slate-500">{{ u.email || '—' }}</td>
-            <td class="px-4 py-3">{{ t('userStatus.' + u.status) }}</td>
-            <td class="px-4 py-3 text-xs text-slate-500">{{ u.roles.join('، ') || '—' }}</td>
-            <td class="px-4 py-3">
-              <div class="flex justify-end gap-3">
-                <button v-can="'permissions.assign'" type="button" class="text-amber-600 hover:underline dark:text-amber-400" @click="openPermissions(u)">{{ t('users.permissions') }}</button>
-                <button v-can="'users.update'" type="button" class="text-slate-600 hover:underline dark:text-slate-300" @click="openEdit(u)">{{ t('common.edit') }}</button>
-                <button v-can="'users.delete'" type="button" class="text-rose-600 hover:underline dark:text-rose-400" @click="remove(u)">{{ t('common.delete') }}</button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="overflow-hidden rounded-2xl border border-surface-200 bg-white dark:border-surface-800 dark:bg-surface-900">
+      <DataTable
+        :value="users"
+        :loading="loading"
+        lazy
+        paginator
+        :rows="pagination?.per_page ?? 10"
+        :rows-per-page-options="[10, 20, 50]"
+        :total-records="pagination?.total ?? 0"
+        :first="((pagination?.current_page ?? 1) - 1) * (pagination?.per_page ?? 10)"
+        data-key="id"
+        striped-rows
+        removable-sort
+        @page="onPage"
+      >
+        <template #empty>
+          <p class="py-6 text-center text-sm text-surface-500">{{ t('users.empty') }}</p>
+        </template>
+
+        <Column field="name" :header="t('users.name')" sortable>
+          <template #body="{ data }">
+            <span class="font-medium text-surface-900 dark:text-white">{{ data.name }}</span>
+          </template>
+        </Column>
+        <Column field="employee_no" :header="t('users.employeeNo')">
+          <template #body="{ data }">
+            <span class="font-mono text-xs text-surface-500">{{ data.employee_no || '—' }}</span>
+          </template>
+        </Column>
+        <Column field="email" :header="t('users.email')">
+          <template #body="{ data }">
+            <span class="text-surface-500">{{ data.email || '—' }}</span>
+          </template>
+        </Column>
+        <Column field="status" :header="t('users.status')">
+          <template #body="{ data }">
+            <Tag :value="t('userStatus.' + data.status)" :severity="statusSeverity(data.status)" />
+          </template>
+        </Column>
+        <Column field="roles" :header="t('users.roles')">
+          <template #body="{ data }">
+            <span class="text-xs text-surface-500">{{ data.roles.join('، ') || '—' }}</span>
+          </template>
+        </Column>
+        <Column :header="t('companies.actions')" class="text-end">
+          <template #body="{ data }">
+            <div class="flex justify-end gap-1">
+              <Button
+                v-can="'permissions.assign'"
+                v-tooltip.top="t('users.permissions')"
+                icon="pi pi-key"
+                severity="warn"
+                text
+                rounded
+                @click="openPermissions(data)"
+              />
+              <Button
+                v-can="'users.update'"
+                v-tooltip.top="t('common.edit')"
+                icon="pi pi-pencil"
+                severity="secondary"
+                text
+                rounded
+                @click="openEdit(data)"
+              />
+              <Button
+                v-can="'users.delete'"
+                v-tooltip.top="t('common.delete')"
+                icon="pi pi-trash"
+                severity="danger"
+                text
+                rounded
+                @click="remove(data)"
+              />
+            </div>
+          </template>
+        </Column>
+      </DataTable>
     </div>
 
-    <!-- ترقيم -->
-    <div v-if="pagination && pagination.last_page > 1" class="mt-4 flex items-center justify-center gap-3 text-sm">
-      <button :disabled="page <= 1" class="rounded-lg border border-slate-300 px-3 py-1 disabled:opacity-40 dark:border-slate-700" @click="goPage(page - 1)">‹</button>
-      <span>{{ pagination.current_page }} / {{ pagination.last_page }}</span>
-      <button :disabled="page >= pagination.last_page" class="rounded-lg border border-slate-300 px-3 py-1 disabled:opacity-40 dark:border-slate-700" @click="goPage(page + 1)">›</button>
-    </div>
+    <!-- نموذج المستخدم -->
+    <Dialog
+      v-model:visible="showForm"
+      modal
+      :header="editingId === null ? t('users.create') : t('users.edit')"
+      :style="{ width: '36rem' }"
+      :breakpoints="{ '640px': '95vw' }"
+    >
+      <form class="grid gap-4 pt-2 sm:grid-cols-2" @submit.prevent="submit">
+        <label class="block text-sm">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('users.name') }}</span>
+          <InputText v-model="form.name" type="text" required fluid />
+        </label>
+        <label class="block text-sm">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('users.employeeNo') }}</span>
+          <InputText v-model="form.employee_no" type="text" required fluid />
+        </label>
+        <label class="block text-sm">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('users.email') }}</span>
+          <InputText v-model="form.email" type="email" required fluid />
+        </label>
+        <label class="block text-sm">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('users.phone') }}</span>
+          <InputText v-model="form.phone" type="text" fluid />
+        </label>
+        <label class="block text-sm">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">
+            {{ t('users.password') }}
+            <span v-if="editingId !== null" class="text-xs text-surface-500">({{ t('users.passwordKeep') }})</span>
+          </span>
+          <InputText v-model="form.password" type="password" :required="editingId === null" autocomplete="new-password" fluid />
+        </label>
+        <label class="block text-sm">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('users.department') }}</span>
+          <Select
+            v-model="form.department_id"
+            :options="departments"
+            option-label="name"
+            option-value="id"
+            :placeholder="t('users.noDepartment')"
+            show-clear
+            fluid
+          />
+        </label>
+        <label class="block text-sm">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('users.status') }}</span>
+          <Select
+            v-model="form.status"
+            :options="STATUSES"
+            :option-label="(s) => t('userStatus.' + s)"
+            fluid
+          />
+        </label>
+        <label class="block text-sm sm:col-span-2">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('users.roles') }}</span>
+          <MultiSelect
+            v-model="form.roles"
+            :options="roles"
+            option-label="name"
+            option-value="name"
+            :placeholder="t('users.noRoles')"
+            display="chip"
+            filter
+            show-clear
+            fluid
+          />
+        </label>
+
+        <div class="mt-2 flex justify-end gap-2 sm:col-span-2">
+          <Button type="button" :label="t('common.cancel')" severity="secondary" text @click="showForm = false" />
+          <Button type="submit" :label="saving ? t('common.saving') : t('common.save')" icon="pi pi-check" :loading="saving" />
+        </div>
+      </form>
+    </Dialog>
+
+    <!-- محرّر الصلاحيات المباشرة -->
+    <Dialog
+      :visible="permUser !== null"
+      modal
+      :header="permUser ? t('users.directPermissionsFor', { name: permUser.name }) : ''"
+      :style="{ width: '36rem' }"
+      :breakpoints="{ '640px': '95vw' }"
+      @update:visible="(v) => { if (!v) permUser = null }"
+    >
+      <div class="space-y-4 pt-2">
+        <Tag severity="warn" :value="t('users.directPermissionsWarning')" class="!whitespace-normal !text-start" />
+        <PermissionPicker v-model="directPermissions" :all="allPermissions" />
+        <div class="mt-2 flex justify-end gap-2">
+          <Button type="button" :label="t('common.cancel')" severity="secondary" text @click="permUser = null" />
+          <Button
+            type="button"
+            :label="saving ? t('common.saving') : t('common.save')"
+            icon="pi pi-check"
+            :loading="saving"
+            @click="saveDirectPermissions"
+          />
+        </div>
+      </div>
+    </Dialog>
   </div>
 </template>
-
-<style scoped>
-.field {
-  width: 100%;
-  border-radius: 0.5rem;
-  border: 1px solid rgb(203 213 225);
-  background: #fff;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.875rem;
-  color: rgb(15 23 42);
-  outline: none;
-}
-.field:focus {
-  border-color: rgb(99 102 241);
-  box-shadow: 0 0 0 2px rgb(99 102 241 / 0.3);
-}
-:global(.dark) .field {
-  border-color: rgb(51 65 85);
-  background: rgb(30 41 59);
-  color: #fff;
-}
-.lbl {
-  margin-bottom: 0.25rem;
-  display: block;
-  font-weight: 500;
-  font-size: 0.875rem;
-  color: rgb(51 65 85);
-}
-:global(.dark) .lbl {
-  color: rgb(203 213 225);
-}
-</style>

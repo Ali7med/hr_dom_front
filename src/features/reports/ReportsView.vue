@@ -1,11 +1,19 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useToast } from 'primevue/usetoast'
+import DataTable from 'primevue/datatable'
+import Column from 'primevue/column'
+import Button from 'primevue/button'
+import Select from 'primevue/select'
+import SelectButton from 'primevue/selectbutton'
 import { ApiException } from '@/api/client'
 import { reportsApi, saveBlob, type ReportType, type ReportRow } from '@/api/reports'
 import { usersApi, departmentsApi, type User, type Department } from '@/api/users'
+import PageHeader from '@/components/PageHeader.vue'
 
 const { t } = useI18n()
+const toast = useToast()
 
 const type = ref<ReportType>('attendance')
 const filters = reactive({ from: '', to: '', period: '', department_id: 0, user_id: 0 })
@@ -15,7 +23,6 @@ const departments = ref<Department[]>([])
 
 const loading = ref(false)
 const exporting = ref('')
-const error = ref('')
 const loaded = ref(false)
 const title = ref('')
 const headings = ref<string[]>([])
@@ -55,6 +62,9 @@ function cell(row: ReportRow, h: string): string {
 function messageFor(e: unknown, fallback: string): string {
   return e instanceof ApiException ? e.message : fallback
 }
+function notifyError(e: unknown, fallback: string): void {
+  toast.add({ severity: 'error', summary: t('common.error'), detail: messageFor(e, fallback), life: 4000 })
+}
 
 const requiresUser = computed(() => type.value === 'timesheet')
 const canRun = computed(() => !requiresUser.value || filters.user_id > 0)
@@ -71,7 +81,6 @@ function buildFilters() {
 
 async function run(): Promise<void> {
   loading.value = true
-  error.value = ''
   try {
     const res = await reportsApi.fetch(type.value, buildFilters())
     title.value = res.title
@@ -80,7 +89,7 @@ async function run(): Promise<void> {
     total.value = res.pagination?.total ?? res.rows.length
     loaded.value = true
   } catch (e) {
-    error.value = messageFor(e, t('common.loadError'))
+    notifyError(e, t('common.loadError'))
   } finally {
     loading.value = false
   }
@@ -88,13 +97,12 @@ async function run(): Promise<void> {
 
 async function exportAs(format: 'excel' | 'pdf'): Promise<void> {
   exporting.value = format
-  error.value = ''
   try {
     const blob = await reportsApi.download(type.value, buildFilters(), format)
     const ext = format === 'excel' ? 'xlsx' : 'pdf'
     saveBlob(blob, `${type.value}-report.${ext}`)
   } catch (e) {
-    error.value = messageFor(e, t('reports.exportError'))
+    notifyError(e, t('reports.exportError'))
   } finally {
     exporting.value = ''
   }
@@ -113,72 +121,120 @@ onMounted(async () => {
 
 <template>
   <div class="mx-auto max-w-5xl">
-    <h1 class="mb-6 text-2xl font-bold text-slate-900 dark:text-white">{{ t('reports.title') }}</h1>
+    <PageHeader :title="t('reports.title')">
+      <template #actions>
+        <Button
+          v-can="'reports.export'"
+          outlined
+          icon="pi pi-file-excel"
+          :label="exporting === 'excel' ? t('common.loading') : t('reports.exportExcel')"
+          :disabled="!!exporting || !canRun"
+          @click="exportAs('excel')"
+        />
+        <Button
+          v-can="'reports.export'"
+          outlined
+          icon="pi pi-file-pdf"
+          :label="exporting === 'pdf' ? t('common.loading') : t('reports.exportPdf')"
+          :disabled="!!exporting || !canRun"
+          @click="exportAs('pdf')"
+        />
+      </template>
+    </PageHeader>
 
     <!-- نوع التقرير -->
-    <div class="mb-6 flex gap-1 border-b border-slate-200 dark:border-slate-800">
-      <button
-        v-for="rt in reportTypes"
-        :key="rt.key"
-        type="button"
-        class="-mb-px border-b-2 px-4 py-2 text-sm font-medium transition"
-        :class="type === rt.key ? 'border-indigo-600 text-indigo-700 dark:text-indigo-300' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'"
-        @click="type = rt.key; loaded = false"
+    <div class="mb-6">
+      <SelectButton
+        v-model="type"
+        :options="reportTypes"
+        option-value="key"
+        data-key="key"
+        :allow-empty="false"
+        @update:model-value="loaded = false"
       >
-        {{ t(rt.label) }}
-      </button>
+        <template #option="{ option }">{{ t(option.label) }}</template>
+      </SelectButton>
     </div>
 
     <!-- الفلاتر -->
-    <div class="mb-6 grid gap-4 rounded-2xl border border-slate-200 bg-white p-6 sm:grid-cols-2 lg:grid-cols-3 dark:border-slate-800 dark:bg-slate-900">
-      <label class="block text-sm"><span class="lbl">{{ t('reports.from') }}</span><input v-model="filters.from" type="date" class="field" /></label>
-      <label class="block text-sm"><span class="lbl">{{ t('reports.to') }}</span><input v-model="filters.to" type="date" class="field" /></label>
-      <label class="block text-sm"><span class="lbl">{{ t('reports.period') }}</span><input v-model="filters.period" type="month" class="field" /></label>
-      <label class="block text-sm"><span class="lbl">{{ t('reports.department') }}</span>
-        <select v-model.number="filters.department_id" class="field">
-          <option :value="0">{{ t('reports.allDepartments') }}</option>
-          <option v-for="d in departments" :key="d.id" :value="d.id">{{ d.name }}</option>
-        </select>
-      </label>
-      <label class="block text-sm">
-        <span class="lbl">{{ t('reports.employee') }}<span v-if="requiresUser" class="text-rose-500"> *</span></span>
-        <select v-model.number="filters.user_id" class="field">
-          <option :value="0">{{ requiresUser ? t('reports.chooseEmployee') : t('reports.allEmployees') }}</option>
-          <option v-for="u in users" :key="u.id" :value="u.id">{{ u.name }}</option>
-        </select>
-      </label>
-    </div>
+    <div class="mb-6 rounded-2xl border border-surface-200 bg-white p-4 dark:border-surface-800 dark:bg-surface-900">
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <label class="block text-sm">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('reports.from') }}</span>
+          <input v-model="filters.from" type="date" class="field" />
+        </label>
+        <label class="block text-sm">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('reports.to') }}</span>
+          <input v-model="filters.to" type="date" class="field" />
+        </label>
+        <label class="block text-sm">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('reports.period') }}</span>
+          <input v-model="filters.period" type="month" class="field" />
+        </label>
+        <label class="block text-sm">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('reports.department') }}</span>
+          <Select
+            v-model.number="filters.department_id"
+            :options="[{ id: 0, name: t('reports.allDepartments') }, ...departments]"
+            option-label="name"
+            option-value="id"
+            fluid
+          />
+        </label>
+        <label class="block text-sm">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">
+            {{ t('reports.employee') }}<span v-if="requiresUser" class="text-red-500"> *</span>
+          </span>
+          <Select
+            v-model.number="filters.user_id"
+            :options="[{ id: 0, name: requiresUser ? t('reports.chooseEmployee') : t('reports.allEmployees') }, ...users]"
+            option-label="name"
+            option-value="id"
+            fluid
+          />
+        </label>
+      </div>
 
-    <div class="mb-6 flex flex-wrap gap-3">
-      <button type="button" class="btn-primary disabled:opacity-50" :disabled="loading || !canRun" @click="run">{{ loading ? t('common.loading') : t('reports.generate') }}</button>
-      <button v-can="'reports.export'" type="button" class="btn-ghost-bordered disabled:opacity-50" :disabled="!!exporting || !canRun" @click="exportAs('excel')">{{ exporting === 'excel' ? t('common.loading') : t('reports.exportExcel') }}</button>
-      <button v-can="'reports.export'" type="button" class="btn-ghost-bordered disabled:opacity-50" :disabled="!!exporting || !canRun" @click="exportAs('pdf')">{{ exporting === 'pdf' ? t('common.loading') : t('reports.exportPdf') }}</button>
+      <div class="mt-4 flex flex-wrap gap-3">
+        <Button
+          icon="pi pi-search"
+          :label="loading ? t('common.loading') : t('reports.generate')"
+          :loading="loading"
+          :disabled="loading || !canRun"
+          @click="run"
+        />
+      </div>
     </div>
 
     <p v-if="requiresUser && !canRun" class="mb-4 text-sm text-amber-600 dark:text-amber-400">{{ t('reports.timesheetNeedsUser') }}</p>
-    <p v-if="error" class="mb-4 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:bg-rose-950 dark:text-rose-300" role="alert">{{ error }}</p>
 
     <!-- النتائج -->
-    <div v-if="loaded" class="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-      <div class="flex items-center justify-between border-b border-slate-100 px-4 py-3 dark:border-slate-800">
-        <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">{{ title }}</h2>
-        <span class="text-xs text-slate-500">{{ t('reports.rowsCount', { n: total }) }}</span>
+    <div v-if="loaded" class="overflow-hidden rounded-2xl border border-surface-200 bg-white dark:border-surface-800 dark:bg-surface-900">
+      <div class="flex items-center justify-between border-b border-surface-100 px-4 py-3 dark:border-surface-800">
+        <h2 class="text-sm font-semibold text-surface-700 dark:text-surface-200">{{ title }}</h2>
+        <span class="text-xs text-surface-500">{{ t('reports.rowsCount', { n: total }) }}</span>
       </div>
-      <p v-if="!rows.length" class="p-6 text-sm text-slate-500">{{ t('reports.empty') }}</p>
-      <div v-else class="overflow-x-auto">
-        <table class="w-full text-start text-sm">
-          <thead class="bg-slate-50 text-xs uppercase text-slate-500 dark:bg-slate-800 dark:text-slate-400">
-            <tr>
-              <th v-for="h in headings" :key="h" class="px-4 py-3 text-start whitespace-nowrap">{{ colLabel(h) }}</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-            <tr v-for="(row, i) in rows" :key="i">
-              <td v-for="h in headings" :key="h" class="px-4 py-3 text-slate-600 whitespace-nowrap dark:text-slate-300">{{ cell(row, h) }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <DataTable
+        :value="rows"
+        paginator
+        :rows="15"
+        :rows-per-page-options="[15, 30, 50]"
+        striped-rows
+        removable-sort
+      >
+        <template #empty>
+          <p class="py-6 text-center text-sm text-surface-500">{{ t('reports.empty') }}</p>
+        </template>
+        <Column
+          v-for="h in headings"
+          :key="h"
+          :field="h"
+          :header="colLabel(h)"
+          sortable
+        >
+          <template #body="{ data }">{{ cell(data, h) }}</template>
+        </Column>
+      </DataTable>
     </div>
   </div>
 </template>
@@ -202,42 +258,5 @@ onMounted(async () => {
   border-color: rgb(51 65 85);
   background: rgb(30 41 59);
   color: #fff;
-}
-.lbl {
-  margin-bottom: 0.25rem;
-  display: block;
-  font-weight: 500;
-  font-size: 0.875rem;
-  color: rgb(51 65 85);
-}
-:global(.dark) .lbl {
-  color: rgb(203 213 225);
-}
-.btn-primary {
-  border-radius: 0.5rem;
-  background: rgb(79 70 229);
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #fff;
-  transition: background 0.15s;
-}
-.btn-primary:hover {
-  background: rgb(67 56 202);
-}
-.btn-ghost-bordered {
-  border-radius: 0.5rem;
-  border: 1px solid rgb(203 213 225);
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: rgb(71 85 105);
-}
-.btn-ghost-bordered:hover {
-  background: rgb(248 250 252);
-}
-:global(.dark) .btn-ghost-bordered {
-  border-color: rgb(51 65 85);
-  color: rgb(203 213 225);
 }
 </style>

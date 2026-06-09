@@ -108,8 +108,6 @@ function confirmRemove(c: Company): void {
     message: t('companies.confirmDelete', { name: c.name }),
     header: t('common.delete'),
     icon: 'pi pi-exclamation-triangle',
-    rejectlabel: t('common.cancel'),
-    acceptlabel: t('common.delete'),
     acceptProps: { severity: 'danger', label: t('common.delete') },
     rejectProps: { severity: 'secondary', outlined: true, label: t('common.cancel') },
     accept: async () => {

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import Checkbox from 'primevue/checkbox'
 import { groupPermissions } from '@/api/roles'
 
 const props = defineProps<{
@@ -38,19 +39,18 @@ function groupLabel(key: string): string {
     <fieldset
       v-for="(perms, group) in groups"
       :key="group"
-      class="rounded-xl border border-slate-200 p-4 dark:border-slate-700"
+      class="rounded-xl border border-surface-200 p-4 dark:border-surface-700"
     >
-      <legend class="px-1 text-sm font-semibold text-slate-700 dark:text-slate-300">
+      <legend class="px-1 text-sm font-semibold text-surface-700 dark:text-surface-300">
         {{ groupLabel(group) }}
       </legend>
-      <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+      <div class="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
         <label v-for="perm in perms" :key="perm" class="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            class="size-4"
-            :checked="isChecked(perm)"
+          <Checkbox
+            :model-value="isChecked(perm)"
+            :binary="true"
             :disabled="disabled"
-            @change="toggle(perm)"
+            @update:model-value="toggle(perm)"
           />
           <span class="font-mono text-xs">{{ perm }}</span>
         </label>

@@ -1,6 +1,23 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useConfirm } from 'primevue/useconfirm'
+import { useToast } from 'primevue/usetoast'
+import Tabs from 'primevue/tabs'
+import TabList from 'primevue/tablist'
+import Tab from 'primevue/tab'
+import TabPanels from 'primevue/tabpanels'
+import TabPanel from 'primevue/tabpanel'
+import DataTable from 'primevue/datatable'
+import Column from 'primevue/column'
+import Button from 'primevue/button'
+import Dialog from 'primevue/dialog'
+import InputText from 'primevue/inputtext'
+import InputNumber from 'primevue/inputnumber'
+import Select from 'primevue/select'
+import DatePicker from 'primevue/datepicker'
+import Checkbox from 'primevue/checkbox'
+import Tag from 'primevue/tag'
 import { ApiException } from '@/api/client'
 import {
   leaveTypesApi,
@@ -13,16 +30,21 @@ import {
 } from '@/api/leaves'
 import { usersApi, type User } from '@/api/users'
 import { useAuthStore } from '@/stores/auth'
+import PageHeader from '@/components/PageHeader.vue'
 
 const { t } = useI18n()
 const auth = useAuthStore()
+const confirm = useConfirm()
+const toast = useToast()
 
 type Tab = 'requests' | 'types' | 'balances'
 const tab = ref<Tab>('requests')
 
-const error = ref('')
 const saving = ref(false)
 const acting = ref<number | null>(null)
+const loadingRequests = ref(false)
+const loadingTypes = ref(false)
+const loadingBalances = ref(false)
 
 const types = ref<LeaveType[]>([])
 const requests = ref<LeaveRequest[]>([])
@@ -31,19 +53,27 @@ const users = ref<User[]>([])
 function messageFor(e: unknown, fallback: string): string {
   return e instanceof ApiException ? e.message : fallback
 }
+function notifyError(e: unknown, fallback: string): void {
+  toast.add({ severity: 'error', summary: t('common.error'), detail: messageFor(e, fallback), life: 4000 })
+}
 const ymd = (date: string | null) => (date ? date.slice(0, 10) : '—')
 const userName = (id: number) => users.value.find((u) => u.id === id)?.name ?? `#${id}`
 const typeName = (id: number) => types.value.find((x) => x.id === id)?.name ?? `#${id}`
 
-const statusClass: Record<LeaveStatus, string> = {
-  pending: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-200',
-  approved: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-200',
-  rejected: 'bg-rose-100 text-rose-700 dark:bg-rose-900 dark:text-rose-200',
-  auto: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
+const statusSeverity: Record<LeaveStatus, 'warn' | 'success' | 'danger' | 'secondary'> = {
+  pending: 'warn',
+  approved: 'success',
+  rejected: 'danger',
+  auto: 'secondary',
 }
 
 async function loadTypes(): Promise<void> {
-  types.value = await leaveTypesApi.list()
+  loadingTypes.value = true
+  try {
+    types.value = await leaveTypesApi.list()
+  } finally {
+    loadingTypes.value = false
+  }
 }
 async function loadUsers(): Promise<void> {
   if (users.value.length) return
@@ -52,32 +82,68 @@ async function loadUsers(): Promise<void> {
 
 // ===== طلبات الإجازة =====
 const statusFilter = ref<'' | LeaveStatus>('')
+const statusOptions = computed(() => [
+  { label: t('leaves.allStatuses'), value: '' },
+  { label: t('leaveStatus.pending'), value: 'pending' },
+  { label: t('leaveStatus.approved'), value: 'approved' },
+  { label: t('leaveStatus.rejected'), value: 'rejected' },
+])
 async function loadRequests(): Promise<void> {
-  error.value = ''
+  loadingRequests.value = true
   try {
     const params = statusFilter.value ? { status: statusFilter.value } : {}
     requests.value = (await leavesApi.list(params)).data
   } catch (e) {
-    error.value = messageFor(e, t('common.loadError'))
+    notifyError(e, t('common.loadError'))
+  } finally {
+    loadingRequests.value = false
   }
 }
 async function decide(r: LeaveRequest, approve: boolean): Promise<void> {
   const msg = approve ? 'leaves.confirmApprove' : 'leaves.confirmReject'
-  if (!window.confirm(t(msg, { name: r.user?.name ?? userName(r.user_id) }))) return
-  acting.value = r.id
-  error.value = ''
-  try {
-    if (approve) await leavesApi.approve(r.id)
-    else await leavesApi.reject(r.id)
-    await loadRequests()
-  } catch (e) {
-    error.value = messageFor(e, t('common.saveError'))
-  } finally {
-    acting.value = null
-  }
+  confirm.require({
+    message: t(msg, { name: r.user?.name ?? userName(r.user_id) }),
+    header: approve ? t('leaves.approve') : t('leaves.reject'),
+    icon: 'pi pi-exclamation-triangle',
+    rejectProps: { severity: 'secondary', outlined: true, label: t('common.cancel') },
+    acceptProps: approve
+      ? { severity: 'success', label: t('leaves.approve') }
+      : { severity: 'danger', label: t('leaves.reject') },
+    accept: async () => {
+      acting.value = r.id
+      try {
+        if (approve) await leavesApi.approve(r.id)
+        else await leavesApi.reject(r.id)
+        toast.add({ severity: 'success', summary: t('common.saved'), life: 2500 })
+        await loadRequests()
+      } catch (e) {
+        notifyError(e, t('common.saveError'))
+      } finally {
+        acting.value = null
+      }
+    },
+  })
 }
 
 const reqForm = reactive({ open: false, user_id: 0, leave_type_id: 0, start_at: '', end_at: '' })
+const reqStartDate = computed({
+  get: () => (reqForm.start_at ? new Date(reqForm.start_at) : null),
+  set: (d: Date | null) => {
+    reqForm.start_at = d ? toYmd(d) : ''
+  },
+})
+const reqEndDate = computed({
+  get: () => (reqForm.end_at ? new Date(reqForm.end_at) : null),
+  set: (d: Date | null) => {
+    reqForm.end_at = d ? toYmd(d) : ''
+  },
+})
+function toYmd(d: Date): string {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
 function openRequest(): void {
   reqForm.open = true
   reqForm.user_id = users.value[0]?.id ?? 0
@@ -87,7 +153,6 @@ function openRequest(): void {
 }
 async function submitRequest(): Promise<void> {
   saving.value = true
-  error.value = ''
   try {
     await leavesApi.create({
       user_id: reqForm.user_id,
@@ -97,9 +162,10 @@ async function submitRequest(): Promise<void> {
       source: 'panel',
     })
     reqForm.open = false
+    toast.add({ severity: 'success', summary: t('common.saved'), life: 2500 })
     await loadRequests()
   } catch (e) {
-    error.value = messageFor(e, t('common.saveError'))
+    notifyError(e, t('common.saveError'))
   } finally {
     saving.value = false
   }
@@ -116,6 +182,17 @@ const typeForm = reactive({
   affects_balance: 'normal' as NonNullable<LeaveType['affects_balance']>,
   is_paid: true,
 })
+const kindOptions = computed(() => [
+  { label: t('leaveKind.hourly'), value: 'hourly' },
+  { label: t('leaveKind.daily'), value: 'daily' },
+  { label: t('leaveKind.long'), value: 'long' },
+  { label: t('leaveKind.sick'), value: 'sick' },
+])
+const affectsBalanceOptions = computed(() => [
+  { label: t('leaveBalanceType.normal'), value: 'normal' },
+  { label: t('leaveBalanceType.sick'), value: 'sick' },
+  { label: t('leaves.affectsNone'), value: 'none' },
+])
 function openType(x?: LeaveType): void {
   typeForm.open = true
   typeForm.id = x?.id ?? null
@@ -127,7 +204,6 @@ function openType(x?: LeaveType): void {
 }
 async function submitType(): Promise<void> {
   saving.value = true
-  error.value = ''
   try {
     const payload = {
       name: typeForm.name,
@@ -139,326 +215,400 @@ async function submitType(): Promise<void> {
     if (typeForm.id === null) await leaveTypesApi.create(payload)
     else await leaveTypesApi.update(typeForm.id, payload)
     typeForm.open = false
+    toast.add({ severity: 'success', summary: t('common.saved'), life: 2500 })
     await loadTypes()
   } catch (e) {
-    error.value = messageFor(e, t('common.saveError'))
+    notifyError(e, t('common.saveError'))
   } finally {
     saving.value = false
   }
 }
 async function removeType(x: LeaveType): Promise<void> {
-  if (!window.confirm(t('leaves.confirmDeleteType', { name: x.name }))) return
-  error.value = ''
-  try {
-    await leaveTypesApi.remove(x.id)
-    await loadTypes()
-  } catch (e) {
-    error.value = messageFor(e, t('common.saveError'))
-  }
+  confirm.require({
+    message: t('leaves.confirmDeleteType', { name: x.name }),
+    header: t('common.delete'),
+    icon: 'pi pi-exclamation-triangle',
+    rejectProps: { severity: 'secondary', outlined: true, label: t('common.cancel') },
+    acceptProps: { severity: 'danger', label: t('common.delete') },
+    accept: async () => {
+      try {
+        await leaveTypesApi.remove(x.id)
+        toast.add({ severity: 'success', summary: t('common.deleted'), life: 2500 })
+        await loadTypes()
+      } catch (e) {
+        notifyError(e, t('common.saveError'))
+      }
+    },
+  })
 }
 
 // ===== الأرصدة =====
 const balanceUserId = ref(0)
 const balances = ref<LeaveBalance[]>([])
 const balForm = reactive({ balance_type: 'normal' as 'normal' | 'sick', balance_days: 0, mode: 'set' as 'set' | 'increment' })
+const balanceUserOptions = computed(() => [
+  { label: t('leaves.chooseEmployee'), value: 0 },
+  ...users.value.map((u) => ({ label: u.name, value: u.id })),
+])
+const balanceTypeOptions = computed(() => [
+  { label: t('leaveBalanceType.normal'), value: 'normal' },
+  { label: t('leaveBalanceType.sick'), value: 'sick' },
+])
+const modeOptions = computed(() => [
+  { label: t('leaves.modeSet'), value: 'set' },
+  { label: t('leaves.modeIncrement'), value: 'increment' },
+])
 async function loadBalances(): Promise<void> {
   if (!balanceUserId.value) {
     balances.value = []
     return
   }
-  error.value = ''
+  loadingBalances.value = true
   try {
     balances.value = await leaveBalancesApi.list(balanceUserId.value)
   } catch (e) {
-    error.value = messageFor(e, t('common.loadError'))
+    notifyError(e, t('common.loadError'))
+  } finally {
+    loadingBalances.value = false
   }
 }
 async function submitBalance(): Promise<void> {
   if (!balanceUserId.value) return
   saving.value = true
-  error.value = ''
   try {
     await leaveBalancesApi.upsert(balanceUserId.value, {
       balance_type: balForm.balance_type,
       balance_days: balForm.balance_days,
       mode: balForm.mode,
     })
+    toast.add({ severity: 'success', summary: t('common.saved'), life: 2500 })
     await loadBalances()
   } catch (e) {
-    error.value = messageFor(e, t('common.saveError'))
+    notifyError(e, t('common.saveError'))
   } finally {
     saving.value = false
   }
 }
 
-const tabs: { key: Tab; label: string }[] = [
-  { key: 'requests', label: 'leaves.tabRequests' },
-  { key: 'types', label: 'leaves.tabTypes' },
-  { key: 'balances', label: 'leaves.tabBalances' },
-]
-
 onMounted(async () => {
   try {
     await Promise.all([loadTypes(), loadUsers(), loadRequests()])
   } catch (e) {
-    error.value = messageFor(e, t('common.loadError'))
+    notifyError(e, t('common.loadError'))
   }
 })
 </script>
 
 <template>
   <div class="mx-auto max-w-5xl">
-    <h1 class="mb-6 text-2xl font-bold text-slate-900 dark:text-white">{{ t('leaves.title') }}</h1>
+    <PageHeader :title="t('leaves.title')" />
 
-    <div class="mb-6 flex gap-1 border-b border-slate-200 dark:border-slate-800">
-      <button
-        v-for="tb in tabs"
-        :key="tb.key"
-        type="button"
-        class="-mb-px border-b-2 px-4 py-2 text-sm font-medium transition"
-        :class="tab === tb.key ? 'border-indigo-600 text-indigo-700 dark:text-indigo-300' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'"
-        @click="tab = tb.key"
-      >
-        {{ t(tb.label) }}
-      </button>
-    </div>
-
-    <p v-if="error" class="mb-4 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:bg-rose-950 dark:text-rose-300" role="alert">{{ error }}</p>
-
-    <!-- ===== الطلبات ===== -->
-    <section v-if="tab === 'requests'">
-      <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <label class="flex items-center gap-2 text-sm">
-          <span class="text-slate-500">{{ t('leaves.status') }}</span>
-          <select v-model="statusFilter" class="field w-auto" @change="loadRequests">
-            <option value="">{{ t('leaves.allStatuses') }}</option>
-            <option value="pending">{{ t('leaveStatus.pending') }}</option>
-            <option value="approved">{{ t('leaveStatus.approved') }}</option>
-            <option value="rejected">{{ t('leaveStatus.rejected') }}</option>
-          </select>
-        </label>
-        <button v-if="auth.can('leaves.approve')" type="button" class="btn-primary disabled:opacity-60" :disabled="!canCreateRequest" @click="openRequest">{{ t('leaves.newRequest') }}</button>
-      </div>
-
-      <form v-if="reqForm.open" class="mb-6 space-y-4 rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900" @submit.prevent="submitRequest">
-        <h2 class="font-semibold">{{ t('leaves.newRequest') }}</h2>
-        <div class="grid gap-4 sm:grid-cols-2">
-          <label class="block text-sm"><span class="lbl">{{ t('leaves.employee') }}</span>
-            <select v-model.number="reqForm.user_id" required class="field"><option v-for="u in users" :key="u.id" :value="u.id">{{ u.name }}</option></select>
-          </label>
-          <label class="block text-sm"><span class="lbl">{{ t('leaves.type') }}</span>
-            <select v-model.number="reqForm.leave_type_id" required class="field"><option v-for="x in types" :key="x.id" :value="x.id">{{ x.name }}</option></select>
-          </label>
-          <label class="block text-sm"><span class="lbl">{{ t('leaves.startAt') }}</span><input v-model="reqForm.start_at" type="date" required class="field" /></label>
-          <label class="block text-sm"><span class="lbl">{{ t('leaves.endAt') }}</span><input v-model="reqForm.end_at" type="date" required class="field" /></label>
-        </div>
-        <div class="flex gap-3">
-          <button type="submit" :disabled="saving" class="btn-primary disabled:opacity-60">{{ saving ? t('common.saving') : t('common.save') }}</button>
-          <button type="button" class="btn-ghost" @click="reqForm.open = false">{{ t('common.cancel') }}</button>
-        </div>
-      </form>
-
-      <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-        <p v-if="!requests.length" class="p-6 text-sm text-slate-500">{{ t('leaves.emptyRequests') }}</p>
-        <table v-else class="w-full text-start text-sm">
-          <thead class="bg-slate-50 text-xs uppercase text-slate-500 dark:bg-slate-800 dark:text-slate-400">
-            <tr>
-              <th class="px-4 py-3 text-start">{{ t('leaves.employee') }}</th>
-              <th class="px-4 py-3 text-start">{{ t('leaves.type') }}</th>
-              <th class="px-4 py-3 text-start">{{ t('leaves.period') }}</th>
-              <th class="px-4 py-3 text-start">{{ t('leaves.status') }}</th>
-              <th class="px-4 py-3 text-end">{{ t('companies.actions') }}</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-            <tr v-for="r in requests" :key="r.id">
-              <td class="px-4 py-3 font-medium text-slate-900 dark:text-white">{{ r.user?.name ?? userName(r.user_id) }}</td>
-              <td class="px-4 py-3 text-slate-500">{{ r.leave_type?.name ?? typeName(r.leave_type_id) }}</td>
-              <td class="px-4 py-3 text-slate-500" dir="ltr">{{ ymd(r.start_at) }} → {{ ymd(r.end_at) }}</td>
-              <td class="px-4 py-3"><span class="rounded-full px-2 py-0.5 text-xs" :class="statusClass[r.status]">{{ t('leaveStatus.' + r.status) }}</span></td>
-              <td class="px-4 py-3">
-                <div v-if="r.status === 'pending'" class="flex justify-end gap-3">
-                  <button v-can="'leaves.approve'" type="button" :disabled="acting === r.id" class="font-medium text-emerald-600 hover:underline disabled:opacity-50 dark:text-emerald-400" @click="decide(r, true)">{{ t('leaves.approve') }}</button>
-                  <button v-can="'leaves.approve'" type="button" :disabled="acting === r.id" class="font-medium text-rose-600 hover:underline disabled:opacity-50 dark:text-rose-400" @click="decide(r, false)">{{ t('leaves.reject') }}</button>
-                </div>
-                <span v-else class="flex justify-end text-xs text-slate-400">—</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- ===== الأنواع ===== -->
-    <section v-else-if="tab === 'types'">
-      <div class="mb-4 flex justify-end">
-        <button v-can="'leave_types.create'" type="button" class="btn-primary" @click="openType()">{{ t('leaves.addType') }}</button>
-      </div>
-
-      <form v-if="typeForm.open" class="mb-6 space-y-4 rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900" @submit.prevent="submitType">
-        <h2 class="font-semibold">{{ typeForm.id === null ? t('leaves.addType') : t('leaves.editType') }}</h2>
-        <div class="grid gap-4 sm:grid-cols-2">
-          <label class="block text-sm"><span class="lbl">{{ t('leaves.typeName') }}</span><input v-model="typeForm.name" type="text" required maxlength="100" class="field" /></label>
-          <label class="block text-sm"><span class="lbl">{{ t('leaves.kind') }}</span>
-            <select v-model="typeForm.kind" class="field">
-              <option value="hourly">{{ t('leaveKind.hourly') }}</option>
-              <option value="daily">{{ t('leaveKind.daily') }}</option>
-              <option value="long">{{ t('leaveKind.long') }}</option>
-              <option value="sick">{{ t('leaveKind.sick') }}</option>
-            </select>
-          </label>
-          <label class="block text-sm"><span class="lbl">{{ t('leaves.affectsBalance') }}</span>
-            <select v-model="typeForm.affects_balance" class="field">
-              <option value="normal">{{ t('leaveBalanceType.normal') }}</option>
-              <option value="sick">{{ t('leaveBalanceType.sick') }}</option>
-              <option value="none">{{ t('leaves.affectsNone') }}</option>
-            </select>
-          </label>
-          <div class="flex items-center gap-6 pt-6">
-            <label class="flex items-center gap-2 text-sm"><input v-model="typeForm.needs_approval" type="checkbox" class="size-4" /><span class="font-medium text-slate-700 dark:text-slate-300">{{ t('leaves.needsApproval') }}</span></label>
-            <label class="flex items-center gap-2 text-sm"><input v-model="typeForm.is_paid" type="checkbox" class="size-4" /><span class="font-medium text-slate-700 dark:text-slate-300">{{ t('leaves.isPaid') }}</span></label>
-          </div>
-        </div>
-        <div class="flex gap-3">
-          <button type="submit" :disabled="saving" class="btn-primary disabled:opacity-60">{{ saving ? t('common.saving') : t('common.save') }}</button>
-          <button type="button" class="btn-ghost" @click="typeForm.open = false">{{ t('common.cancel') }}</button>
-        </div>
-      </form>
-
-      <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-        <p v-if="!types.length" class="p-6 text-sm text-slate-500">{{ t('leaves.emptyTypes') }}</p>
-        <table v-else class="w-full text-start text-sm">
-          <thead class="bg-slate-50 text-xs uppercase text-slate-500 dark:bg-slate-800 dark:text-slate-400">
-            <tr>
-              <th class="px-4 py-3 text-start">{{ t('leaves.typeName') }}</th>
-              <th class="px-4 py-3 text-start">{{ t('leaves.kind') }}</th>
-              <th class="px-4 py-3 text-start">{{ t('leaves.needsApproval') }}</th>
-              <th class="px-4 py-3 text-start">{{ t('leaves.isPaid') }}</th>
-              <th class="px-4 py-3 text-end">{{ t('companies.actions') }}</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-            <tr v-for="x in types" :key="x.id">
-              <td class="px-4 py-3 font-medium text-slate-900 dark:text-white">{{ x.name }}</td>
-              <td class="px-4 py-3 text-slate-500">{{ t('leaveKind.' + x.kind) }}</td>
-              <td class="px-4 py-3 text-slate-500">{{ x.needs_approval ? t('common.yes') : t('common.no') }}</td>
-              <td class="px-4 py-3 text-slate-500">{{ x.is_paid ? t('common.yes') : t('common.no') }}</td>
-              <td class="px-4 py-3">
-                <div class="flex justify-end gap-3">
-                  <button v-can="'leave_types.update'" type="button" class="text-slate-600 hover:underline dark:text-slate-300" @click="openType(x)">{{ t('common.edit') }}</button>
-                  <button v-can="'leave_types.delete'" type="button" class="text-rose-600 hover:underline dark:text-rose-400" @click="removeType(x)">{{ t('common.delete') }}</button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- ===== الأرصدة ===== -->
-    <section v-else>
-      <div class="mb-4 max-w-xs">
-        <label class="block text-sm"><span class="lbl">{{ t('leaves.employee') }}</span>
-          <select v-model.number="balanceUserId" class="field" @change="loadBalances">
-            <option :value="0">{{ t('leaves.chooseEmployee') }}</option>
-            <option v-for="u in users" :key="u.id" :value="u.id">{{ u.name }}</option>
-          </select>
-        </label>
-      </div>
-
-      <template v-if="balanceUserId">
-        <div class="mb-6 overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-          <p v-if="!balances.length" class="p-6 text-sm text-slate-500">{{ t('leaves.emptyBalances') }}</p>
-          <table v-else class="w-full text-start text-sm">
-            <thead class="bg-slate-50 text-xs uppercase text-slate-500 dark:bg-slate-800 dark:text-slate-400">
-              <tr>
-                <th class="px-4 py-3 text-start">{{ t('leaves.balanceType') }}</th>
-                <th class="px-4 py-3 text-start">{{ t('leaves.days') }}</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-              <tr v-for="b in balances" :key="b.id">
-                <td class="px-4 py-3 font-medium text-slate-900 dark:text-white">{{ t('leaveBalanceType.' + b.balance_type) }}</td>
-                <td class="px-4 py-3 text-slate-500">{{ b.balance_days }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <form v-can="'leaves.manage_balances'" class="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900" @submit.prevent="submitBalance">
-          <h2 class="font-semibold">{{ t('leaves.setBalance') }}</h2>
-          <div class="grid gap-4 sm:grid-cols-3">
-            <label class="block text-sm"><span class="lbl">{{ t('leaves.balanceType') }}</span>
-              <select v-model="balForm.balance_type" class="field">
-                <option value="normal">{{ t('leaveBalanceType.normal') }}</option>
-                <option value="sick">{{ t('leaveBalanceType.sick') }}</option>
-              </select>
+    <Tabs :value="tab" @update:value="(v) => (tab = v as Tab)">
+      <TabList>
+        <Tab value="requests">{{ t('leaves.tabRequests') }}</Tab>
+        <Tab value="types">{{ t('leaves.tabTypes') }}</Tab>
+        <Tab value="balances">{{ t('leaves.tabBalances') }}</Tab>
+      </TabList>
+      <TabPanels>
+        <!-- ===== الطلبات ===== -->
+        <TabPanel value="requests">
+          <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <label class="flex items-center gap-2 text-sm">
+              <span class="text-surface-500">{{ t('leaves.status') }}</span>
+              <Select
+                v-model="statusFilter"
+                :options="statusOptions"
+                option-label="label"
+                option-value="value"
+                @change="loadRequests"
+              />
             </label>
-            <label class="block text-sm"><span class="lbl">{{ t('leaves.days') }}</span><input v-model.number="balForm.balance_days" type="number" min="0" step="0.5" required class="field" /></label>
-            <label class="block text-sm"><span class="lbl">{{ t('leaves.mode') }}</span>
-              <select v-model="balForm.mode" class="field">
-                <option value="set">{{ t('leaves.modeSet') }}</option>
-                <option value="increment">{{ t('leaves.modeIncrement') }}</option>
-              </select>
+            <Button
+              v-if="auth.can('leaves.approve')"
+              :label="t('leaves.newRequest')"
+              icon="pi pi-plus"
+              :disabled="!canCreateRequest"
+              @click="openRequest"
+            />
+          </div>
+
+          <div class="overflow-hidden rounded-2xl border border-surface-200 bg-white dark:border-surface-800 dark:bg-surface-900">
+            <DataTable
+              :value="requests"
+              :loading="loadingRequests"
+              paginator
+              :rows="10"
+              :rows-per-page-options="[10, 20, 50]"
+              data-key="id"
+              striped-rows
+              removable-sort
+            >
+              <template #empty>
+                <p class="py-6 text-center text-sm text-surface-500">{{ t('leaves.emptyRequests') }}</p>
+              </template>
+
+              <Column :header="t('leaves.employee')" sortable>
+                <template #body="{ data }">
+                  <span class="font-medium text-surface-900 dark:text-white">{{ data.user?.name ?? userName(data.user_id) }}</span>
+                </template>
+              </Column>
+              <Column :header="t('leaves.type')">
+                <template #body="{ data }">
+                  <span class="text-surface-500">{{ data.leave_type?.name ?? typeName(data.leave_type_id) }}</span>
+                </template>
+              </Column>
+              <Column :header="t('leaves.period')">
+                <template #body="{ data }">
+                  <span class="text-surface-500" dir="ltr">{{ ymd(data.start_at) }} → {{ ymd(data.end_at) }}</span>
+                </template>
+              </Column>
+              <Column :header="t('leaves.status')">
+                <template #body="{ data }">
+                  <Tag :value="t('leaveStatus.' + data.status)" :severity="statusSeverity[data.status as LeaveStatus]" />
+                </template>
+              </Column>
+              <Column :header="t('companies.actions')" class="text-end">
+                <template #body="{ data }">
+                  <div v-if="data.status === 'pending'" class="flex justify-end gap-1">
+                    <Button
+                      v-can="'leaves.approve'"
+                      v-tooltip.top="t('leaves.approve')"
+                      icon="pi pi-check"
+                      severity="success"
+                      text
+                      rounded
+                      :disabled="acting === data.id"
+                      @click="decide(data, true)"
+                    />
+                    <Button
+                      v-can="'leaves.approve'"
+                      v-tooltip.top="t('leaves.reject')"
+                      icon="pi pi-times"
+                      severity="danger"
+                      text
+                      rounded
+                      :disabled="acting === data.id"
+                      @click="decide(data, false)"
+                    />
+                  </div>
+                  <span v-else class="flex justify-end text-xs text-surface-400">—</span>
+                </template>
+              </Column>
+            </DataTable>
+          </div>
+        </TabPanel>
+
+        <!-- ===== الأنواع ===== -->
+        <TabPanel value="types">
+          <div class="mb-4 flex justify-end">
+            <Button v-can="'leave_types.create'" :label="t('leaves.addType')" icon="pi pi-plus" @click="openType()" />
+          </div>
+
+          <div class="overflow-hidden rounded-2xl border border-surface-200 bg-white dark:border-surface-800 dark:bg-surface-900">
+            <DataTable
+              :value="types"
+              :loading="loadingTypes"
+              paginator
+              :rows="10"
+              :rows-per-page-options="[10, 20, 50]"
+              data-key="id"
+              striped-rows
+              removable-sort
+            >
+              <template #empty>
+                <p class="py-6 text-center text-sm text-surface-500">{{ t('leaves.emptyTypes') }}</p>
+              </template>
+
+              <Column field="name" :header="t('leaves.typeName')" sortable>
+                <template #body="{ data }">
+                  <span class="font-medium text-surface-900 dark:text-white">{{ data.name }}</span>
+                </template>
+              </Column>
+              <Column :header="t('leaves.kind')">
+                <template #body="{ data }">
+                  <span class="text-surface-500">{{ t('leaveKind.' + data.kind) }}</span>
+                </template>
+              </Column>
+              <Column :header="t('leaves.needsApproval')">
+                <template #body="{ data }">
+                  <span class="text-surface-500">{{ data.needs_approval ? t('common.yes') : t('common.no') }}</span>
+                </template>
+              </Column>
+              <Column :header="t('leaves.isPaid')">
+                <template #body="{ data }">
+                  <span class="text-surface-500">{{ data.is_paid ? t('common.yes') : t('common.no') }}</span>
+                </template>
+              </Column>
+              <Column :header="t('companies.actions')" class="text-end">
+                <template #body="{ data }">
+                  <div class="flex justify-end gap-1">
+                    <Button
+                      v-can="'leave_types.update'"
+                      v-tooltip.top="t('common.edit')"
+                      icon="pi pi-pencil"
+                      severity="secondary"
+                      text
+                      rounded
+                      @click="openType(data)"
+                    />
+                    <Button
+                      v-can="'leave_types.delete'"
+                      v-tooltip.top="t('common.delete')"
+                      icon="pi pi-trash"
+                      severity="danger"
+                      text
+                      rounded
+                      @click="removeType(data)"
+                    />
+                  </div>
+                </template>
+              </Column>
+            </DataTable>
+          </div>
+        </TabPanel>
+
+        <!-- ===== الأرصدة ===== -->
+        <TabPanel value="balances">
+          <div class="mb-4 max-w-xs">
+            <label class="block text-sm">
+              <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('leaves.employee') }}</span>
+              <Select
+                v-model="balanceUserId"
+                :options="balanceUserOptions"
+                option-label="label"
+                option-value="value"
+                fluid
+                @change="loadBalances"
+              />
             </label>
           </div>
-          <button type="submit" :disabled="saving" class="btn-primary disabled:opacity-60">{{ saving ? t('common.saving') : t('common.save') }}</button>
-        </form>
-      </template>
-    </section>
+
+          <template v-if="balanceUserId">
+            <div class="mb-6 overflow-hidden rounded-2xl border border-surface-200 bg-white dark:border-surface-800 dark:bg-surface-900">
+              <DataTable
+                :value="balances"
+                :loading="loadingBalances"
+                paginator
+                :rows="10"
+                :rows-per-page-options="[10, 20, 50]"
+                data-key="id"
+                striped-rows
+                removable-sort
+              >
+                <template #empty>
+                  <p class="py-6 text-center text-sm text-surface-500">{{ t('leaves.emptyBalances') }}</p>
+                </template>
+
+                <Column :header="t('leaves.balanceType')">
+                  <template #body="{ data }">
+                    <span class="font-medium text-surface-900 dark:text-white">{{ t('leaveBalanceType.' + data.balance_type) }}</span>
+                  </template>
+                </Column>
+                <Column field="balance_days" :header="t('leaves.days')" sortable>
+                  <template #body="{ data }">
+                    <span class="text-surface-500">{{ data.balance_days }}</span>
+                  </template>
+                </Column>
+              </DataTable>
+            </div>
+
+            <form
+              v-can="'leaves.manage_balances'"
+              class="space-y-4 rounded-2xl border border-surface-200 bg-white p-6 dark:border-surface-800 dark:bg-surface-900"
+              @submit.prevent="submitBalance"
+            >
+              <h2 class="font-semibold">{{ t('leaves.setBalance') }}</h2>
+              <div class="grid gap-4 sm:grid-cols-3">
+                <label class="block text-sm">
+                  <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('leaves.balanceType') }}</span>
+                  <Select v-model="balForm.balance_type" :options="balanceTypeOptions" option-label="label" option-value="value" fluid />
+                </label>
+                <label class="block text-sm">
+                  <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('leaves.days') }}</span>
+                  <InputNumber v-model="balForm.balance_days" :min="0" :step="0.5" :min-fraction-digits="0" :max-fraction-digits="2" show-buttons fluid />
+                </label>
+                <label class="block text-sm">
+                  <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('leaves.mode') }}</span>
+                  <Select v-model="balForm.mode" :options="modeOptions" option-label="label" option-value="value" fluid />
+                </label>
+              </div>
+              <Button type="submit" :label="saving ? t('common.saving') : t('common.save')" icon="pi pi-check" :loading="saving" />
+            </form>
+          </template>
+        </TabPanel>
+      </TabPanels>
+    </Tabs>
+
+    <!-- نموذج طلب الإجازة بالنيابة -->
+    <Dialog
+      v-model:visible="reqForm.open"
+      modal
+      :header="t('leaves.newRequest')"
+      :style="{ width: '32rem' }"
+      :breakpoints="{ '640px': '95vw' }"
+    >
+      <form class="grid gap-4 pt-2 sm:grid-cols-2" @submit.prevent="submitRequest">
+        <label class="block text-sm">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('leaves.employee') }}</span>
+          <Select v-model="reqForm.user_id" :options="users" option-label="name" option-value="id" required fluid />
+        </label>
+        <label class="block text-sm">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('leaves.type') }}</span>
+          <Select v-model="reqForm.leave_type_id" :options="types" option-label="name" option-value="id" required fluid />
+        </label>
+        <label class="block text-sm">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('leaves.startAt') }}</span>
+          <DatePicker v-model="reqStartDate" date-format="yy-mm-dd" show-icon fluid />
+        </label>
+        <label class="block text-sm">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('leaves.endAt') }}</span>
+          <DatePicker v-model="reqEndDate" date-format="yy-mm-dd" show-icon fluid />
+        </label>
+
+        <div class="mt-2 flex justify-end gap-2 sm:col-span-2">
+          <Button type="button" :label="t('common.cancel')" severity="secondary" text @click="reqForm.open = false" />
+          <Button type="submit" :label="saving ? t('common.saving') : t('common.save')" icon="pi pi-check" :loading="saving" />
+        </div>
+      </form>
+    </Dialog>
+
+    <!-- نموذج إنشاء/تعديل نوع الإجازة -->
+    <Dialog
+      v-model:visible="typeForm.open"
+      modal
+      :header="typeForm.id === null ? t('leaves.addType') : t('leaves.editType')"
+      :style="{ width: '32rem' }"
+      :breakpoints="{ '640px': '95vw' }"
+    >
+      <form class="grid gap-4 pt-2 sm:grid-cols-2" @submit.prevent="submitType">
+        <label class="block text-sm">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('leaves.typeName') }}</span>
+          <InputText v-model="typeForm.name" required maxlength="100" fluid />
+        </label>
+        <label class="block text-sm">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('leaves.kind') }}</span>
+          <Select v-model="typeForm.kind" :options="kindOptions" option-label="label" option-value="value" fluid />
+        </label>
+        <label class="block text-sm">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('leaves.affectsBalance') }}</span>
+          <Select v-model="typeForm.affects_balance" :options="affectsBalanceOptions" option-label="label" option-value="value" fluid />
+        </label>
+        <div class="flex items-center gap-6 pt-6">
+          <label class="flex items-center gap-2 text-sm">
+            <Checkbox v-model="typeForm.needs_approval" binary />
+            <span class="font-medium text-surface-700 dark:text-surface-300">{{ t('leaves.needsApproval') }}</span>
+          </label>
+          <label class="flex items-center gap-2 text-sm">
+            <Checkbox v-model="typeForm.is_paid" binary />
+            <span class="font-medium text-surface-700 dark:text-surface-300">{{ t('leaves.isPaid') }}</span>
+          </label>
+        </div>
+
+        <div class="mt-2 flex justify-end gap-2 sm:col-span-2">
+          <Button type="button" :label="t('common.cancel')" severity="secondary" text @click="typeForm.open = false" />
+          <Button type="submit" :label="saving ? t('common.saving') : t('common.save')" icon="pi pi-check" :loading="saving" />
+        </div>
+      </form>
+    </Dialog>
   </div>
 </template>
-
-<style scoped>
-.field {
-  width: 100%;
-  border-radius: 0.5rem;
-  border: 1px solid rgb(203 213 225);
-  background: #fff;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.875rem;
-  color: rgb(15 23 42);
-  outline: none;
-}
-.field:focus {
-  border-color: rgb(99 102 241);
-  box-shadow: 0 0 0 2px rgb(99 102 241 / 0.3);
-}
-:global(.dark) .field {
-  border-color: rgb(51 65 85);
-  background: rgb(30 41 59);
-  color: #fff;
-}
-.lbl {
-  margin-bottom: 0.25rem;
-  display: block;
-  font-weight: 500;
-  font-size: 0.875rem;
-  color: rgb(51 65 85);
-}
-:global(.dark) .lbl {
-  color: rgb(203 213 225);
-}
-.btn-primary {
-  border-radius: 0.5rem;
-  background: rgb(79 70 229);
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #fff;
-  transition: background 0.15s;
-}
-.btn-primary:hover {
-  background: rgb(67 56 202);
-}
-.btn-ghost {
-  border-radius: 0.5rem;
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: rgb(71 85 105);
-}
-:global(.dark) .btn-ghost {
-  color: rgb(148 163 184);
-}
-</style>
