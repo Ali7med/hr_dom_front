@@ -177,9 +177,14 @@ function onDrop(targetId: string) {
 }
 
 onMounted(async () => {
-  const saved = dashboardPrefs.load(storageId.value)
-  if (saved) layout.value = saved.layout
-  const jobs: Promise<void>[] = []
+  // 1) كاش محلّي فوري (يتجنّب الوميض)، 2) ثم الخادم كمصدر موثوق.
+  const local = dashboardPrefs.loadLocal(storageId.value)
+  if (local) layout.value = local.layout
+  const jobs: Promise<void>[] = [
+    dashboardPrefs.loadRemote().then((remote) => {
+      if (remote) { layout.value = remote.layout; dashboardPrefs.cache(storageId.value, remote) }
+    }),
+  ]
   if (has('users.view')) jobs.push(safe(loadUsers), safe(loadDepartments))
   if (has('work_sites.view')) jobs.push(safe(loadWorkSites))
   if (has('shifts.view')) jobs.push(safe(loadShifts))
