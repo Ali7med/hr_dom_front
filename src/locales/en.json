@@ -24,6 +24,7 @@
     "saveError": "Could not save changes.",
     "deleted": "Deleted",
     "error": "Error",
+    "search": "Search",
     "yes": "Yes",
     "no": "No"
   },
@@ -169,6 +170,7 @@
     "confirmDelete": "Delete site \"{name}\"?",
     "drawHint": "Click the map to draw the site boundary (at least 3 points).",
     "points": "{n} points",
+    "locateMe": "My location",
     "undo": "Undo",
     "clear": "Clear",
     "areaRequired": "Draw the site boundary on the map (at least 3 points)."
@@ -428,6 +430,23 @@
     "integration": "Integration",
     "audit": "Audit"
   },
+  "permActions": {
+    "view": "View",
+    "create": "Create",
+    "update": "Update",
+    "delete": "Delete",
+    "export": "Export",
+    "assign": "Assign",
+    "approve": "Approve",
+    "generate": "Generate",
+    "import": "Import",
+    "manage": "Manage",
+    "manage_balances": "Manage balances",
+    "manual_add": "Manual add",
+    "rebind_approve": "Approve rebind",
+    "daily_manager": "Daily manager report",
+    "test": "Test"
+  },
   "companies": {
     "title": "Companies",
     "create": "Add company",
@@ -436,6 +455,8 @@
     "slug": "Slug",
     "timezone": "Timezone",
     "baseCurrencyId": "Base currency ID",
+    "baseCurrency": "Base currency",
+    "selectCurrency": "Select currency",
     "fromTemplate": "Create from template (copy settings)",
     "noTemplate": "No template",
     "status": "Status",

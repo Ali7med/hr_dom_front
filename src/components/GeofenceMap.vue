@@ -16,10 +16,12 @@ const { t } = useI18n()
 // رؤوس المضلّع بترتيب GeoJSON [lng, lat].
 const vertices = ref<number[][]>([])
 const mapEl = ref<HTMLElement | null>(null)
+const locating = ref(false)
 let map: L.Map | null = null
 let drawLayer: L.LayerGroup | null = null
+let meMarker: L.CircleMarker | null = null
 
-const DEFAULT_CENTER: L.LatLngExpression = [33.3152, 44.3661] // بغداد
+const DEFAULT_CENTER: L.LatLngExpression = [33.3152, 44.3661] // بغداد (احتياطي)
 const DEFAULT_ZOOM = 11
 
 function emitPolygon(): void {
@@ -59,6 +61,58 @@ function clear(): void {
   emitPolygon()
 }
 
+// علّم موقع المستخدم الحالي على الخريطة.
+function markMe(lat: number, lng: number): void {
+  if (!map) return
+  if (meMarker) meMarker.remove()
+  meMarker = L.circleMarker([lat, lng], {
+    radius: 7,
+    color: '#0ea5e9',
+    fillColor: '#0ea5e9',
+    fillOpacity: 0.9,
+    weight: 3,
+  }).addTo(map)
+}
+
+// انتقل إلى موقع المستخدم الحالي (زر GPS).
+function locateMe(opts: { fly?: boolean } = {}): void {
+  if (!('geolocation' in navigator) || !map) return
+  locating.value = true
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      locating.value = false
+      const { latitude: lat, longitude: lng } = pos.coords
+      markMe(lat, lng)
+      if (opts.fly) map?.flyTo([lat, lng], 16, { duration: 0.8 })
+      else map?.setView([lat, lng], 16)
+    },
+    () => { locating.value = false }, // رُفض الإذن/تعذّر — نبقى على الموضع الحالي
+    { enableHighAccuracy: true, timeout: 8000, maximumAge: 30000 },
+  )
+}
+
+// زر GPS كعنصر تحكّم داخل الخريطة.
+function addLocateControl(): void {
+  if (!map) return
+  const LocateControl = L.Control.extend({
+    options: { position: 'topleft' },
+    onAdd() {
+      const btn = L.DomUtil.create('a', 'leaflet-bar leaflet-control hr-locate-btn')
+      btn.href = '#'
+      btn.title = t('worksites.locateMe')
+      btn.setAttribute('role', 'button')
+      btn.innerHTML = '<span style="font-size:16px;line-height:30px">📍</span>'
+      L.DomEvent.on(btn, 'click', (e) => {
+        L.DomEvent.preventDefault(e)
+        L.DomEvent.stopPropagation(e)
+        locateMe({ fly: true })
+      })
+      return btn
+    },
+  })
+  map.addControl(new LocateControl())
+}
+
 onMounted(() => {
   if (!mapEl.value) return
   map = L.map(mapEl.value).setView(DEFAULT_CENTER, DEFAULT_ZOOM)
@@ -67,6 +121,7 @@ onMounted(() => {
     maxZoom: 19,
   }).addTo(map)
   drawLayer = L.layerGroup().addTo(map)
+  addLocateControl()
 
   // تحميل المضلّع القائم (إن وُجد) — نُسقط نقطة الإغلاق.
   const ring = props.modelValue?.coordinates?.[0]
@@ -75,6 +130,9 @@ onMounted(() => {
     render()
     const bounds = L.latLngBounds(vertices.value.map((v) => [v[1], v[0]] as L.LatLngTuple))
     map.fitBounds(bounds, { padding: [30, 30] })
+  } else if (props.editable) {
+    // موقع جديد: افتح مباشرة على الموقع الحالي للمستخدم (الافتراضي).
+    locateMe()
   }
 
   if (props.editable) {
@@ -97,12 +155,21 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="space-y-2">
-    <div v-if="editable" class="flex items-center gap-3 text-sm">
-      <span class="text-slate-500 dark:text-slate-400">{{ t('worksites.drawHint') }}</span>
-      <span class="text-xs text-slate-400">({{ t('worksites.points', { n: vertices.length }) }})</span>
-      <button type="button" class="ms-auto rounded-lg border border-slate-300 px-3 py-1 text-xs dark:border-slate-700" @click="undo">{{ t('worksites.undo') }}</button>
-      <button type="button" class="rounded-lg border border-slate-300 px-3 py-1 text-xs dark:border-slate-700" @click="clear">{{ t('worksites.clear') }}</button>
+    <div v-if="editable" class="flex flex-wrap items-center gap-3 text-sm">
+      <span class="text-surface-500 dark:text-surface-400">{{ t('worksites.drawHint') }}</span>
+      <span class="text-xs text-surface-400">({{ t('worksites.points', { n: vertices.length }) }})</span>
+      <button
+        type="button"
+        class="ms-auto inline-flex items-center gap-1.5 rounded-lg border border-surface-300 px-3 py-1 text-xs text-surface-600 transition hover:bg-surface-100 disabled:opacity-60 dark:border-surface-700 dark:text-surface-300 dark:hover:bg-surface-800"
+        :disabled="locating"
+        @click="locateMe({ fly: true })"
+      >
+        <i class="pi" :class="locating ? 'pi-spin pi-spinner' : 'pi-map-marker'" />
+        {{ t('worksites.locateMe') }}
+      </button>
+      <button type="button" class="rounded-lg border border-surface-300 px-3 py-1 text-xs text-surface-600 transition hover:bg-surface-100 dark:border-surface-700 dark:text-surface-300 dark:hover:bg-surface-800" @click="undo">{{ t('worksites.undo') }}</button>
+      <button type="button" class="rounded-lg border border-surface-300 px-3 py-1 text-xs text-surface-600 transition hover:bg-surface-100 dark:border-surface-700 dark:text-surface-300 dark:hover:bg-surface-800" @click="clear">{{ t('worksites.clear') }}</button>
     </div>
-    <div ref="mapEl" class="h-80 w-full rounded-xl border border-slate-200 dark:border-slate-700" style="z-index: 0"></div>
+    <div ref="mapEl" class="h-80 w-full rounded-xl border border-surface-200 dark:border-surface-700" style="z-index: 0"></div>
   </div>
 </template>

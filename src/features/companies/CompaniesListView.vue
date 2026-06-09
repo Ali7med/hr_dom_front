@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useConfirm } from 'primevue/useconfirm'
@@ -9,11 +9,11 @@ import Column from 'primevue/column'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import InputText from 'primevue/inputtext'
-import InputNumber from 'primevue/inputnumber'
 import Select from 'primevue/select'
 import Tag from 'primevue/tag'
 import { ApiException } from '@/api/client'
 import { companiesApi, type Company } from '@/api/companies'
+import { currenciesApi, type Currency } from '@/api/payrollConfig'
 import PageHeader from '@/components/PageHeader.vue'
 
 const { t } = useI18n()
@@ -22,12 +22,14 @@ const confirm = useConfirm()
 const toast = useToast()
 
 const companies = ref<Company[]>([])
+const currencies = ref<Currency[]>([])
 const loading = ref(false)
 const saving = ref(false)
 
 // نموذج الإنشاء/التعديل.
 const showForm = ref(false)
 const editingId = ref<number | null>(null)
+const slugTouched = ref(false)
 const form = reactive({
   name: '',
   slug: '',
@@ -35,6 +37,31 @@ const form = reactive({
   base_currency_id: null as number | null,
   source_company_id: null as number | null,
 })
+
+// توليد slug تلقائي من الاسم (أحرف لاتينية/أرقام + شرطات).
+function slugify(s: string): string {
+  return s
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9؀-ۿ]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+// عند الإنشاء: اشتقّ الـ slug من الاسم ما لم يُعدّله المستخدم يدوياً.
+watch(
+  () => form.name,
+  (name) => {
+    if (editingId.value === null && !slugTouched.value) form.slug = slugify(name)
+  },
+)
+
+// خيارات منتقي العملة (الرمز — الاسم) للبحث السريع.
+const currencyOptions = computed(() =>
+  currencies.value.map((c) => ({ id: c.id, label: `${c.code} — ${c.name}` })),
+)
+// المعرّف الافتراضي للعملة: الدينار العراقي (IQD) إن وُجد.
+function defaultCurrencyId(): number | null {
+  return currencies.value.find((c) => c.code.toUpperCase() === 'IQD')?.id ?? null
+}
 
 function messageFor(e: unknown, fallback: string): string {
   return e instanceof ApiException ? e.message : fallback
@@ -54,18 +81,30 @@ async function load(): Promise<void> {
   }
 }
 
+// قائمة العملات لمنتقي العملة الأساسية (لا تُعطّل الجدول عند الفشل/نقص الصلاحية).
+async function loadCurrencies(): Promise<void> {
+  try {
+    currencies.value = await currenciesApi.list()
+  } catch {
+    /* لا صلاحية currencies.view أو لا اتصال — يبقى المنتقي فارغاً */
+  }
+}
+
 function openCreate(): void {
   editingId.value = null
+  slugTouched.value = false
   form.name = ''
   form.slug = ''
-  form.timezone = ''
-  form.base_currency_id = null
+  // المنطقة الزمنية الافتراضية حسب موقع المستخدم (من المتصفّح).
+  form.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || ''
+  form.base_currency_id = defaultCurrencyId()
   form.source_company_id = null
   showForm.value = true
 }
 
 function openEdit(c: Company): void {
   editingId.value = c.id
+  slugTouched.value = true
   form.name = c.name
   form.slug = c.slug
   form.timezone = c.timezone ?? ''
@@ -126,7 +165,10 @@ function openSettings(c: Company): void {
   router.push({ name: 'company-settings', params: { id: c.id } })
 }
 
-onMounted(load)
+onMounted(() => {
+  void load()
+  void loadCurrencies()
+})
 </script>
 
 <template>
@@ -223,15 +265,25 @@ onMounted(load)
         </label>
         <label class="block text-sm">
           <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('companies.slug') }}</span>
-          <InputText v-model="form.slug" required fluid />
+          <InputText v-model="form.slug" required fluid @input="slugTouched = true" />
         </label>
         <label class="block text-sm">
           <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('companies.timezone') }}</span>
           <InputText v-model="form.timezone" placeholder="Asia/Baghdad" fluid />
         </label>
         <label class="block text-sm">
-          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('companies.baseCurrencyId') }}</span>
-          <InputNumber v-model="form.base_currency_id" :min="1" :use-grouping="false" fluid />
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('companies.baseCurrency') }}</span>
+          <Select
+            v-model="form.base_currency_id"
+            :options="currencyOptions"
+            option-label="label"
+            option-value="id"
+            filter
+            :filter-placeholder="t('common.search')"
+            :placeholder="t('companies.selectCurrency')"
+            show-clear
+            fluid
+          />
         </label>
         <label v-if="editingId === null && companies.length" class="block text-sm sm:col-span-2">
           <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('companies.fromTemplate') }}</span>

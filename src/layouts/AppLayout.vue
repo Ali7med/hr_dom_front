@@ -53,16 +53,16 @@ const pageTitle = computed(() => {
   return t('app.title')
 })
 
-// طيّ الشريط الجانبي على الشاشات الكبيرة (محفوظ).
+// طيّ الشريط الجانبي إلى شريط أيقونات على الشاشات الكبيرة (محفوظ).
+// الشريط ظاهر دائماً على كل الشاشات (أيقونات على الصغيرة، كامل على الكبيرة).
 const COLLAPSE_KEY = 'hr_dom.sidebar.collapsed'
 const collapsed = ref(localStorage.getItem(COLLAPSE_KEY) === '1')
 function toggleCollapse(): void {
   collapsed.value = !collapsed.value
   localStorage.setItem(COLLAPSE_KEY, collapsed.value ? '1' : '0')
 }
-
-// شريط جانبي منزلق على الجوال.
-const mobileOpen = ref(false)
+// تُعرض التسميات فقط على الشاشات الكبيرة وعند عدم الطيّ — الباقي شريط أيقونات.
+const showLabels = computed(() => !collapsed.value)
 
 // قائمة المستخدم المنبثقة.
 const userMenu = ref()
@@ -88,41 +88,37 @@ async function onLogout(): Promise<void> {
 
 <template>
   <div class="flex min-h-svh bg-surface-50 text-surface-800 dark:bg-surface-950 dark:text-surface-100">
-    <!-- ===== الشريط الجانبي (سطح المكتب: دائم + قابل للطي · الجوال: منزلق) ===== -->
+    <!-- ===== الشريط الجانبي (ظاهر دائماً على كل الشاشات: أيقونات صغيراً، كامل كبيراً) ===== -->
     <aside
-      class="fixed inset-y-0 z-40 flex flex-col border-e border-surface-200 bg-white transition-all duration-200 dark:border-surface-800 dark:bg-surface-900 lg:static lg:z-auto"
-      :class="[
-        collapsed ? 'lg:w-20' : 'lg:w-64',
-        'w-64',
-        mobileOpen ? 'translate-x-0' : 'ltr:-translate-x-full rtl:translate-x-full lg:translate-x-0',
-      ]"
+      class="sticky top-0 z-30 flex h-svh w-[4.75rem] shrink-0 flex-col border-e border-surface-200 bg-white transition-[width] duration-200 dark:border-surface-800 dark:bg-surface-900"
+      :class="collapsed ? 'lg:w-[4.75rem]' : 'lg:w-64'"
     >
       <!-- الشعار -->
-      <div class="flex h-16 items-center gap-3 border-b border-surface-200 px-5 dark:border-surface-800">
+      <div class="flex h-16 items-center gap-3 border-b border-surface-200 px-3 dark:border-surface-800" :class="showLabels ? 'lg:px-5' : 'justify-center'">
         <span class="grid size-9 shrink-0 place-items-center rounded-xl bg-primary text-primary-contrast">
           <i class="pi pi-clock text-lg" />
         </span>
-        <span v-if="!collapsed" class="truncate text-base font-bold tracking-tight">{{ t('app.title') }}</span>
+        <span v-if="showLabels" class="hidden truncate text-base font-bold tracking-tight lg:inline">{{ t('app.title') }}</span>
       </div>
 
       <!-- روابط التنقّل -->
-      <nav class="flex-1 space-y-1 overflow-y-auto p-3">
+      <nav class="flex-1 space-y-1 overflow-y-auto p-2 lg:p-3">
         <RouterLink
           v-for="item in navItems"
           :key="item.key"
           :to="item.to"
-          v-tooltip="collapsed ? { value: t(item.key), showDelay: 150 } : undefined"
+          v-tooltip="{ value: t(item.key), disabled: showLabels, showDelay: 120 }"
           class="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-surface-600 transition hover:bg-surface-100 hover:text-surface-900 dark:text-surface-300 dark:hover:bg-surface-800 dark:hover:text-white"
           active-class="!bg-primary-50 !text-primary-700 dark:!bg-primary-500/15 dark:!text-primary-300"
-          :class="collapsed ? 'lg:justify-center' : ''"
-          @click="mobileOpen = false"
+          :class="showLabels ? 'justify-center lg:justify-start' : 'justify-center'"
+          @click="userMenu?.hide?.()"
         >
-          <i :class="item.icon" class="text-lg shrink-0" />
-          <span v-if="!collapsed" class="truncate">{{ t(item.key) }}</span>
+          <i :class="item.icon" class="shrink-0 text-lg" />
+          <span v-if="showLabels" class="hidden truncate lg:inline">{{ t(item.key) }}</span>
         </RouterLink>
       </nav>
 
-      <!-- زر الطيّ (سطح المكتب فقط) -->
+      <!-- زر الطيّ (شاشات كبيرة فقط) -->
       <div class="hidden border-t border-surface-200 p-3 dark:border-surface-800 lg:block">
         <button
           type="button"
@@ -131,33 +127,16 @@ async function onLogout(): Promise<void> {
           @click="toggleCollapse"
         >
           <i class="pi text-lg" :class="collapsed ? 'pi-angle-double-right rtl:pi-angle-double-left' : 'pi-angle-double-left rtl:pi-angle-double-right'" />
-          <span v-if="!collapsed">{{ t('layout.collapse') }}</span>
+          <span v-if="!collapsed" class="truncate">{{ t('layout.collapse') }}</span>
         </button>
       </div>
     </aside>
-
-    <!-- تعتيم الجوال -->
-    <div
-      v-if="mobileOpen"
-      class="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm lg:hidden"
-      @click="mobileOpen = false"
-    />
 
     <!-- ===== العمود الرئيسي ===== -->
     <div class="flex min-w-0 flex-1 flex-col">
       <header
         class="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-surface-200 bg-white/80 px-4 backdrop-blur dark:border-surface-800 dark:bg-surface-900/80 lg:px-6"
       >
-        <!-- زر الجوال -->
-        <button
-          type="button"
-          class="grid size-10 place-items-center rounded-xl text-surface-600 transition hover:bg-surface-100 lg:hidden dark:text-surface-300 dark:hover:bg-surface-800"
-          :aria-label="t('layout.menu')"
-          @click="mobileOpen = true"
-        >
-          <i class="pi pi-bars text-lg" />
-        </button>
-
         <h1 class="truncate text-lg font-semibold tracking-tight">{{ pageTitle }}</h1>
 
         <div class="ms-auto flex items-center gap-1.5">

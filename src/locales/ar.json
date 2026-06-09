@@ -24,6 +24,7 @@
     "saveError": "تعذّر حفظ التغييرات.",
     "deleted": "تم الحذف",
     "error": "خطأ",
+    "search": "بحث",
     "yes": "نعم",
     "no": "لا"
   },
@@ -169,6 +170,7 @@
     "confirmDelete": "حذف الموقع \"{name}\"؟",
     "drawHint": "انقر على الخريطة لرسم حدود الموقع (٣ نقاط على الأقل).",
     "points": "{n} نقطة",
+    "locateMe": "موقعي الحالي",
     "undo": "تراجع",
     "clear": "مسح",
     "areaRequired": "ارسم حدود الموقع على الخريطة (٣ نقاط على الأقل)."
@@ -428,6 +430,23 @@
     "integration": "التكامل",
     "audit": "التدقيق"
   },
+  "permActions": {
+    "view": "عرض",
+    "create": "إنشاء",
+    "update": "تعديل",
+    "delete": "حذف",
+    "export": "تصدير",
+    "assign": "إسناد",
+    "approve": "اعتماد",
+    "generate": "توليد",
+    "import": "استيراد",
+    "manage": "إدارة",
+    "manage_balances": "إدارة الأرصدة",
+    "manual_add": "إضافة يدوية",
+    "rebind_approve": "اعتماد إعادة الربط",
+    "daily_manager": "تقرير المدير اليومي",
+    "test": "اختبار"
+  },
   "companies": {
     "title": "الشركات",
     "create": "إضافة شركة",
@@ -436,6 +455,8 @@
     "slug": "المعرّف اللطيف (slug)",
     "timezone": "المنطقة الزمنية",
     "baseCurrencyId": "معرّف العملة الأساسية",
+    "baseCurrency": "العملة الأساسية",
+    "selectCurrency": "اختر العملة",
     "fromTemplate": "إنشاء من قالب (نسخ الإعدادات)",
     "noTemplate": "بدون قالب",
     "status": "الحالة",

@@ -32,6 +32,17 @@ function groupLabel(key: string): string {
   const translated = t(k)
   return translated === k ? key : translated
 }
+
+// تسمية الصلاحية بلغة الواجهة: «<المورد> — <الإجراء>» (مع رجوع للمفتاح الخام إن غاب).
+function permLabel(perm: string): string {
+  const idx = perm.indexOf('.')
+  const resource = idx >= 0 ? perm.slice(0, idx) : perm
+  const action = idx >= 0 ? perm.slice(idx + 1) : ''
+  if (!action) return groupLabel(resource)
+  const ak = `permActions.${action}`
+  const at = t(ak)
+  return `${groupLabel(resource)} — ${at === ak ? action.replace(/_/g, ' ') : at}`
+}
 </script>
 
 <template>
@@ -45,14 +56,14 @@ function groupLabel(key: string): string {
         {{ groupLabel(group) }}
       </legend>
       <div class="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-        <label v-for="perm in perms" :key="perm" class="flex items-center gap-2 text-sm">
+        <label v-for="perm in perms" :key="perm" class="flex items-center gap-2 text-sm" :title="perm">
           <Checkbox
             :model-value="isChecked(perm)"
             :binary="true"
             :disabled="disabled"
             @update:model-value="toggle(perm)"
           />
-          <span class="font-mono text-xs">{{ perm }}</span>
+          <span>{{ permLabel(perm) }}</span>
         </label>
       </div>
     </fieldset>
