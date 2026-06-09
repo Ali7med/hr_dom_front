@@ -83,6 +83,8 @@
     "sent": "Alert sent",
     "targetRequired": "Select the alert recipients first.",
     "noRecipients": "The target matched no employees.",
+    "pendingTitle": "Alerts feature is being activated",
+    "pendingBody": "The alerts service isn't deployed on the server yet. It will work automatically once activated — no change needed here.",
     "target": {
       "all": "All employees",
       "department": "Specific departments",

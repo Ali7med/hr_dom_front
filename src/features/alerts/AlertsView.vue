@@ -12,7 +12,7 @@ import Select from 'primevue/select'
 import MultiSelect from 'primevue/multiselect'
 import Tag from 'primevue/tag'
 import { ApiException } from '@/api/client'
-import { alertsApi, type Alert, type AlertTargetType } from '@/api/alerts'
+import { alertsApi, type Alert, type AlertInput, type AlertTargetType } from '@/api/alerts'
 import { usersApi, departmentsApi, type User, type Department } from '@/api/users'
 import PageHeader from '@/components/PageHeader.vue'
 
@@ -24,6 +24,13 @@ const departments = ref<Department[]>([])
 const users = ref<User[]>([])
 const loading = ref(false)
 const saving = ref(false)
+// الباك (BE-51) قد لا يكون منشوراً بعد على الخادم → رسالة «قيد التفعيل» بدل خطأ عام.
+const backendUnavailable = ref(false)
+
+// هل الخطأ بسبب عدم نشر مسارات التنبيهات بعد (404 not_found)؟
+function isBackendMissing(e: unknown): boolean {
+  return e instanceof ApiException && (e.status === 404 || e.first?.code === 'not_found')
+}
 
 const showForm = ref(false)
 const form = reactive({
@@ -53,11 +60,14 @@ function targetLabel(a: Alert): string {
 
 async function load(): Promise<void> {
   loading.value = true
+  backendUnavailable.value = false
   try {
     const res = await alertsApi.list({ per_page: 100 })
     alerts.value = res.data
   } catch (e) {
-    notifyError(e, t('common.loadError'))
+    // مسار التنبيهات غير منشور بعد → نعرض لافتة «قيد التفعيل» (لا خطأ مزعج).
+    if (isBackendMissing(e)) backendUnavailable.value = true
+    else notifyError(e, t('common.loadError'))
   } finally {
     loading.value = false
   }
@@ -95,19 +105,24 @@ async function submit(): Promise<void> {
   }
   saving.value = true
   try {
-    await alertsApi.create({
+    // أرسل فقط حقل الاستهداف المعنيّ — إرسال null يفشل تحقّق الباك (array).
+    const payload: AlertInput = {
       title: form.title,
       body: form.body,
       target_type: form.target_type,
-      department_ids: form.target_type === 'department' ? form.department_ids : null,
-      user_ids: form.target_type === 'users' ? form.user_ids : null,
-    })
+    }
+    if (form.target_type === 'department') payload.department_ids = form.department_ids
+    else if (form.target_type === 'users') payload.user_ids = form.user_ids
+    await alertsApi.create(payload)
     showForm.value = false
     toast.add({ severity: 'success', summary: t('alerts.sent'), life: 2500 })
     await load()
   } catch (e) {
-    // استهداف لم يطابق أحداً → رسالة ودّية، وإلا رسالة الخطأ العامة.
-    if (e instanceof ApiException && e.first?.code === 'no_recipients') {
+    // 404: الميزة غير منشورة على الخادم بعد · no_recipients: لا مستلمين · غيرها: خطأ عام.
+    if (isBackendMissing(e)) {
+      backendUnavailable.value = true
+      toast.add({ severity: 'info', summary: t('alerts.pendingTitle'), detail: t('alerts.pendingBody'), life: 5000 })
+    } else if (e instanceof ApiException && e.first?.code === 'no_recipients') {
       toast.add({ severity: 'warn', summary: t('alerts.noRecipients'), life: 4000 })
     } else {
       notifyError(e, t('common.saveError'))
@@ -143,7 +158,14 @@ onMounted(() => {
         removable-sort
       >
         <template #empty>
-          <p class="py-6 text-center text-sm text-surface-500">{{ t('alerts.empty') }}</p>
+          <div v-if="backendUnavailable" class="flex flex-col items-center gap-2 py-10 text-center">
+            <span class="grid size-12 place-items-center rounded-2xl bg-primary-50 text-primary-600 dark:bg-primary-500/15 dark:text-primary-300">
+              <i class="pi pi-clock !text-2xl" />
+            </span>
+            <p class="font-medium text-surface-700 dark:text-surface-200">{{ t('alerts.pendingTitle') }}</p>
+            <p class="max-w-md text-sm text-surface-500">{{ t('alerts.pendingBody') }}</p>
+          </div>
+          <p v-else class="py-6 text-center text-sm text-surface-500">{{ t('alerts.empty') }}</p>
         </template>
 
         <Column field="title" :header="t('alerts.colTitle')" sortable>
