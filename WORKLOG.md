@@ -17,6 +17,12 @@
 
 ---
 
+## [2026-06-09] PERMS-BE49 — مزامنة الفرونت مع الصلاحيات الدقيقة + مزامنة لوحة المعلومات عبر الأجهزة
+- ما أُنجز: (1) **مزامنة الصلاحيات (BE-49):** هاجرت الفرونت من الصلاحيات العامة (`*.manage`) إلى الدقيقة لكل مورد (`view/create/update/delete` + `export/assign`) حسب `hr_dom_docs/integration/frontend-permissions-migration.md`: المسارات والتنقّل بـ `*.view` (canAny للورديات/الجدولة/العطل وقواعد الرواتب)، أزرار CRUD بالصلاحية الدقيقة في كل الواجهات، التصدير بـ `reports.export`/`payroll.export`، ومحرّر الأدوار يعرض الـ76 مجمّعةً مع ترجمات المجموعات الجديدة. (2) **FE-13 server-sync:** رُبطت `dashboardPrefs` بنقطة `GET/PUT /me/preferences` (الخادم مصدر موثوق + `localStorage` كاش) لمزامنة تخطيط اللوحة عبر الأجهزة.
+- الملفات الرئيسية: `src/router/index.ts`، `src/layouts/AppLayout.vue`، `src/components/PermissionPicker.vue`، كل `src/features/*`، `src/features/home/HomeView.vue`، `src/api/dashboardPrefs.ts`، `src/locales/{ar,en}.json` (permGroups جديدة).
+- قرارات/ملاحظات: `schema.ts` لم يُمَسّ (تعليقات مولّدة فقط). **جذر تعطّل التحقّق كان كاش صلاحيات spatie**: الباك أعاد البذر (86 صلاحية) لكن `/auth/me` خدم الـ29 القديمة من الكاش؛ بإذن المستخدم نفّذت `php artisan permission:cache-reset` فقفز Company Admin إلى 76 صلاحية جديدة. دُمج الفرعان في `main`.
+- الاختبارات: `type-check`+`build` خضراء، صفر أخطاء console. تحقّق حيّ (Company Admin): `/auth/me`=76 صلاحية جديدة، التنقّل يعرض كل الوحدات، أزرار CRUD تظهر (shifts.create…)، محرّر الأدوار=76 صلاحية في 23 مجموعة مترجمة. ومزامنة اللوحة: إضافة ودجت → PUT للخادم → مسح الكاش المحلّي → إعادة التحميل أرجعت 5 ودجتات **من الخادم** (مزامنة عبر الأجهزة مؤكَّدة).
+
 ## [2026-06-08] FE-13 — لوحة معلومات قابلة للتخصيص (ودجتات + سحب + حفظ)
 - ما أُنجز: حوّلت لوحة المعلومات إلى **قابلة للتخصيص** في `hr_dom_front`: المستخدم الجديد يرى **الأساسيات فقط** (افتراضي: إجراءات سريعة + المؤشّرات + حضور الشهر + الإجازات)، وزرّ «تخصيص اللوحة» يفتح وضع تحرير يتيح **إضافة/حذف** ودجتات (من معرض حسب الصلاحية) و**إعادة الترتيب بالسحب والإفلات** (HTML5 DnD، تمييز بصري عند الإفلات) و**إعادة الافتراضي**. الإعدادات **تُحفظ تلقائياً لكل مستخدم** و**تُحمَّل حسب آخر إعداد** عند فتح اللوحة.
 - الملفات الرئيسية: `src/features/home/HomeView.vue`، `src/api/dashboardPrefs.ts` (طبقة تخزين)، `src/components/charts/{DonutChart,BarChart}.vue`، `src/locales/{ar,en}.json`. وملف متطلّبات باك: `hr_dom_docs/backend-tasks/BE-FE12-dashboard-preferences.md`.
