@@ -171,6 +171,8 @@
     "drawHint": "Click the map to draw the site boundary (at least 3 points).",
     "points": "{n} points",
     "locateMe": "My location",
+    "searchPlace": "Search for a place by name…",
+    "searchNotFound": "Place not found. Try a clearer name.",
     "undo": "Undo",
     "clear": "Clear",
     "areaRequired": "Draw the site boundary on the map (at least 3 points)."

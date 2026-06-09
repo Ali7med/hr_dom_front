@@ -226,7 +226,7 @@ onMounted(load)
           </label>
         </div>
 
-        <GeofenceMap :key="mapKey" v-model="area" />
+        <GeofenceMap :key="mapKey" v-model="area" @update:address="form.address = $event" />
 
         <div class="mt-2 flex justify-end gap-2">
           <Button type="button" :label="t('common.cancel')" severity="secondary" text @click="showForm = false" />
