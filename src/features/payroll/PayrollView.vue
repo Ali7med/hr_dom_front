@@ -128,8 +128,8 @@ onMounted(async () => {
     <div class="mb-6 flex flex-wrap gap-3">
       <button type="button" class="btn-primary disabled:opacity-50" :disabled="loading" @click="load">{{ loading ? t('common.loading') : t('payroll.view') }}</button>
       <button v-if="auth.can('payroll.generate')" type="button" class="btn-primary disabled:opacity-50" :disabled="generating" @click="generate">{{ generating ? t('common.saving') : t('payroll.generate') }}</button>
-      <button type="button" class="btn-ghost-bordered disabled:opacity-50" :disabled="!!exporting" @click="exportAs('excel')">{{ exporting === 'excel' ? t('common.loading') : t('payroll.exportExcel') }}</button>
-      <button type="button" class="btn-ghost-bordered disabled:opacity-50" :disabled="!!exporting" @click="exportAs('pdf')">{{ exporting === 'pdf' ? t('common.loading') : t('payroll.exportPdf') }}</button>
+      <button v-can="'payroll.export'" type="button" class="btn-ghost-bordered disabled:opacity-50" :disabled="!!exporting" @click="exportAs('excel')">{{ exporting === 'excel' ? t('common.loading') : t('payroll.exportExcel') }}</button>
+      <button v-can="'payroll.export'" type="button" class="btn-ghost-bordered disabled:opacity-50" :disabled="!!exporting" @click="exportAs('pdf')">{{ exporting === 'pdf' ? t('common.loading') : t('payroll.exportPdf') }}</button>
     </div>
 
     <p v-if="notice" class="mb-4 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">{{ notice }}</p>

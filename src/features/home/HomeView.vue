@@ -95,18 +95,18 @@ const kpis = computed(() => [
   { key: 'activeUsers', value: stats.usersActive, icon: '👥', to: 'users', show: has('users.view') },
   { key: 'departments', value: stats.departments, icon: '🏛️', show: has('users.view') },
   { key: 'workSites', value: stats.workSites, icon: '📍', to: 'work-sites', show: has('work_sites.view') },
-  { key: 'shifts', value: stats.shifts, icon: '🗓️', to: 'schedule', show: has('shifts.manage') },
+  { key: 'shifts', value: stats.shifts, icon: '🗓️', to: 'schedule', show: has('shifts.view') },
   { key: 'pendingLeaves', value: stats.leavesPending, icon: '🌴', to: 'leaves', accent: stats.leavesPending > 0, show: has('leaves.view') },
   { key: 'pendingDevices', value: stats.devicePending, icon: '📱', to: 'device-requests', accent: stats.devicePending > 0, show: has('devices.rebind_approve') },
 ].filter((i) => i.show))
 
 const quickActions = computed(() => [
-  { key: 'newUser', to: 'users', icon: '👤', perm: 'users.manage' },
+  { key: 'newUser', to: 'users', icon: '👤', perm: 'users.view' },
   { key: 'genPayroll', to: 'payroll', icon: '💰', perm: 'payroll.generate' },
   { key: 'reviewLeaves', to: 'leaves', icon: '🌴', perm: 'leaves.approve' },
-  { key: 'addShift', to: 'schedule', icon: '🗓️', perm: 'shifts.manage' },
+  { key: 'addShift', to: 'schedule', icon: '🗓️', perm: 'shifts.view' },
   { key: 'reports', to: 'reports', icon: '📊', perm: 'reports.view' },
-  { key: 'payrollRules', to: 'payroll-config', icon: '⚙️', perm: 'payroll.manage_rules' },
+  { key: 'payrollRules', to: 'payroll-config', icon: '⚙️', perm: 'salary_rules.manage' },
 ].filter((a) => has(a.perm)))
 
 const leaveSegments = computed(() => [
@@ -140,7 +140,7 @@ const WIDGETS: WidgetDef[] = [
   { id: 'topLate', titleKey: 'dashboard.topLateTitle', perm: 'reports.view' },
   { id: 'byDept', titleKey: 'dashboard.byDeptTitle', perm: 'users.view' },
   { id: 'onLeaveToday', titleKey: 'dashboard.onLeaveTodayTitle', perm: 'leaves.view' },
-  { id: 'upcomingHolidays', titleKey: 'dashboard.upcomingHolidaysTitle', perm: 'shifts.manage' },
+  { id: 'upcomingHolidays', titleKey: 'dashboard.upcomingHolidaysTitle', perm: 'holidays.view' },
 ]
 const DEFAULT_LAYOUT = ['quickActions', 'kpis', 'attendance', 'leavesStatus']
 const widgetById = (id: string) => WIDGETS.find((w) => w.id === id)
@@ -182,7 +182,8 @@ onMounted(async () => {
   const jobs: Promise<void>[] = []
   if (has('users.view')) jobs.push(safe(loadUsers), safe(loadDepartments))
   if (has('work_sites.view')) jobs.push(safe(loadWorkSites))
-  if (has('shifts.manage')) jobs.push(safe(loadShifts), safe(loadHolidays))
+  if (has('shifts.view')) jobs.push(safe(loadShifts))
+  if (has('holidays.view')) jobs.push(safe(loadHolidays))
   if (has('leaves.view')) jobs.push(safe(loadLeaves))
   if (has('devices.rebind_approve')) jobs.push(safe(loadDevices))
   if (has('reports.view')) jobs.push(safe(loadAttendance))

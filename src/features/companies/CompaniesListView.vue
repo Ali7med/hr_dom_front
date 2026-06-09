@@ -106,7 +106,7 @@ onMounted(load)
     <div class="mb-6 flex items-center justify-between gap-4">
       <h1 class="text-2xl font-bold text-slate-900 dark:text-white">{{ t('companies.title') }}</h1>
       <button
-        v-can="'companies.manage'"
+        v-can="'companies.create'"
         type="button"
         class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700"
         @click="openCreate"
@@ -203,10 +203,10 @@ onMounted(load)
                 <RouterLink :to="{ name: 'company-settings', params: { id: c.id } }" class="text-indigo-600 hover:underline dark:text-indigo-400">
                   {{ t('companies.settings') }}
                 </RouterLink>
-                <button v-can="'companies.manage'" type="button" class="text-slate-600 hover:underline dark:text-slate-300" @click="openEdit(c)">
+                <button v-can="'companies.update'" type="button" class="text-slate-600 hover:underline dark:text-slate-300" @click="openEdit(c)">
                   {{ t('common.edit') }}
                 </button>
-                <button v-can="'companies.manage'" type="button" class="text-rose-600 hover:underline dark:text-rose-400" @click="remove(c)">
+                <button v-can="'companies.delete'" type="button" class="text-rose-600 hover:underline dark:text-rose-400" @click="remove(c)">
                   {{ t('common.delete') }}
                 </button>
               </div>

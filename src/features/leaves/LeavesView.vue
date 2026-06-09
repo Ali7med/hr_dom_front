@@ -292,7 +292,7 @@ onMounted(async () => {
     <!-- ===== الأنواع ===== -->
     <section v-else-if="tab === 'types'">
       <div class="mb-4 flex justify-end">
-        <button v-can="'leaves.manage_balances'" type="button" class="btn-primary" @click="openType()">{{ t('leaves.addType') }}</button>
+        <button v-can="'leave_types.create'" type="button" class="btn-primary" @click="openType()">{{ t('leaves.addType') }}</button>
       </div>
 
       <form v-if="typeForm.open" class="mb-6 space-y-4 rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900" @submit.prevent="submitType">
@@ -345,8 +345,8 @@ onMounted(async () => {
               <td class="px-4 py-3 text-slate-500">{{ x.is_paid ? t('common.yes') : t('common.no') }}</td>
               <td class="px-4 py-3">
                 <div class="flex justify-end gap-3">
-                  <button v-can="'leaves.manage_balances'" type="button" class="text-slate-600 hover:underline dark:text-slate-300" @click="openType(x)">{{ t('common.edit') }}</button>
-                  <button v-can="'leaves.manage_balances'" type="button" class="text-rose-600 hover:underline dark:text-rose-400" @click="removeType(x)">{{ t('common.delete') }}</button>
+                  <button v-can="'leave_types.update'" type="button" class="text-slate-600 hover:underline dark:text-slate-300" @click="openType(x)">{{ t('common.edit') }}</button>
+                  <button v-can="'leave_types.delete'" type="button" class="text-rose-600 hover:underline dark:text-rose-400" @click="removeType(x)">{{ t('common.delete') }}</button>
                 </div>
               </td>
             </tr>

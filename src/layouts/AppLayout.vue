@@ -24,12 +24,12 @@ const allNavItems: NavItem[] = [
   { to: { name: 'users' }, key: 'nav.users', icon: '👥', permission: 'users.view' },
   { to: { name: 'roles' }, key: 'nav.roles', icon: '🛡️', permission: 'roles.view' },
   { to: { name: 'work-sites' }, key: 'nav.worksites', icon: '📍', permission: 'work_sites.view' },
-  { to: { name: 'schedule' }, key: 'nav.schedule', icon: '🗓️', permission: ['shifts.manage', 'schedules.manage'] },
+  { to: { name: 'schedule' }, key: 'nav.schedule', icon: '🗓️', permission: ['shifts.view', 'schedules.view', 'holidays.view'] },
   { to: { name: 'device-requests' }, key: 'nav.deviceRequests', icon: '📱', permission: 'devices.rebind_approve' },
   { to: { name: 'leaves' }, key: 'nav.leaves', icon: '🌴', permission: 'leaves.view' },
   { to: { name: 'reports' }, key: 'nav.reports', icon: '📊', permission: 'reports.view' },
   { to: { name: 'payroll' }, key: 'nav.payroll', icon: '💰', permission: 'payroll.view' },
-  { to: { name: 'payroll-config' }, key: 'nav.payrollConfig', icon: '⚙️', permission: ['payroll.view', 'currencies.view'] },
+  { to: { name: 'payroll-config' }, key: 'nav.payrollConfig', icon: '⚙️', permission: ['currencies.view', 'salary_rules.view', 'penalty_rules.view', 'bonuses.view'] },
 ]
 // تُعرض العناصر التي يملك المستخدم صلاحيتها فقط (Super Admin يرى الكل).
 const navItems = computed(() =>

@@ -229,7 +229,7 @@ onMounted(loadAll)
     <!-- ===== الورديات ===== -->
     <section v-if="tab === 'shifts'">
       <div class="mb-4 flex justify-end">
-        <button v-can="'shifts.manage'" type="button" class="btn-primary" @click="openShift()">{{ t('schedule.addShift') }}</button>
+        <button v-can="'shifts.create'" type="button" class="btn-primary" @click="openShift()">{{ t('schedule.addShift') }}</button>
       </div>
 
       <form v-if="shiftForm.open" class="mb-6 space-y-4 rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900" @submit.prevent="submitShift">
@@ -270,8 +270,8 @@ onMounted(loadAll)
               <td class="px-4 py-3 text-slate-500">{{ s.grace_minutes }}</td>
               <td class="px-4 py-3">
                 <div class="flex justify-end gap-3">
-                  <button v-can="'shifts.manage'" type="button" class="text-slate-600 hover:underline dark:text-slate-300" @click="openShift(s)">{{ t('common.edit') }}</button>
-                  <button v-can="'shifts.manage'" type="button" class="text-rose-600 hover:underline dark:text-rose-400" @click="removeShift(s)">{{ t('common.delete') }}</button>
+                  <button v-can="'shifts.update'" type="button" class="text-slate-600 hover:underline dark:text-slate-300" @click="openShift(s)">{{ t('common.edit') }}</button>
+                  <button v-can="'shifts.delete'" type="button" class="text-rose-600 hover:underline dark:text-rose-400" @click="removeShift(s)">{{ t('common.delete') }}</button>
                 </div>
               </td>
             </tr>
@@ -283,7 +283,7 @@ onMounted(loadAll)
     <!-- ===== الجداول ===== -->
     <section v-else-if="tab === 'schedules'">
       <div class="mb-4 flex justify-end">
-        <button v-can="'schedules.manage'" type="button" class="btn-primary disabled:opacity-60" :disabled="!canPickSchedule" @click="openSchedule()">{{ t('schedule.addSchedule') }}</button>
+        <button v-can="'schedules.create'" type="button" class="btn-primary disabled:opacity-60" :disabled="!canPickSchedule" @click="openSchedule()">{{ t('schedule.addSchedule') }}</button>
       </div>
       <p v-if="!canPickSchedule" class="mb-4 text-sm text-slate-500">{{ t('schedule.needShiftsAndUsers') }}</p>
 
@@ -341,8 +341,8 @@ onMounted(loadAll)
               </td>
               <td class="px-4 py-3">
                 <div class="flex justify-end gap-3">
-                  <button v-can="'schedules.manage'" type="button" class="text-slate-600 hover:underline dark:text-slate-300" @click="openSchedule(s)">{{ t('common.edit') }}</button>
-                  <button v-can="'schedules.manage'" type="button" class="text-rose-600 hover:underline dark:text-rose-400" @click="removeSchedule(s)">{{ t('common.delete') }}</button>
+                  <button v-can="'schedules.update'" type="button" class="text-slate-600 hover:underline dark:text-slate-300" @click="openSchedule(s)">{{ t('common.edit') }}</button>
+                  <button v-can="'schedules.delete'" type="button" class="text-rose-600 hover:underline dark:text-rose-400" @click="removeSchedule(s)">{{ t('common.delete') }}</button>
                 </div>
               </td>
             </tr>
@@ -354,7 +354,7 @@ onMounted(loadAll)
     <!-- ===== العطل ===== -->
     <section v-else>
       <div class="mb-4 flex justify-end">
-        <button v-can="'shifts.manage'" type="button" class="btn-primary" @click="openHoliday()">{{ t('schedule.addHoliday') }}</button>
+        <button v-can="'holidays.create'" type="button" class="btn-primary" @click="openHoliday()">{{ t('schedule.addHoliday') }}</button>
       </div>
 
       <form v-if="holidayForm.open" class="mb-6 space-y-4 rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900" @submit.prevent="submitHoliday">
@@ -385,8 +385,8 @@ onMounted(loadAll)
               <td class="px-4 py-3 text-slate-500">{{ h.name }}</td>
               <td class="px-4 py-3">
                 <div class="flex justify-end gap-3">
-                  <button v-can="'shifts.manage'" type="button" class="text-slate-600 hover:underline dark:text-slate-300" @click="openHoliday(h)">{{ t('common.edit') }}</button>
-                  <button v-can="'shifts.manage'" type="button" class="text-rose-600 hover:underline dark:text-rose-400" @click="removeHoliday(h)">{{ t('common.delete') }}</button>
+                  <button v-can="'holidays.update'" type="button" class="text-slate-600 hover:underline dark:text-slate-300" @click="openHoliday(h)">{{ t('common.edit') }}</button>
+                  <button v-can="'holidays.delete'" type="button" class="text-rose-600 hover:underline dark:text-rose-400" @click="removeHoliday(h)">{{ t('common.delete') }}</button>
                 </div>
               </td>
             </tr>

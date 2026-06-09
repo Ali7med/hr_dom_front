@@ -151,8 +151,8 @@ onMounted(async () => {
 
     <div class="mb-6 flex flex-wrap gap-3">
       <button type="button" class="btn-primary disabled:opacity-50" :disabled="loading || !canRun" @click="run">{{ loading ? t('common.loading') : t('reports.generate') }}</button>
-      <button type="button" class="btn-ghost-bordered disabled:opacity-50" :disabled="!!exporting || !canRun" @click="exportAs('excel')">{{ exporting === 'excel' ? t('common.loading') : t('reports.exportExcel') }}</button>
-      <button type="button" class="btn-ghost-bordered disabled:opacity-50" :disabled="!!exporting || !canRun" @click="exportAs('pdf')">{{ exporting === 'pdf' ? t('common.loading') : t('reports.exportPdf') }}</button>
+      <button v-can="'reports.export'" type="button" class="btn-ghost-bordered disabled:opacity-50" :disabled="!!exporting || !canRun" @click="exportAs('excel')">{{ exporting === 'excel' ? t('common.loading') : t('reports.exportExcel') }}</button>
+      <button v-can="'reports.export'" type="button" class="btn-ghost-bordered disabled:opacity-50" :disabled="!!exporting || !canRun" @click="exportAs('pdf')">{{ exporting === 'pdf' ? t('common.loading') : t('reports.exportPdf') }}</button>
     </div>
 
     <p v-if="requiresUser && !canRun" class="mb-4 text-sm text-amber-600 dark:text-amber-400">{{ t('reports.timesheetNeedsUser') }}</p>

@@ -14,7 +14,7 @@ const companyId = Number(route.params.id)
 const WEEKEND_DAYS = ['sat', 'sun', 'mon', 'tue', 'wed', 'thu', 'fri'] as const
 const CHANNELS = ['email', 'telegram', 'fcm'] as const
 
-const canManage = auth.can('companies.manage')
+const canManage = auth.can('companies.update')
 const loading = ref(false)
 const saving = ref(false)
 const error = ref('')
@@ -172,7 +172,7 @@ onMounted(load)
         </div>
 
         <button
-          v-can="'companies.manage'"
+          v-can="'companies.update'"
           type="submit"
           :disabled="saving"
           class="rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-700 disabled:opacity-60"
@@ -182,7 +182,7 @@ onMounted(load)
       </fieldset>
 
       <!-- استيراد من قالب -->
-      <div v-can="'companies.manage'" class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+      <div v-can="'companies.update'" class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
         <p class="mb-3 font-medium text-slate-700 dark:text-slate-300">{{ t('companies.importSettings') }}</p>
         <div class="flex flex-wrap items-center gap-3">
           <select v-model.number="importSourceId" class="field max-w-xs">

@@ -63,7 +63,7 @@ const router = createRouter({
           path: 'schedule',
           name: 'schedule',
           component: () => import('@/features/schedule/ScheduleView.vue'),
-          meta: { permission: ['shifts.manage', 'schedules.manage'] },
+          meta: { permission: ['shifts.view', 'schedules.view', 'holidays.view'] },
         },
         {
           path: 'device-requests',
@@ -93,7 +93,7 @@ const router = createRouter({
           path: 'payroll-config',
           name: 'payroll-config',
           component: () => import('@/features/payroll-config/PayrollConfigView.vue'),
-          meta: { permission: ['payroll.view', 'currencies.view'] },
+          meta: { permission: ['currencies.view', 'salary_rules.view', 'penalty_rules.view', 'bonuses.view'] },
         },
         {
           path: '403',

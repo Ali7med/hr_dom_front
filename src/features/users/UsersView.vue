@@ -184,7 +184,7 @@ onMounted(() => {
     <div class="mb-6 flex items-center justify-between gap-4">
       <h1 class="text-2xl font-bold text-slate-900 dark:text-white">{{ t('nav.users') }}</h1>
       <button
-        v-can="'users.manage'"
+        v-can="'users.create'"
         type="button"
         class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700"
         @click="openCreate"
@@ -278,8 +278,8 @@ onMounted(() => {
             <td class="px-4 py-3">
               <div class="flex justify-end gap-3">
                 <button v-can="'permissions.assign'" type="button" class="text-amber-600 hover:underline dark:text-amber-400" @click="openPermissions(u)">{{ t('users.permissions') }}</button>
-                <button v-can="'users.manage'" type="button" class="text-slate-600 hover:underline dark:text-slate-300" @click="openEdit(u)">{{ t('common.edit') }}</button>
-                <button v-can="'users.manage'" type="button" class="text-rose-600 hover:underline dark:text-rose-400" @click="remove(u)">{{ t('common.delete') }}</button>
+                <button v-can="'users.update'" type="button" class="text-slate-600 hover:underline dark:text-slate-300" @click="openEdit(u)">{{ t('common.edit') }}</button>
+                <button v-can="'users.delete'" type="button" class="text-rose-600 hover:underline dark:text-rose-400" @click="remove(u)">{{ t('common.delete') }}</button>
               </div>
             </td>
           </tr>

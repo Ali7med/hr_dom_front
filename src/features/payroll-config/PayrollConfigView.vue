@@ -177,7 +177,7 @@ onMounted(async () => {
 
     <!-- ===== العملات ===== -->
     <section v-if="tab === 'currencies'">
-      <div class="mb-4 flex justify-end"><button v-can="'currencies.manage'" type="button" class="btn-primary" @click="openCurrency()">{{ t('payConfig.addCurrency') }}</button></div>
+      <div class="mb-4 flex justify-end"><button v-can="'currencies.create'" type="button" class="btn-primary" @click="openCurrency()">{{ t('payConfig.addCurrency') }}</button></div>
       <form v-if="curForm.open" class="mb-6 space-y-4 rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900" @submit.prevent="submitCurrency">
         <h2 class="font-semibold">{{ curForm.id === null ? t('payConfig.addCurrency') : t('payConfig.editCurrency') }}</h2>
         <div class="grid gap-4 sm:grid-cols-3">
@@ -196,7 +196,7 @@ onMounted(async () => {
               <td class="px-4 py-3 font-medium text-slate-900 dark:text-white" dir="ltr">{{ c.code }}</td>
               <td class="px-4 py-3 text-slate-500">{{ c.name }}</td>
               <td class="px-4 py-3 text-slate-500">{{ c.symbol || '—' }}</td>
-              <td class="px-4 py-3"><div class="flex justify-end gap-3"><button v-can="'currencies.manage'" type="button" class="text-slate-600 hover:underline dark:text-slate-300" @click="openCurrency(c)">{{ t('common.edit') }}</button><button v-can="'currencies.manage'" type="button" class="text-rose-600 hover:underline dark:text-rose-400" @click="removeCurrency(c)">{{ t('common.delete') }}</button></div></td>
+              <td class="px-4 py-3"><div class="flex justify-end gap-3"><button v-can="'currencies.update'" type="button" class="text-slate-600 hover:underline dark:text-slate-300" @click="openCurrency(c)">{{ t('common.edit') }}</button><button v-can="'currencies.delete'" type="button" class="text-rose-600 hover:underline dark:text-rose-400" @click="removeCurrency(c)">{{ t('common.delete') }}</button></div></td>
             </tr>
           </tbody>
         </table>
@@ -205,7 +205,7 @@ onMounted(async () => {
 
     <!-- ===== قواعد الراتب ===== -->
     <section v-else-if="tab === 'salary'">
-      <div class="mb-4 flex justify-end"><button v-can="'payroll.manage_rules'" type="button" class="btn-primary disabled:opacity-50" :disabled="!canPickCurrencyUser" @click="openSalary()">{{ t('payConfig.setSalary') }}</button></div>
+      <div class="mb-4 flex justify-end"><button v-can="'salary_rules.manage'" type="button" class="btn-primary disabled:opacity-50" :disabled="!canPickCurrencyUser" @click="openSalary()">{{ t('payConfig.setSalary') }}</button></div>
       <p v-if="!canPickCurrencyUser" class="mb-4 text-sm text-amber-600 dark:text-amber-400">{{ t('payConfig.needCurrencyUser') }}</p>
       <form v-if="salForm.open" class="mb-6 space-y-4 rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900" @submit.prevent="submitSalary">
         <h2 class="font-semibold">{{ t('payConfig.setSalary') }}</h2>
@@ -228,7 +228,7 @@ onMounted(async () => {
               <td class="px-4 py-3 text-slate-500" dir="ltr">{{ Number(r.base_salary).toLocaleString('en-US') }}</td>
               <td class="px-4 py-3 text-slate-500" dir="ltr">{{ r.currency?.code ?? curCode(r.currency_id) }}</td>
               <td class="px-4 py-3 text-slate-500">{{ t('payConfig.ot' + (r.overtime_mode === 'manual' ? 'Manual' : r.overtime_mode === 'percent' ? 'Percent' : 'Fixed')) }}</td>
-              <td class="px-4 py-3"><div class="flex justify-end"><button v-can="'payroll.manage_rules'" type="button" class="text-slate-600 hover:underline dark:text-slate-300" @click="openSalary(r)">{{ t('common.edit') }}</button></div></td>
+              <td class="px-4 py-3"><div class="flex justify-end"><button v-can="'salary_rules.manage'" type="button" class="text-slate-600 hover:underline dark:text-slate-300" @click="openSalary(r)">{{ t('common.edit') }}</button></div></td>
             </tr>
           </tbody>
         </table>
@@ -237,7 +237,7 @@ onMounted(async () => {
 
     <!-- ===== العقوبات ===== -->
     <section v-else-if="tab === 'penalties'">
-      <div class="mb-4 flex justify-end"><button v-can="'payroll.manage_rules'" type="button" class="btn-primary" @click="openPenalty()">{{ t('payConfig.addPenalty') }}</button></div>
+      <div class="mb-4 flex justify-end"><button v-can="'penalty_rules.create'" type="button" class="btn-primary" @click="openPenalty()">{{ t('payConfig.addPenalty') }}</button></div>
       <form v-if="penForm.open" class="mb-6 space-y-4 rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900" @submit.prevent="submitPenalty">
         <h2 class="font-semibold">{{ penForm.id === null ? t('payConfig.addPenalty') : t('payConfig.editPenalty') }}</h2>
         <div class="grid gap-4 sm:grid-cols-2">
@@ -259,7 +259,7 @@ onMounted(async () => {
               <td class="px-4 py-3 text-slate-500" dir="ltr">{{ p.from_minutes }}–{{ p.to_minutes ?? '∞' }} {{ t('payConfig.min') }}</td>
               <td class="px-4 py-3 text-slate-500">{{ t('payConfig.' + p.deduction_type) }}</td>
               <td class="px-4 py-3 text-slate-500" dir="ltr">{{ p.value }}{{ p.deduction_type === 'percent' ? '%' : '' }}</td>
-              <td class="px-4 py-3"><div class="flex justify-end gap-3"><button v-can="'payroll.manage_rules'" type="button" class="text-slate-600 hover:underline dark:text-slate-300" @click="openPenalty(p)">{{ t('common.edit') }}</button><button v-can="'payroll.manage_rules'" type="button" class="text-rose-600 hover:underline dark:text-rose-400" @click="removePenalty(p)">{{ t('common.delete') }}</button></div></td>
+              <td class="px-4 py-3"><div class="flex justify-end gap-3"><button v-can="'penalty_rules.update'" type="button" class="text-slate-600 hover:underline dark:text-slate-300" @click="openPenalty(p)">{{ t('common.edit') }}</button><button v-can="'penalty_rules.delete'" type="button" class="text-rose-600 hover:underline dark:text-rose-400" @click="removePenalty(p)">{{ t('common.delete') }}</button></div></td>
             </tr>
           </tbody>
         </table>
@@ -268,7 +268,7 @@ onMounted(async () => {
 
     <!-- ===== المكافآت ===== -->
     <section v-else>
-      <div class="mb-4 flex justify-end"><button v-can="'payroll.manage_rules'" type="button" class="btn-primary disabled:opacity-50" :disabled="!canPickCurrencyUser" @click="openBonus()">{{ t('payConfig.addBonus') }}</button></div>
+      <div class="mb-4 flex justify-end"><button v-can="'bonuses.create'" type="button" class="btn-primary disabled:opacity-50" :disabled="!canPickCurrencyUser" @click="openBonus()">{{ t('payConfig.addBonus') }}</button></div>
       <form v-if="bonForm.open" class="mb-6 space-y-4 rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900" @submit.prevent="submitBonus">
         <h2 class="font-semibold">{{ bonForm.id === null ? t('payConfig.addBonus') : t('payConfig.editBonus') }}</h2>
         <div class="grid gap-4 sm:grid-cols-2">
@@ -292,7 +292,7 @@ onMounted(async () => {
               <td class="px-4 py-3 text-slate-500">{{ t('payConfig.' + b.type) }}</td>
               <td class="px-4 py-3 text-slate-500" dir="ltr">{{ Number(b.amount).toLocaleString('en-US') }} {{ b.currency?.code ?? curCode(b.currency_id) }}</td>
               <td class="px-4 py-3 text-slate-500">{{ b.reason }}</td>
-              <td class="px-4 py-3"><div class="flex justify-end gap-3"><button v-can="'payroll.manage_rules'" type="button" class="text-slate-600 hover:underline dark:text-slate-300" @click="openBonus(b)">{{ t('common.edit') }}</button><button v-can="'payroll.manage_rules'" type="button" class="text-rose-600 hover:underline dark:text-rose-400" @click="removeBonus(b)">{{ t('common.delete') }}</button></div></td>
+              <td class="px-4 py-3"><div class="flex justify-end gap-3"><button v-can="'bonuses.update'" type="button" class="text-slate-600 hover:underline dark:text-slate-300" @click="openBonus(b)">{{ t('common.edit') }}</button><button v-can="'bonuses.delete'" type="button" class="text-rose-600 hover:underline dark:text-rose-400" @click="removeBonus(b)">{{ t('common.delete') }}</button></div></td>
             </tr>
           </tbody>
         </table>

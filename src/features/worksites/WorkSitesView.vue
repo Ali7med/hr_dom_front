@@ -107,7 +107,7 @@ onMounted(load)
   <div class="mx-auto max-w-4xl">
     <div class="mb-6 flex items-center justify-between gap-4">
       <h1 class="text-2xl font-bold text-slate-900 dark:text-white">{{ t('worksites.title') }}</h1>
-      <button v-can="'work_sites.manage'" type="button" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700" @click="openCreate">
+      <button v-can="'work_sites.create'" type="button" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700" @click="openCreate">
         {{ t('worksites.create') }}
       </button>
     </div>
@@ -154,8 +154,8 @@ onMounted(load)
             </td>
             <td class="px-4 py-3">
               <div class="flex justify-end gap-3">
-                <button v-can="'work_sites.manage'" type="button" class="text-slate-600 hover:underline dark:text-slate-300" @click="openEdit(s)">{{ t('common.edit') }}</button>
-                <button v-can="'work_sites.manage'" type="button" class="text-rose-600 hover:underline dark:text-rose-400" @click="remove(s)">{{ t('common.delete') }}</button>
+                <button v-can="'work_sites.update'" type="button" class="text-slate-600 hover:underline dark:text-slate-300" @click="openEdit(s)">{{ t('common.edit') }}</button>
+                <button v-can="'work_sites.delete'" type="button" class="text-rose-600 hover:underline dark:text-rose-400" @click="remove(s)">{{ t('common.delete') }}</button>
               </div>
             </td>
           </tr>
