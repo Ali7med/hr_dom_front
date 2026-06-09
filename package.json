@@ -11,9 +11,14 @@
     "generate:api": "npx -y openapi-typescript@7 ../hr_dom_docs/contract/openapi.yaml -o src/api/schema.ts"
   },
   "dependencies": {
+    "@primeuix/themes": "^2.0.3",
+    "@primevue/themes": "^4.5.4",
     "axios": "^1.17.0",
     "leaflet": "^1.9.4",
     "pinia": "^3.0.4",
+    "primeicons": "^7.0.0",
+    "primevue": "^4.5.5",
+    "tailwindcss-primeui": "^0.6.1",
     "vue": "^3.5.34",
     "vue-i18n": "^11.4.5",
     "vue-router": "^5.1.0"

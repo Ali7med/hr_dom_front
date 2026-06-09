@@ -1,4 +1,8 @@
+/* ترتيب الطبقات: أنماط PrimeVue قبل أدوات Tailwind حتى تتمكّن الأدوات من التجاوز */
+@layer theme, base, primevue, components, utilities;
+
 @import 'tailwindcss';
+@import 'tailwindcss-primeui';
 
 /* تفعيل النمط الغامق عبر صنف .dark على <html> (تبديل يدوي محفوظ) */
 @custom-variant dark (&:where(.dark, .dark *));

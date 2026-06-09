@@ -41,7 +41,8 @@
   },
   "layout": {
     "logout": "Sign out",
-    "menu": "Menu"
+    "menu": "Menu",
+    "collapse": "Collapse"
   },
   "nav": {
     "dashboard": "Dashboard",
