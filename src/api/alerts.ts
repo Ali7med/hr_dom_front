@@ -6,14 +6,25 @@ import type { Pagination } from './users'
 
 export type AlertTargetType = 'all' | 'department' | 'users'
 
+// مُقِرّ بتنبيه (BE-52) — يظهر في تفاصيل التنبيه.
+export interface AlertAcknowledger {
+  user_id: number
+  name: string
+  employee_no?: string | null
+  acknowledged_at?: string | null
+}
+
 export interface Alert {
   id: number
   title: string
   body: string
   target_type: AlertTargetType
   target_meta?: Record<string, unknown> | null
+  requires_ack?: boolean
   recipients_count: number
   read_count: number
+  ack_count?: number
+  acknowledgers?: AlertAcknowledger[]
   created_at: string
   creator?: { id: number; name: string; employee_no?: string | null } | null
 }
@@ -24,6 +35,7 @@ export interface AlertInput {
   target_type: AlertTargetType
   department_ids?: number[] | null
   user_ids?: number[] | null
+  requires_ack?: boolean
   data?: Record<string, unknown> | null
 }
 

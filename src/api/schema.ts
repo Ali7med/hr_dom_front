@@ -1615,6 +1615,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/alerts/{alert}/ack": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * الإقرار باستلام تنبيه يتطلّب إقراراً (acknowledge)
+         * @description يسجّل إقرار الموظف بالتنبيه (يضبط acknowledged_at، ويعلّمه مقروءاً ضمناً). صالح فقط للتنبيهات التي أُنشئت بـ requires_ack=true. 404 إن لم يكن المستخدم مستلِماً.
+         */
+        post: operations["acknowledgeAlert"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1975,6 +1995,11 @@ export interface components {
             department_ids?: number[];
             /** @description مطلوبة عند target_type=users. */
             user_ids?: number[];
+            /**
+             * @description إن true، يجب على المستلِم الإقرار عبر POST /me/alerts/{alert}/ack، ويرى المشرف عدّاد/قائمة من أقرّ في سجل الإرسال.
+             * @default false
+             */
+            requires_ack: boolean;
             /** @description حمولة إضافية اختيارية تُمرَّر في دفع FCM. */
             data?: {
                 [key: string]: unknown;
@@ -4192,6 +4217,22 @@ export interface operations {
         responses: {
             200: components["responses"]["EnvelopeOk"];
             404: components["responses"]["ErrorResponse"];
+        };
+    };
+    acknowledgeAlert: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                alert: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            404: components["responses"]["ErrorResponse"];
+            422: components["responses"]["ErrorResponse"];
         };
     };
 }

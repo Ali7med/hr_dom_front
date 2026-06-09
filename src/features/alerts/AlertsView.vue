@@ -10,6 +10,7 @@ import InputText from 'primevue/inputtext'
 import Textarea from 'primevue/textarea'
 import Select from 'primevue/select'
 import MultiSelect from 'primevue/multiselect'
+import ToggleSwitch from 'primevue/toggleswitch'
 import Tag from 'primevue/tag'
 import { ApiException } from '@/api/client'
 import { alertsApi, type Alert, type AlertInput, type AlertTargetType } from '@/api/alerts'
@@ -39,7 +40,25 @@ const form = reactive({
   target_type: 'all' as AlertTargetType,
   department_ids: [] as number[],
   user_ids: [] as number[],
+  requires_ack: false,
 })
+
+// تفاصيل تنبيه (مع قائمة المُقِرّين) — FE-15.
+const showDetails = ref(false)
+const detail = ref<Alert | null>(null)
+const detailLoading = ref(false)
+async function openDetails(a: Alert): Promise<void> {
+  detail.value = a
+  showDetails.value = true
+  detailLoading.value = true
+  try {
+    detail.value = await alertsApi.get(a.id)
+  } catch (e) {
+    notifyError(e, t('common.loadError'))
+  } finally {
+    detailLoading.value = false
+  }
+}
 
 const targetOptions = computed(() => [
   { label: t('alerts.target.all'), value: 'all' },
@@ -90,6 +109,7 @@ function openCreate(): void {
   form.target_type = 'all'
   form.department_ids = []
   form.user_ids = []
+  form.requires_ack = false
   showForm.value = true
 }
 
@@ -113,6 +133,7 @@ async function submit(): Promise<void> {
     }
     if (form.target_type === 'department') payload.department_ids = form.department_ids
     else if (form.target_type === 'users') payload.user_ids = form.user_ids
+    if (form.requires_ack) payload.requires_ack = true
     await alertsApi.create(payload)
     showForm.value = false
     toast.add({ severity: 'success', summary: t('alerts.sent'), life: 2500 })
@@ -191,6 +212,15 @@ onMounted(() => {
             </span>
           </template>
         </Column>
+        <Column :header="t('alerts.colAck')">
+          <template #body="{ data }">
+            <span v-if="data.requires_ack" class="inline-flex items-center gap-1 text-surface-700 dark:text-surface-200">
+              <i class="pi pi-check-circle text-xs text-primary-600 dark:text-primary-400" />
+              {{ data.ack_count ?? 0 }} / {{ data.recipients_count ?? 0 }}
+            </span>
+            <span v-else class="text-surface-400">—</span>
+          </template>
+        </Column>
         <Column :header="t('alerts.colCreator')">
           <template #body="{ data }">
             <span class="text-sm text-surface-600 dark:text-surface-300">{{ data.creator?.name || '—' }}</span>
@@ -199,6 +229,18 @@ onMounted(() => {
         <Column field="created_at" :header="t('alerts.colDate')" sortable>
           <template #body="{ data }">
             <span class="font-mono text-xs text-surface-500" dir="ltr">{{ (data.created_at || '').slice(0, 16).replace('T', ' ') }}</span>
+          </template>
+        </Column>
+        <Column class="text-end">
+          <template #body="{ data }">
+            <Button
+              v-tooltip.top="t('alerts.details')"
+              icon="pi pi-eye"
+              severity="secondary"
+              text
+              rounded
+              @click="openDetails(data)"
+            />
           </template>
         </Column>
       </DataTable>
@@ -253,11 +295,55 @@ onMounted(() => {
           />
         </label>
 
+        <div class="flex items-center justify-between gap-3 rounded-xl border border-surface-200 p-3 dark:border-surface-700">
+          <div class="min-w-0">
+            <div class="text-sm font-medium text-surface-700 dark:text-surface-200">{{ t('alerts.requiresAck') }}</div>
+            <div class="text-xs text-surface-500">{{ t('alerts.requiresAckHint') }}</div>
+          </div>
+          <ToggleSwitch v-model="form.requires_ack" />
+        </div>
+
         <div class="mt-2 flex justify-end gap-2">
           <Button type="button" :label="t('common.cancel')" severity="secondary" text @click="showForm = false" />
           <Button type="submit" :label="saving ? t('common.saving') : t('alerts.send')" icon="pi pi-send" :loading="saving" />
         </div>
       </form>
+    </Dialog>
+
+    <!-- تفاصيل التنبيه + المُقِرّون (FE-15) -->
+    <Dialog
+      v-model:visible="showDetails"
+      modal
+      :header="detail?.title || t('alerts.details')"
+      :style="{ width: '36rem' }"
+      :breakpoints="{ '640px': '95vw' }"
+    >
+      <div v-if="detail" class="space-y-4 pt-1">
+        <p class="whitespace-pre-line text-sm text-surface-700 dark:text-surface-200">{{ detail.body }}</p>
+
+        <div class="flex flex-wrap gap-2">
+          <Tag :value="targetLabel(detail)" severity="info" />
+          <Tag :value="`${t('alerts.colRecipients')}: ${detail.recipients_count ?? 0}`" severity="secondary" />
+          <Tag :value="`${t('alerts.colRead')}: ${detail.read_count ?? 0}`" severity="secondary" />
+          <Tag v-if="detail.requires_ack" :value="`${t('alerts.colAck')}: ${detail.ack_count ?? 0} / ${detail.recipients_count ?? 0}`" severity="success" />
+        </div>
+
+        <!-- قائمة من أقرّ -->
+        <div v-if="detail.requires_ack">
+          <h3 class="mb-2 text-sm font-semibold text-surface-700 dark:text-surface-200">{{ t('alerts.acknowledgers') }}</h3>
+          <p v-if="detailLoading" class="text-sm text-surface-500">{{ t('common.loading') }}</p>
+          <ul v-else-if="detail.acknowledgers && detail.acknowledgers.length" class="divide-y divide-surface-100 rounded-xl border border-surface-200 dark:divide-surface-800 dark:border-surface-700">
+            <li v-for="a in detail.acknowledgers" :key="a.user_id" class="flex items-center justify-between gap-3 px-3 py-2 text-sm">
+              <span class="flex items-center gap-2 text-surface-700 dark:text-surface-200">
+                <span class="inline-flex size-7 items-center justify-center rounded-full bg-primary-100 text-xs font-semibold text-primary-700 dark:bg-primary-900 dark:text-primary-200">{{ (a.name || '?').charAt(0) }}</span>
+                {{ a.name }}
+              </span>
+              <span v-if="a.acknowledged_at" class="font-mono text-xs text-surface-500" dir="ltr">{{ a.acknowledged_at.slice(0, 16).replace('T', ' ') }}</span>
+            </li>
+          </ul>
+          <p v-else class="text-sm text-surface-500">{{ t('alerts.noAcks') }}</p>
+        </div>
+      </div>
     </Dialog>
   </div>
 </template>
