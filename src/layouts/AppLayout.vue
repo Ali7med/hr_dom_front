@@ -4,6 +4,8 @@ import { RouterView, RouterLink, useRouter, useRoute, type RouteLocationRaw } fr
 import { useI18n } from 'vue-i18n'
 import Menu from 'primevue/menu'
 import Avatar from 'primevue/avatar'
+import Toast from 'primevue/toast'
+import ConfirmDialog from 'primevue/confirmdialog'
 import type { MenuItem } from 'primevue/menuitem'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
@@ -193,5 +195,9 @@ async function onLogout(): Promise<void> {
         <RouterView />
       </main>
     </div>
+
+    <!-- خدمات عامة: إشعارات + تأكيد الحذف -->
+    <Toast position="top-center" />
+    <ConfirmDialog />
   </div>
 </template>

@@ -22,6 +22,8 @@
     "loading": "Loading…",
     "loadError": "Could not load data.",
     "saveError": "Could not save changes.",
+    "deleted": "Deleted",
+    "error": "Error",
     "yes": "Yes",
     "no": "No"
   },
