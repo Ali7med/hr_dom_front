@@ -95,7 +95,7 @@ function toggleUserMenu(event: Event): void {
 const initials = computed(() => (auth.user?.name ?? '?').trim().charAt(0).toUpperCase())
 
 // شعار التطبيق من public/app-icon.png مع رجوع لأيقونة الساعة إن غاب الملف.
-const appIcon = '/app-icon.png'
+const appIcon = '/app_icon.png'
 const logoError = ref(false)
 
 async function onLogout(): Promise<void> {
