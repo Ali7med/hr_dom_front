@@ -11,12 +11,11 @@ export interface Alert {
   title: string
   body: string
   target_type: AlertTargetType
-  department_ids?: number[] | null
-  user_ids?: number[] | null
+  target_meta?: Record<string, unknown> | null
   recipients_count: number
   read_count: number
   created_at: string
-  created_by?: { id: number; name: string } | null
+  creator?: { id: number; name: string; employee_no?: string | null } | null
 }
 
 export interface AlertInput {

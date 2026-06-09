@@ -106,7 +106,12 @@ async function submit(): Promise<void> {
     toast.add({ severity: 'success', summary: t('alerts.sent'), life: 2500 })
     await load()
   } catch (e) {
-    notifyError(e, t('common.saveError'))
+    // استهداف لم يطابق أحداً → رسالة ودّية، وإلا رسالة الخطأ العامة.
+    if (e instanceof ApiException && e.first?.code === 'no_recipients') {
+      toast.add({ severity: 'warn', summary: t('alerts.noRecipients'), life: 4000 })
+    } else {
+      notifyError(e, t('common.saveError'))
+    }
   } finally {
     saving.value = false
   }
@@ -122,7 +127,7 @@ onMounted(() => {
   <div class="mx-auto max-w-5xl">
     <PageHeader :title="t('alerts.title')" :subtitle="t('alerts.subtitle')">
       <template #actions>
-        <Button v-can="'alerts.create'" :label="t('alerts.create')" icon="pi pi-send" @click="openCreate" />
+        <Button v-can="'alerts.send'" :label="t('alerts.create')" icon="pi pi-send" @click="openCreate" />
       </template>
     </PageHeader>
 
@@ -162,6 +167,11 @@ onMounted(() => {
             <span class="text-surface-600 dark:text-surface-300">
               {{ data.read_count ?? 0 }} / {{ data.recipients_count ?? 0 }}
             </span>
+          </template>
+        </Column>
+        <Column :header="t('alerts.colCreator')">
+          <template #body="{ data }">
+            <span class="text-sm text-surface-600 dark:text-surface-300">{{ data.creator?.name || '—' }}</span>
           </template>
         </Column>
         <Column field="created_at" :header="t('alerts.colDate')" sortable>

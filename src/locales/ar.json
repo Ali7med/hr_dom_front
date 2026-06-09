@@ -72,6 +72,7 @@
     "colTarget": "الاستهداف",
     "colRecipients": "المستلمون",
     "colRead": "المقروء",
+    "colCreator": "المُرسِل",
     "colDate": "التاريخ",
     "titleField": "العنوان",
     "bodyField": "النص",
@@ -81,6 +82,7 @@
     "send": "إرسال",
     "sent": "تم إرسال التنبيه",
     "targetRequired": "اختر مستلمي التنبيه أولاً.",
+    "noRecipients": "الاستهداف لم يطابق أيّ موظف.",
     "target": {
       "all": "كل الموظفين",
       "department": "أقسام محدّدة",
@@ -466,6 +468,7 @@
     "update": "تعديل",
     "delete": "حذف",
     "export": "تصدير",
+    "send": "إرسال",
     "assign": "إسناد",
     "approve": "اعتماد",
     "generate": "توليد",

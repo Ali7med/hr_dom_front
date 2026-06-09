@@ -72,6 +72,7 @@
     "colTarget": "Target",
     "colRecipients": "Recipients",
     "colRead": "Read",
+    "colCreator": "Sender",
     "colDate": "Date",
     "titleField": "Title",
     "bodyField": "Message",
@@ -81,6 +82,7 @@
     "send": "Send",
     "sent": "Alert sent",
     "targetRequired": "Select the alert recipients first.",
+    "noRecipients": "The target matched no employees.",
     "target": {
       "all": "All employees",
       "department": "Specific departments",
@@ -466,6 +468,7 @@
     "update": "Update",
     "delete": "Delete",
     "export": "Export",
+    "send": "Send",
     "assign": "Assign",
     "approve": "Approve",
     "generate": "Generate",
