@@ -60,7 +60,12 @@ const PIN_KEY = 'hr_dom.sidebar.pinned'
 const pinned = ref(localStorage.getItem(PIN_KEY) === '1')
 const hovered = ref(false)
 const expanded = computed(() => pinned.value || hovered.value)
-const showLabels = computed(() => expanded.value)
+// على الهاتف (< lg) الشريط درور منزلق؛ على الشاشات الكبيرة شريط أيقونات يتوسّع/يُثبَّت.
+const mobileOpen = ref(false)
+const showLabels = computed(() => expanded.value || mobileOpen.value)
+function closeMobile(): void {
+  mobileOpen.value = false
+}
 function togglePin(): void {
   pinned.value = !pinned.value
   localStorage.setItem(PIN_KEY, pinned.value ? '1' : '0')
@@ -96,13 +101,17 @@ async function onLogout(): Promise<void> {
 
 <template>
   <div class="flex min-h-svh bg-surface-50 text-surface-800 dark:bg-surface-950 dark:text-surface-100">
-    <!-- حاجز يحجز عرض الشريط في التخطيط (عرض الرِيل عند عدم التثبيت، كامل عند التثبيت) -->
-    <div class="shrink-0 transition-[width] duration-200" :class="pinned ? 'w-64' : 'w-[4.75rem]'" aria-hidden="true" />
+    <!-- حاجز يحجز عرض الشريط في التخطيط (شاشات كبيرة فقط؛ على الهاتف المحتوى بعرض كامل) -->
+    <div class="hidden shrink-0 transition-[width] duration-200 md:block" :class="pinned ? 'w-64' : 'w-[4.75rem]'" aria-hidden="true" />
 
-    <!-- ===== الشريط الجانبي (مغلق افتراضياً، ينفتح بالتمرير، أو ثابت عند التثبيت) ===== -->
+    <!-- ===== الشريط الجانبي: درور على الهاتف · شريط أيقونات يتوسّع/يُثبَّت على الشاشات الكبيرة ===== -->
     <aside
-      class="fixed inset-y-0 start-0 z-40 flex h-svh flex-col border-e border-surface-200 bg-white transition-[width] duration-200 dark:border-surface-800 dark:bg-surface-900"
-      :class="[expanded ? 'w-64' : 'w-[4.75rem]', !pinned && expanded ? 'shadow-2xl' : '']"
+      class="fixed inset-y-0 start-0 z-40 flex h-svh w-64 flex-col border-e border-surface-200 bg-white transition-all duration-200 dark:border-surface-800 dark:bg-surface-900"
+      :class="[
+        expanded ? 'md:w-64' : 'md:w-[4.75rem]',
+        !pinned && expanded ? 'md:shadow-2xl' : '',
+        mobileOpen ? 'translate-x-0 shadow-2xl' : 'max-md:ltr:-translate-x-full max-md:rtl:translate-x-full',
+      ]"
       @mouseenter="hovered = true"
       @mouseleave="hovered = false"
       @focusin="hovered = true"
@@ -126,14 +135,15 @@ async function onLogout(): Promise<void> {
           class="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-surface-600 transition hover:bg-surface-100 hover:text-surface-900 dark:text-surface-300 dark:hover:bg-surface-800 dark:hover:text-white"
           active-class="!bg-primary-50 !text-primary-700 dark:!bg-primary-500/15 dark:!text-primary-300"
           :class="showLabels ? 'justify-start' : 'justify-center'"
+          @click="closeMobile"
         >
           <i :class="item.icon" class="shrink-0 text-lg" />
           <span v-if="showLabels" class="truncate">{{ t(item.key) }}</span>
         </RouterLink>
       </nav>
 
-      <!-- زر التثبيت (يجعل القائمة ثابتة مفتوحة بدل الانغلاق التلقائي) -->
-      <div class="border-t border-surface-200 p-2 dark:border-surface-800">
+      <!-- زر التثبيت (شاشات كبيرة فقط — لا معنى له داخل درور الهاتف) -->
+      <div class="hidden border-t border-surface-200 p-2 md:block dark:border-surface-800">
         <button
           type="button"
           v-tooltip="{ value: pinned ? t('layout.unpin') : t('layout.pin'), disabled: showLabels, showDelay: 120 }"
@@ -152,11 +162,28 @@ async function onLogout(): Promise<void> {
       </div>
     </aside>
 
+    <!-- تعتيم خلف درور الهاتف -->
+    <div
+      v-if="mobileOpen"
+      class="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm md:hidden"
+      @click="closeMobile"
+    />
+
     <!-- ===== العمود الرئيسي ===== -->
     <div class="flex min-w-0 flex-1 flex-col">
       <header
         class="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-surface-200 bg-white/80 px-4 backdrop-blur dark:border-surface-800 dark:bg-surface-900/80 lg:px-6"
       >
+        <!-- زر فتح الدرور (الهاتف فقط) -->
+        <button
+          type="button"
+          class="grid size-10 place-items-center rounded-xl text-surface-600 transition hover:bg-surface-100 md:hidden dark:text-surface-300 dark:hover:bg-surface-800"
+          :aria-label="t('layout.menu')"
+          @click="mobileOpen = true"
+        >
+          <i class="pi pi-bars text-lg" />
+        </button>
+
         <h1 class="truncate text-lg font-semibold tracking-tight">{{ pageTitle }}</h1>
 
         <div class="ms-auto flex items-center gap-1.5">
