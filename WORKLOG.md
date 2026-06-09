@@ -17,6 +17,12 @@
 
 ---
 
+## [2026-06-09] FE-15 — الإقرار بالتنبيهات في اللوحة (review)
+- ما أُنجز: فوق FE-14 وعقد BE-52: (1) مفتاح **«يتطلّب إقراراً»** (`ToggleSwitch`) في حوار الإنشاء يمرّر `requires_ack`. (2) عمود **«أقرّوا»** في سجل الإرسال يعرض `ack_count / recipients_count` لتنبيهات الإقرار فقط (وإلا `—`). (3) **حوار تفاصيل جديد** (زر عين بكل صف): وسوم المستلمين/المقروء/الإقرار + قائمة **«من أقرّ»** (الاسم + وقت الإقرار) من `GET /alerts/{id}`. أُعيد توليد `schema.ts` من العقد.
+- الملفات الرئيسية: `src/api/alerts.ts` (`requires_ack`/`ack_count`/`acknowledgers`؛ مفتاح المُقِرّ `user_id`)، `src/features/alerts/AlertsView.vue`، `src/locales/{ar,en}.json` (مفاتيح FE-15)، `src/api/schema.ts`. الفرع `feature/FE-15` (فوق FE-14، غير مدموج).
+- قرارات/ملاحظات: حقل المُقِرّ من الباك `user_id` لا `id` — طُوبِق بعد فحص الاستجابة الحيّة. لم يُلمَس الباك (BE-52 منشور على :8000).
+- الاختبارات: `type-check`+`build` خضراء، صفر أخطاء console. تحقّق حيّ كامل (Acme Admin، :8000): إنشاء تنبيه `requires_ack` → عمود «أقرّوا» = 0/2 → إقرار عبر `POST /me/alerts/{id}/ack` (200) → التفاصيل عرضت «أقرّوا 1/2» وقائمة المُقِرّ (Acme Admin + الطابع الزمني).
+
 ## [2026-06-09] FE-14 — واجهة إنشاء التنبيهات (review)
 - ما أُنجز: واجهة إدارة تنبيهات الموظفين فوق عقد BE-51: شاشة `/alerts` فيها **سجل الإرسال** (DataTable: العنوان/الاستهداف/المستلمون/المقروء/التاريخ) و**نموذج إنشاء** (Dialog): عنوان + نص + نوع الاستهداف (`all`/`department`/`users`) مع **MultiSelect شرطي** للأقسام أو الأفراد (بحث)، وتحقّق محلّي لاختيار المستلمين. أُضيف مسار `/alerts` (صلاحية `alerts.view`) وعنصر تنقّل (أيقونة جرس)، وأُعيد توليد `schema.ts` من العقد.
 - الملفات الرئيسية: `src/api/alerts.ts` (أنواع يدوية لعقد BE-51)، `src/features/alerts/AlertsView.vue`، `src/router/index.ts`، `src/layouts/AppLayout.vue`، `src/locales/{ar,en}.json` (قسم alerts + `permGroups.alerts`)، `src/api/schema.ts` (مُعاد توليده).
