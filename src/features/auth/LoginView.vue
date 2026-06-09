@@ -18,6 +18,8 @@ const ui = useUiStore()
 
 type Step = 'credentials' | 'two-factor'
 
+const appIcon = '/app-icon.png'
+const logoError = ref(false)
 const step = ref<Step>('credentials')
 const username = ref('')
 const password = ref('')
@@ -95,7 +97,8 @@ function backToCredentials(): void {
 
       <div class="rounded-2xl border border-surface-200 bg-white p-8 shadow-sm dark:border-surface-800 dark:bg-surface-900">
         <header class="mb-6 text-center">
-          <span class="mx-auto mb-3 grid size-12 place-items-center rounded-2xl bg-primary text-primary-contrast">
+          <img v-if="!logoError" :src="appIcon" alt="" class="mx-auto mb-3 size-14 rounded-2xl object-contain" @error="logoError = true" />
+          <span v-else class="mx-auto mb-3 grid size-12 place-items-center rounded-2xl bg-primary text-primary-contrast">
             <i class="pi pi-clock !text-xl" />
           </span>
           <h1 class="text-2xl font-bold text-surface-900 dark:text-white">{{ t('app.title') }}</h1>

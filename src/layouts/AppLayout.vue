@@ -94,6 +94,10 @@ function toggleUserMenu(event: Event): void {
 
 const initials = computed(() => (auth.user?.name ?? '?').trim().charAt(0).toUpperCase())
 
+// شعار التطبيق من public/app-icon.png مع رجوع لأيقونة الساعة إن غاب الملف.
+const appIcon = '/app-icon.png'
+const logoError = ref(false)
+
 async function onLogout(): Promise<void> {
   await auth.logout()
   router.replace({ name: 'login' })
@@ -120,7 +124,8 @@ async function onLogout(): Promise<void> {
     >
       <!-- الشعار -->
       <div class="flex h-16 items-center gap-3 border-b border-surface-200 px-3 dark:border-surface-800" :class="showLabels ? 'px-5' : 'justify-center'">
-        <span class="grid size-9 shrink-0 place-items-center rounded-xl bg-primary text-primary-contrast">
+        <img v-if="!logoError" :src="appIcon" alt="" class="size-9 shrink-0 rounded-xl object-contain" @error="logoError = true" />
+        <span v-else class="grid size-9 shrink-0 place-items-center rounded-xl bg-primary text-primary-contrast">
           <i class="pi pi-clock text-lg" />
         </span>
         <span v-if="showLabels" class="truncate text-base font-bold tracking-tight">{{ t('app.title') }}</span>
