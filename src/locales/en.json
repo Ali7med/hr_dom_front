@@ -58,9 +58,34 @@
     "schedule": "Shifts & scheduling",
     "deviceRequests": "Device requests",
     "leaves": "Leaves",
+    "alerts": "Alerts",
     "reports": "Reports",
     "payroll": "Payroll",
     "payrollConfig": "Payroll rules"
+  },
+  "alerts": {
+    "title": "Alerts",
+    "subtitle": "Send alerts to employees (app push + inbox).",
+    "create": "Create alert",
+    "empty": "No alerts sent yet.",
+    "colTitle": "Title",
+    "colTarget": "Target",
+    "colRecipients": "Recipients",
+    "colRead": "Read",
+    "colDate": "Date",
+    "titleField": "Title",
+    "bodyField": "Message",
+    "targetType": "Target",
+    "departments": "Departments",
+    "users": "Employees",
+    "send": "Send",
+    "sent": "Alert sent",
+    "targetRequired": "Select the alert recipients first.",
+    "target": {
+      "all": "All employees",
+      "department": "Specific departments",
+      "users": "Specific individuals"
+    }
   },
   "home": {
     "welcome": "Welcome to the dashboard",
@@ -432,7 +457,8 @@
     "fx_rates": "FX rates",
     "webhooks": "Webhooks",
     "integration": "Integration",
-    "audit": "Audit"
+    "audit": "Audit",
+    "alerts": "Alerts"
   },
   "permActions": {
     "view": "View",

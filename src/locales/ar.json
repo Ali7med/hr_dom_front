@@ -58,9 +58,34 @@
     "schedule": "الورديات والجدولة",
     "deviceRequests": "طلبات الأجهزة",
     "leaves": "الإجازات",
+    "alerts": "التنبيهات",
     "reports": "التقارير",
     "payroll": "الرواتب",
     "payrollConfig": "قواعد الرواتب"
+  },
+  "alerts": {
+    "title": "التنبيهات",
+    "subtitle": "أرسِل تنبيهات للموظفين (دفع للتطبيق + صندوق وارد).",
+    "create": "إنشاء تنبيه",
+    "empty": "لا توجد تنبيهات مُرسَلة.",
+    "colTitle": "العنوان",
+    "colTarget": "الاستهداف",
+    "colRecipients": "المستلمون",
+    "colRead": "المقروء",
+    "colDate": "التاريخ",
+    "titleField": "العنوان",
+    "bodyField": "النص",
+    "targetType": "الاستهداف",
+    "departments": "الأقسام",
+    "users": "الموظفون",
+    "send": "إرسال",
+    "sent": "تم إرسال التنبيه",
+    "targetRequired": "اختر مستلمي التنبيه أولاً.",
+    "target": {
+      "all": "كل الموظفين",
+      "department": "أقسام محدّدة",
+      "users": "أفراد محدّدون"
+    }
   },
   "home": {
     "welcome": "مرحباً بك في لوحة التحكم",
@@ -432,7 +457,8 @@
     "fx_rates": "أسعار الصرف",
     "webhooks": "Webhooks",
     "integration": "التكامل",
-    "audit": "التدقيق"
+    "audit": "التدقيق",
+    "alerts": "التنبيهات"
   },
   "permActions": {
     "view": "عرض",

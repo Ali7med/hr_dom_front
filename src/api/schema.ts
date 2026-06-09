@@ -1512,6 +1512,109 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/alerts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** قائمة التنبيهات المُرسَلة (مع عدّادات المستلمين/المقروء) */
+        get: operations["listAlerts"];
+        put?: never;
+        /** إنشاء تنبيه وإرساله (دفع FCM + صندوق وارد داخل التطبيق) */
+        post: operations["createAlert"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/alerts/{alert}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** تفاصيل تنبيه واحد */
+        get: operations["showAlert"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/alerts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** صندوق وارد تنبيهات الموظف الحالي (مقروء/غير مقروء) */
+        get: operations["listMyAlerts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/alerts/unread-count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** عدد التنبيهات غير المقروءة */
+        get: operations["myAlertsUnreadCount"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/alerts/read-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** تعليم كل التنبيهات مقروءة */
+        post: operations["markAllAlertsRead"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/alerts/{alert}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** تعليم تنبيه واحد مقروءاً */
+        post: operations["markAlertRead"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1859,6 +1962,23 @@ export interface components {
         };
         EmployeeSyncInput: {
             employees: components["schemas"]["EmployeeSyncItem"][];
+        };
+        AlertInput: {
+            title: string;
+            body: string;
+            /**
+             * @description نطاق الاستهداف — كل الموظفين، أو أقسام محدّدة، أو أفراد.
+             * @enum {string}
+             */
+            target_type: "all" | "department" | "users";
+            /** @description مطلوبة عند target_type=department. */
+            department_ids?: number[];
+            /** @description مطلوبة عند target_type=users. */
+            user_ids?: number[];
+            /** @description حمولة إضافية اختيارية تُمرَّر في دفع FCM. */
+            data?: {
+                [key: string]: unknown;
+            } | null;
         };
     };
     responses: {
@@ -3972,6 +4092,106 @@ export interface operations {
         requestBody?: never;
         responses: {
             201: components["responses"]["EnvelopeOk"];
+        };
+    };
+    listAlerts: {
+        parameters: {
+            query?: {
+                per_page?: number;
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+        };
+    };
+    createAlert: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AlertInput"];
+            };
+        };
+        responses: {
+            201: components["responses"]["EnvelopeOk"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    showAlert: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                alert: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            404: components["responses"]["ErrorResponse"];
+        };
+    };
+    listMyAlerts: {
+        parameters: {
+            query?: {
+                per_page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+        };
+    };
+    myAlertsUnreadCount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+        };
+    };
+    markAllAlertsRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+        };
+    };
+    markAlertRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                alert: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            404: components["responses"]["ErrorResponse"];
         };
     };
 }

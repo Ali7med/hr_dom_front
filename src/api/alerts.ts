@@ -1,0 +1,46 @@
+import { apiClient, unwrap, type Envelope } from './client'
+import type { Pagination } from './users'
+
+// أنواع يدوية مبنية على عقد BE-51 (Alerts) — تنبيهات المشرف للموظفين.
+// (الردود بالغلاف الموحّد؛ الأنواع هنا تعكس ما يُرجِعه الباك المخطّط.)
+
+export type AlertTargetType = 'all' | 'department' | 'users'
+
+export interface Alert {
+  id: number
+  title: string
+  body: string
+  target_type: AlertTargetType
+  department_ids?: number[] | null
+  user_ids?: number[] | null
+  recipients_count: number
+  read_count: number
+  created_at: string
+  created_by?: { id: number; name: string } | null
+}
+
+export interface AlertInput {
+  title: string
+  body: string
+  target_type: AlertTargetType
+  department_ids?: number[] | null
+  user_ids?: number[] | null
+  data?: Record<string, unknown> | null
+}
+
+export const alertsApi = {
+  // قائمة التنبيهات المُرسَلة (مع عدّادات المستلمين/المقروء) — مرقّمة.
+  async list(
+    params: { per_page?: number; page?: number } = {},
+  ): Promise<{ data: Alert[]; pagination?: Pagination }> {
+    const res = await apiClient.get<Envelope<Alert[]>>('/alerts', { params })
+    return { data: res.data.data, pagination: res.data.meta?.pagination as Pagination | undefined }
+  },
+  get(id: number) {
+    return unwrap<Alert>(apiClient.get(`/alerts/${id}`))
+  },
+  // إنشاء تنبيه وإرساله (دفع FCM + صندوق وارد داخل التطبيق).
+  create(payload: AlertInput) {
+    return unwrap<Alert>(apiClient.post('/alerts', payload))
+  },
+}
