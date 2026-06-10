@@ -6,27 +6,10 @@
     <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
     <title>حضوري — لوحة التحكم</title>
-    <script>
-      // طبّق المظهر واللغة قبل الرسم لتفادي الوميض (FOUC).
-      (function () {
-        try {
-          var theme = localStorage.getItem('hr_dom_theme')
-          if (!theme) {
-            theme = window.matchMedia('(prefers-color-scheme: dark)').matches
-              ? 'dark'
-              : 'light'
-          }
-          if (theme === 'dark') document.documentElement.classList.add('dark')
-
-          var locale = localStorage.getItem('hr_dom_locale') === 'en' ? 'en' : 'ar'
-          document.documentElement.lang = locale
-          document.documentElement.dir = locale === 'ar' ? 'rtl' : 'ltr'
-        } catch (e) {
-          /* localStorage غير متاح — تجاهل */
-        }
-      })()
-    </script>
+    <!-- المظهر/اللغة قبل الرسم (FOUC) — ملف خارجي ('self') متوافق مع CSP -->
+    <script src="/theme-init.js"></script>
   </head>
   <body>
     <div id="app"></div>

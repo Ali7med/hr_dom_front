@@ -31,10 +31,17 @@ function messageFor(e: unknown, fallback: string): string {
   return e instanceof ApiException ? e.message : fallback
 }
 
-// بعد نجاح الدخول، اذهب لوجهة `redirect` إن وُجدت وإلا للوحة التحكم.
+// مسار داخلي آمن فقط — يرفض الروابط المطلقة الخارجية و//host و/\ (open-redirect).
+function safeInternalPath(t: unknown): string | null {
+  if (typeof t !== 'string' || !t.startsWith('/')) return null
+  if (t.startsWith('//') || t.startsWith('/\\')) return null
+  return t
+}
+
+// بعد نجاح الدخول، اذهب لوجهة `redirect` الداخلية الآمنة إن وُجدت وإلا للوحة التحكم.
 function goAfterLogin(): void {
-  const target = route.query.redirect
-  router.replace(typeof target === 'string' ? target : { name: 'dashboard' })
+  const target = safeInternalPath(route.query.redirect)
+  router.replace(target ?? { name: 'dashboard' })
 }
 
 async function submitCredentials(): Promise<void> {

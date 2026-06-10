@@ -38,6 +38,15 @@ export class ApiException extends Error {
 const baseURL =
   import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000/api/v1'
 
+// حماية النشر: في بناء الإنتاج يجب أن يكون عنوان الـ API عبر HTTPS (وإلا تُرسَل
+// التوكنات على HTTP). نحذّر بوضوح؛ والأفضل فحص مماثل في خطّ CI/النشر.
+if (import.meta.env.PROD && !/^https:\/\//i.test(baseURL)) {
+  console.error(
+    `[security] VITE_API_BASE_URL is not HTTPS in a production build: "${baseURL}". ` +
+      'Tokens would be sent over an insecure channel. Set an https:// API origin.',
+  )
+}
+
 export const apiClient = axios.create({
   baseURL,
   headers: { Accept: 'application/json' },
