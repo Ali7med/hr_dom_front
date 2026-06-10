@@ -17,6 +17,12 @@
 
 ---
 
+## [2026-06-10] SEC-FRONT — معالجة الفحص الأمني للفرونت (review)
+- ما أُنجز: تنفيذ بنود `security/frontend-security-review.md` القابلة للفرونت: (1) **حارس open-redirect** في `LoginView` — `safeInternalPath` يقبل المسارات الداخلية فقط ويرفض `//host`/`/\`/الروابط الخارجية. (2) **CSP**: نُقل السكربت المضمّن للثيم إلى ملف خارجي `/public/theme-init.js` (فصار `script-src 'self'` كافياً)، أُضيف `<meta name="referrer">`، وحُقِنت **CSP في بناء الإنتاج فقط** عبر إضافة Vite (`apply:'build'`) تشتقّ أصل الـ API من `VITE_API_BASE_URL` (لا تكسر HMR في التطوير). (3) **فرض HTTPS**: `client.ts` يطبع تحذيراً في بناء الإنتاج إن كان عنوان الـ API غير https. **البند 3 (توكنات localStorage)** قرار عابر للمستودعات → وُثِّق في ADR-0003 + متطلّب باك (لا يُنفَّذ بجلسة فرونت).
+- الملفات الرئيسية: `src/features/auth/LoginView.vue`، `index.html`، `public/theme-init.js` (جديد)، `vite.config.ts` (إضافة CSP)، `src/api/client.ts`. الفرع `chore/frontend-security` (فوق FE-15، غير مدموج).
+- قرارات/ملاحظات: CSP خادم-الترويسة (frame-ancestors/nosniff) موثّقة في `hr_dom_docs/DEPLOYMENT.md §8.1`. التوكنات (HttpOnly cookies) في `decisions/0003` + `backend-tasks/BE-SEC-httponly-tokens.md` بانتظار قرار + جلسة باك.
+- الاختبارات: `type-check`+`build` خضراء. تحقّق حيّ (تطوير :5173): `theme-init.js`=200، الثيم/اللغة مطبّقان قبل الرسم (dark+rtl، بلا FOUC)، التطبيق يعمل بلا أخطاء console؛ و`dist/index.html` يحمل CSP (مع أصل الـ API) + referrer.
+
 ## [2026-06-09] FE-15 — الإقرار بالتنبيهات في اللوحة (review)
 - ما أُنجز: فوق FE-14 وعقد BE-52: (1) مفتاح **«يتطلّب إقراراً»** (`ToggleSwitch`) في حوار الإنشاء يمرّر `requires_ack`. (2) عمود **«أقرّوا»** في سجل الإرسال يعرض `ack_count / recipients_count` لتنبيهات الإقرار فقط (وإلا `—`). (3) **حوار تفاصيل جديد** (زر عين بكل صف): وسوم المستلمين/المقروء/الإقرار + قائمة **«من أقرّ»** (الاسم + وقت الإقرار) من `GET /alerts/{id}`. أُعيد توليد `schema.ts` من العقد.
 - الملفات الرئيسية: `src/api/alerts.ts` (`requires_ack`/`ack_count`/`acknowledgers`؛ مفتاح المُقِرّ `user_id`)، `src/features/alerts/AlertsView.vue`، `src/locales/{ar,en}.json` (مفاتيح FE-15)، `src/api/schema.ts`. الفرع `feature/FE-15` (فوق FE-14، غير مدموج).
