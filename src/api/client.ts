@@ -2,7 +2,6 @@ import axios, {
   type AxiosError,
   type InternalAxiosRequestConfig,
 } from 'axios'
-import { tokenStorage } from './tokenStorage'
 
 // الغلاف الموحّد لكل ردود الـ API: { data, meta, errors }
 export interface ApiError {
@@ -47,19 +46,20 @@ if (import.meta.env.PROD && !/^https:\/\//i.test(baseURL)) {
   )
 }
 
-export const apiClient = axios.create({
+// المصادقة عبر كوكيز HttpOnly يضبطها الباك (BE-SEC/ADR-0003):
+// - withCredentials: يرسل/يستقبل الكوكيز.
+// - withXSRFToken + xsrf*: axios يقرأ كوكي XSRF-TOKEN ويرسله في ترويسة X-XSRF-TOKEN
+//   (double-submit CSRF). يتطلّب أن يكون الـ API نفس-أصل (وكيل Vite في التطوير).
+const authClientConfig = {
   baseURL,
+  withCredentials: true,
+  withXSRFToken: true,
+  xsrfCookieName: 'XSRF-TOKEN',
+  xsrfHeaderName: 'X-XSRF-TOKEN',
   headers: { Accept: 'application/json' },
-})
+}
 
-// طلب: أرفق توكن الوصول إن وُجد.
-apiClient.interceptors.request.use((config) => {
-  const token = tokenStorage.getAccess()
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
-  return config
-})
+export const apiClient = axios.create(authClientConfig)
 
 // خطّاف يُستدعى عند انتهاء الجلسة نهائياً (تُسجّله طبقة التطبيق لإعادة التوجيه للدخول).
 let onUnauthorized: (() => void) | null = null
@@ -75,23 +75,17 @@ const NO_REFRESH = [
   '/auth/sso/exchange',
 ]
 
-// تجديد توكن الوصول مرة واحدة متزامنة (single-flight) عبر axios مجرّد لتفادي التكرار.
-let refreshPromise: Promise<string | null> | null = null
+// تجديد الجلسة مرة واحدة متزامنة (single-flight). العميل المجرّد بلا interceptors
+// كي لا يُطلق فشلُ التجديد (401) خطّافَ onUnauthorized مبكراً. الكوكي يحمل التوكن.
+const bareClient = axios.create(authClientConfig)
+let refreshPromise: Promise<boolean> | null = null
 
-async function refreshAccessToken(): Promise<string | null> {
-  const refresh = tokenStorage.getRefresh()
-  if (!refresh) return null
+async function refreshSession(): Promise<boolean> {
   try {
-    const res = await axios.post<Envelope<{ access_token: string; refresh_token: string | null }>>(
-      `${baseURL}/auth/refresh`,
-      { refresh_token: refresh },
-      { headers: { Accept: 'application/json' } },
-    )
-    const data = res.data.data
-    tokenStorage.set(data.access_token, data.refresh_token)
-    return data.access_token
+    await bareClient.post('/auth/refresh', {})
+    return true
   } catch {
-    return null
+    return false
   }
 }
 
@@ -109,16 +103,15 @@ apiClient.interceptors.response.use(
       status === 401 &&
       config !== undefined &&
       !config._retry &&
-      !NO_REFRESH.some((path) => url.includes(path)) &&
-      tokenStorage.getRefresh() !== null
+      !NO_REFRESH.some((path) => url.includes(path))
 
     if (refreshable) {
       config!._retry = true
-      refreshPromise = refreshPromise ?? refreshAccessToken()
-      const newToken = await refreshPromise
+      refreshPromise = refreshPromise ?? refreshSession()
+      const ok = await refreshPromise
       refreshPromise = null
-      if (newToken) {
-        config!.headers.Authorization = `Bearer ${newToken}`
+      if (ok) {
+        // الكوكيز جُدّدت من الباك — أعِد الطلب الأصلي كما هو.
         return apiClient(config!)
       }
     }
@@ -128,7 +121,6 @@ apiClient.interceptors.response.use(
     ]
 
     if (status === 401) {
-      tokenStorage.clear()
       onUnauthorized?.()
     }
 

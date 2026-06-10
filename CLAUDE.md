@@ -7,10 +7,10 @@
 - **الصيغة الموحّدة:** كل ردود الـ API بالشكل `{ data, meta, errors }`. استخدم `apiClient`/`unwrap` من `src/api/client.ts`؛ الأخطاء تُرفع كـ `ApiException` (تحمل `code/message/field` ورمز الحالة).
 - **i18n أولاً:** كل نص معروض عبر `vue-i18n` (عربي/إنجليزي) — لا نصوص ثابتة في القوالب. العربية هي الافتراضية، والاتجاه RTL.
 - **التسمية:** الكود بالإنجليزية (`camelCase`/`PascalCase`)؛ حقول/مسارات الـ API بـ `snake_case` كما في العقد.
-- **الأمان:** لا أسرار في الكود؛ القيم في `.env` (المتغيّرات بـ `VITE_`). التوكنات في `localStorage` عبر `tokenStorage`.
+- **الأمان:** لا أسرار في الكود؛ القيم في `.env` (المتغيّرات بـ `VITE_`). **المصادقة عبر كوكيز HttpOnly** يضبطها الباك (BE-SEC/ADR-0003) — لا توكنات في `localStorage`؛ `apiClient` بـ `withCredentials`+`withXSRFToken` (CSRF double-submit، يتطلّب API نفس-أصل/وكيل Vite).
 
 ## البنية
-- `src/api/` — `client.ts` (axios + interceptors + الغلاف)، `tokenStorage.ts`، `schema.ts` (مولّد).
+- `src/api/` — `client.ts` (axios + interceptors + الغلاف + كوكيز/CSRF)، `schema.ts` (مولّد).
 - `src/stores/` — Pinia: `auth` (الجلسة/التوكنات)، `ui` (الثيم + اللغة + RTL، محفوظان).
 - `src/router/` — Vue Router (lazy-loaded views).
 - `src/locales/` — `index.ts` (إعداد i18n، `legacy:false`) + `ar.json`/`en.json`.

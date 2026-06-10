@@ -48,6 +48,14 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       port: 5173,
+      // وكيل تطوير: يجعل الـ API نفس-أصل (same-origin) ليعمل كوكي XSRF (double-submit CSRF)
+      // — لأن المتصفّح لا يتيح قراءة كوكي عبر-الأصل. الإنتاج يخدم الفرونت خلف نفس الأصل/الموقع.
+      proxy: {
+        '/api': {
+          target: env.VITE_DEV_API_TARGET ?? 'http://127.0.0.1:8000',
+          changeOrigin: true,
+        },
+      },
     },
   }
 })
