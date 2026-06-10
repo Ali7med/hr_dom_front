@@ -6,7 +6,7 @@ import { useToast } from 'primevue/usetoast'
 import DataTable, { type DataTablePageEvent } from 'primevue/datatable'
 import Column from 'primevue/column'
 import Button from 'primevue/button'
-import Dialog from 'primevue/dialog'
+import Dialog from '@/components/AppDialog.vue'
 import InputText from 'primevue/inputtext'
 import Select from 'primevue/select'
 import MultiSelect from 'primevue/multiselect'
@@ -387,7 +387,7 @@ onMounted(() => {
       :header="permUser ? t('users.directPermissionsFor', { name: permUser.name }) : ''"
       :style="{ width: '36rem' }"
       :breakpoints="{ '640px': '95vw' }"
-      @update:visible="(v) => { if (!v) permUser = null }"
+      @update:visible="(v: boolean) => { if (!v) permUser = null }"
     >
       <div class="space-y-4 pt-2">
         <Tag severity="warn" :value="t('users.directPermissionsWarning')" class="!whitespace-normal !text-start" />

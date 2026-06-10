@@ -488,6 +488,11 @@
     "daily_manager": "Daily manager report",
     "test": "Test"
   },
+  "permPicker": {
+    "selectAll": "Select all",
+    "clearAll": "Clear all",
+    "selected": "{n} of {total} selected"
+  },
   "companies": {
     "title": "Companies",
     "create": "Add company",

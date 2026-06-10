@@ -5,7 +5,7 @@ import { useToast } from 'primevue/usetoast'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Button from 'primevue/button'
-import Dialog from 'primevue/dialog'
+import Dialog from '@/components/AppDialog.vue'
 import Select from 'primevue/select'
 import { ApiException } from '@/api/client'
 import { payrollApi, type Payroll } from '@/api/payroll'
@@ -237,7 +237,7 @@ onMounted(async () => {
       :header="selected ? t('payroll.payslipOf', { name: selected.user?.name ?? '#' + selected.user_id, period: selected.period }) : ''"
       :style="{ width: '34rem' }"
       :breakpoints="{ '640px': '95vw' }"
-      @update:visible="(v) => { if (!v) selected = null }"
+      @update:visible="(v: boolean) => { if (!v) selected = null }"
     >
       <template v-if="selected">
         <dl class="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">

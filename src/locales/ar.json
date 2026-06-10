@@ -488,6 +488,11 @@
     "daily_manager": "تقرير المدير اليومي",
     "test": "اختبار"
   },
+  "permPicker": {
+    "selectAll": "تحديد الكل",
+    "clearAll": "إلغاء التحديد",
+    "selected": "محدّد {n} من {total}"
+  },
   "companies": {
     "title": "الشركات",
     "create": "إضافة شركة",
