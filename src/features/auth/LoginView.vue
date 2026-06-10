@@ -18,7 +18,7 @@ const ui = useUiStore()
 
 type Step = 'credentials' | 'two-factor'
 
-const appIcon = '/app_icon.png'
+const appIcon = '/app-icon-192.png'
 const logoError = ref(false)
 const step = ref<Step>('credentials')
 const username = ref('')
