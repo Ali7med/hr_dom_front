@@ -551,6 +551,9 @@
   "errors": {
     "forbiddenTitle": "Access denied",
     "forbiddenBody": "You don't have the permission required to view this page. Contact your administrator if you think this is a mistake.",
-    "backToDashboard": "Back to dashboard"
+    "backToDashboard": "Back to dashboard",
+    "network": "Couldn't reach the server. Check your connection and try again.",
+    "rateLimited": "Too many attempts. Please wait a moment and try again.",
+    "server": "A server error occurred. Please try again later."
   }
 }

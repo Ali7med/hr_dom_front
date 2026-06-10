@@ -2,6 +2,7 @@ import axios, {
   type AxiosError,
   type InternalAxiosRequestConfig,
 } from 'axios'
+import { i18n } from '@/locales'
 
 // الغلاف الموحّد لكل ردود الـ API: { data, meta, errors }
 export interface ApiError {
@@ -124,7 +125,15 @@ apiClient.interceptors.response.use(
       onUnauthorized?.()
     }
 
-    const message = errors[0]?.message ?? error.message
+    // رسائل ودّية موحّدة للحالات غير المرتبطة بالحقول (شبكة/معدّل/خادم)؛
+    // أمّا 4xx (403/422/...) فنُبقي رسالة الباك الدقيقة كما هي.
+    const isNetwork = status === undefined || errors[0]?.code === 'network_error'
+    let message: string
+    if (isNetwork) message = i18n.global.t('errors.network')
+    else if (status === 429) message = i18n.global.t('errors.rateLimited')
+    else if (status >= 500) message = i18n.global.t('errors.server')
+    else message = errors[0]?.message ?? error.message
+
     return Promise.reject(new ApiException(message, errors, status))
   },
 )
