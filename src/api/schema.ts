@@ -1890,6 +1890,23 @@ export interface components {
              * @default true
              */
             is_paid: boolean;
+            /** @description الحد الأقصى لعدد أيام الطلب الواحد (للأنواع daily/sick/long). null = بلا حد. */
+            max_days_per_request?: number | null;
+            /**
+             * Format: double
+             * @description الحد الأقصى لعدد ساعات الإجازة في اليوم (للنوع hourly). null = بلا حد.
+             */
+            max_hours_per_day?: number | null;
+            /**
+             * @description أول وقت مسموح لبدء الإجازة الزمنية (HH:mm، للنوع hourly).
+             * @example 08:00
+             */
+            allowed_from?: string | null;
+            /**
+             * @description آخر وقت مسموح لانتهاء الإجازة الزمنية (HH:mm، للنوع hourly).
+             * @example 14:00
+             */
+            allowed_to?: string | null;
         };
         LeaveRequestInput: {
             leave_type_id: number;
@@ -1905,9 +1922,19 @@ export interface components {
             end_at: string;
             /**
              * Format: double
-             * @description عدد الساعات (لإجازة من نوع hourly)
+             * @description عدد الساعات (لإجازة من نوع hourly). يُحسَب خادمياً من start_time/end_time إن أُرسِلا؛ ويُتحقَّق ≤ max_hours_per_day للنوع.
              */
             hours?: number;
+            /**
+             * @description وقت بداية الإجازة الزمنية (HH:mm، للنوع hourly، ضمن allowed_from/allowed_to).
+             * @example 08:00
+             */
+            start_time?: string;
+            /**
+             * @description وقت نهاية الإجازة الزمنية (HH:mm، > start_time، ضمن allowed_from/allowed_to).
+             * @example 11:00
+             */
+            end_time?: string;
             /** @description لتقديم الطلب بالنيابة (يتطلّب leaves.approve أو users.manage) */
             user_id?: number;
             /** @enum {string} */
@@ -2119,6 +2146,8 @@ export interface operations {
                     password: string;
                     /** @description رمز 2FA إن كان مفعّلاً */
                     otp?: string;
+                    /** @description اختياري — معرّف جهاز مربوط (BE-11). يمنح توكن تجديد ممتدّ العمر للأجهزة الموثوقة (BE-54، يدعم الدخول بالبصمة). */
+                    device_uid?: string;
                 };
             };
         };
@@ -3865,7 +3894,16 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /** @description اختياري — يُقرأ من الجسم (التطبيق) أو كوكي HttpOnly (الفرونت — BE-SEC). */
+                    refresh_token?: string;
+                    /** @description اختياري — معرّف جهاز موثوق (BE-54)؛ يمدّد التجديد ويفرض عزل الجهاز (401 device_not_trusted عند عدم التطابق). */
+                    device_uid?: string;
+                };
+            };
+        };
         responses: {
             200: components["responses"]["EnvelopeOk"];
             401: components["responses"]["ErrorResponse"];

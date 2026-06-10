@@ -14,6 +14,10 @@ export interface LeaveType {
   needs_approval: boolean
   affects_balance: AffectsBalance | null
   is_paid: boolean
+  max_days_per_request: number | null
+  max_hours_per_day: number | null
+  allowed_from: string | null
+  allowed_to: string | null
 }
 
 export interface LeaveTypePayload {
@@ -22,6 +26,10 @@ export interface LeaveTypePayload {
   needs_approval?: boolean
   affects_balance?: AffectsBalance
   is_paid?: boolean
+  max_days_per_request?: number | null
+  max_hours_per_day?: number | null
+  allowed_from?: string | null
+  allowed_to?: string | null
 }
 
 export interface LeaveRequest {

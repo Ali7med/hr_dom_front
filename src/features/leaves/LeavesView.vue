@@ -181,6 +181,36 @@ const typeForm = reactive({
   needs_approval: true,
   affects_balance: 'normal' as NonNullable<LeaveType['affects_balance']>,
   is_paid: true,
+  max_days_per_request: null as number | null,
+  max_hours_per_day: null as number | null,
+  allowed_from: '' as string,
+  allowed_to: '' as string,
+})
+
+// محرّرا الوقت (HH:mm) لحقلي «مسموح من»/«مسموح إلى» — DatePicker يعمل بـ Date فقط
+function timeStrToDate(s: string): Date | null {
+  if (!s) return null
+  const [h, m] = s.split(':').map((n) => Number(n))
+  if (Number.isNaN(h) || Number.isNaN(m)) return null
+  const d = new Date()
+  d.setHours(h, m, 0, 0)
+  return d
+}
+function dateToTimeStr(d: Date | null): string {
+  if (!d) return ''
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+}
+const allowedFromTime = computed({
+  get: () => timeStrToDate(typeForm.allowed_from),
+  set: (d: Date | null) => {
+    typeForm.allowed_from = dateToTimeStr(d)
+  },
+})
+const allowedToTime = computed({
+  get: () => timeStrToDate(typeForm.allowed_to),
+  set: (d: Date | null) => {
+    typeForm.allowed_to = dateToTimeStr(d)
+  },
 })
 const kindOptions = computed(() => [
   { label: t('leaveKind.hourly'), value: 'hourly' },
@@ -201,16 +231,35 @@ function openType(x?: LeaveType): void {
   typeForm.needs_approval = x?.needs_approval ?? true
   typeForm.affects_balance = x?.affects_balance ?? 'normal'
   typeForm.is_paid = x?.is_paid ?? true
+  typeForm.max_days_per_request = x?.max_days_per_request ?? null
+  typeForm.max_hours_per_day = x?.max_hours_per_day ?? null
+  typeForm.allowed_from = x?.allowed_from ?? ''
+  typeForm.allowed_to = x?.allowed_to ?? ''
 }
 async function submitType(): Promise<void> {
+  // تحقّق العميل: allowed_to > allowed_from (للنوع hourly عند ضبط الاثنين)
+  if (
+    typeForm.kind === 'hourly' &&
+    typeForm.allowed_from &&
+    typeForm.allowed_to &&
+    typeForm.allowed_to <= typeForm.allowed_from
+  ) {
+    notifyError(null, t('leaves.allowedRangeInvalid'))
+    return
+  }
   saving.value = true
   try {
+    const isHourly = typeForm.kind === 'hourly'
     const payload = {
       name: typeForm.name,
       kind: typeForm.kind,
       needs_approval: typeForm.needs_approval,
       affects_balance: typeForm.affects_balance,
       is_paid: typeForm.is_paid,
+      max_days_per_request: isHourly ? null : typeForm.max_days_per_request,
+      max_hours_per_day: isHourly ? typeForm.max_hours_per_day : null,
+      allowed_from: isHourly ? typeForm.allowed_from || null : null,
+      allowed_to: isHourly ? typeForm.allowed_to || null : null,
     }
     if (typeForm.id === null) await leaveTypesApi.create(payload)
     else await leaveTypesApi.update(typeForm.id, payload)
@@ -603,6 +652,46 @@ onMounted(async () => {
             <span class="font-medium text-surface-700 dark:text-surface-300">{{ t('leaves.isPaid') }}</span>
           </label>
         </div>
+
+        <!-- حدود النوع — مشروطة بالصنف (BE-23) -->
+        <!-- daily / sick / long → أقصى أيام للطلب -->
+        <label v-if="typeForm.kind !== 'hourly'" class="block text-sm sm:col-span-2">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('leaves.maxDaysPerRequest') }}</span>
+          <InputNumber
+            v-model="typeForm.max_days_per_request"
+            :min="1"
+            :max-fraction-digits="0"
+            show-buttons
+            fluid
+            :placeholder="t('leaves.noLimit')"
+          />
+        </label>
+
+        <!-- hourly → أقصى ساعات لليوم + نافذة الوقت المسموح -->
+        <template v-else>
+          <label class="block text-sm sm:col-span-2">
+            <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('leaves.maxHoursPerDay') }}</span>
+            <InputNumber
+              v-model="typeForm.max_hours_per_day"
+              :min="0.5"
+              :max="24"
+              :step="0.5"
+              :min-fraction-digits="0"
+              :max-fraction-digits="2"
+              show-buttons
+              fluid
+              :placeholder="t('leaves.noLimit')"
+            />
+          </label>
+          <label class="block text-sm">
+            <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('leaves.allowedFrom') }}</span>
+            <DatePicker v-model="allowedFromTime" time-only hour-format="24" show-icon icon-display="input" fluid />
+          </label>
+          <label class="block text-sm">
+            <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('leaves.allowedTo') }}</span>
+            <DatePicker v-model="allowedToTime" time-only hour-format="24" show-icon icon-display="input" fluid />
+          </label>
+        </template>
 
         <div class="mt-2 flex justify-end gap-2 sm:col-span-2">
           <Button type="button" :label="t('common.cancel')" severity="secondary" text @click="typeForm.open = false" />
