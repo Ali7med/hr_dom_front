@@ -40,7 +40,9 @@
     "verify": "Verify",
     "verifying": "Verifying…",
     "back": "Back",
-    "genericError": "Could not sign in. Check your details and try again."
+    "welcomeBack": "Welcome back",
+    "genericError": "Could not sign in. Check your details and try again.",
+    "networkError": "Couldn't reach the server. Check your internet connection and try again."
   },
   "layout": {
     "logout": "Sign out",

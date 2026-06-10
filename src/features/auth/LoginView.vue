@@ -6,6 +6,8 @@ import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import Message from 'primevue/message'
+import IconField from 'primevue/iconfield'
+import InputIcon from 'primevue/inputicon'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
 import { ApiException } from '@/api/client'
@@ -26,16 +28,29 @@ const password = ref('')
 const code = ref('')
 const challenge = ref('')
 const error = ref('')
+const errorIsConnection = ref(false)
+const currentYear = new Date().getFullYear()
 
-function messageFor(e: unknown, fallback: string): string {
-  return e instanceof ApiException ? e.message : fallback
+// خطأ تعذّر الوصول للخادم (لا استجابة / 5xx) → رسالة ودّية بدل الخطأ الخام.
+function isConnectionError(e: ApiException): boolean {
+  return e.status === undefined || e.first?.code === 'network_error' || (e.status ?? 0) >= 500
+}
+
+function setError(e: unknown): void {
+  if (e instanceof ApiException && isConnectionError(e)) {
+    errorIsConnection.value = true
+    error.value = t('auth.networkError')
+  } else {
+    errorIsConnection.value = false
+    error.value = e instanceof ApiException ? e.message : t('auth.genericError')
+  }
 }
 
 // مسار داخلي آمن فقط — يرفض الروابط المطلقة الخارجية و//host و/\ (open-redirect).
-function safeInternalPath(t: unknown): string | null {
-  if (typeof t !== 'string' || !t.startsWith('/')) return null
-  if (t.startsWith('//') || t.startsWith('/\\')) return null
-  return t
+function safeInternalPath(target: unknown): string | null {
+  if (typeof target !== 'string' || !target.startsWith('/')) return null
+  if (target.startsWith('//') || target.startsWith('/\\')) return null
+  return target
 }
 
 // بعد نجاح الدخول، اذهب لوجهة `redirect` الداخلية الآمنة إن وُجدت وإلا للوحة التحكم.
@@ -55,7 +70,7 @@ async function submitCredentials(): Promise<void> {
     }
     goAfterLogin()
   } catch (e) {
-    error.value = messageFor(e, t('auth.genericError'))
+    setError(e)
   }
 }
 
@@ -65,7 +80,7 @@ async function submitTwoFactor(): Promise<void> {
     await auth.verifyTwoFactor(challenge.value, code.value)
     goAfterLogin()
   } catch (e) {
-    error.value = messageFor(e, t('auth.genericError'))
+    setError(e)
   }
 }
 
@@ -78,13 +93,20 @@ function backToCredentials(): void {
 </script>
 
 <template>
-  <div class="flex min-h-svh items-center justify-center bg-surface-50 px-6 py-12 dark:bg-surface-950">
-    <div class="w-full max-w-sm">
+  <div
+    class="relative flex min-h-svh items-center justify-center overflow-hidden bg-gradient-to-br from-primary-50 via-surface-50 to-surface-100 px-6 py-12 dark:from-surface-950 dark:via-surface-950 dark:to-surface-900"
+  >
+    <!-- زخارف ضبابية خفيفة في الخلفية -->
+    <div class="pointer-events-none absolute -top-28 -start-28 size-80 rounded-full bg-primary-400/20 blur-3xl dark:bg-primary-500/10" aria-hidden="true" />
+    <div class="pointer-events-none absolute -bottom-28 -end-28 size-80 rounded-full bg-primary-500/15 blur-3xl dark:bg-primary-400/10" aria-hidden="true" />
+
+    <div class="relative w-full max-w-sm">
       <!-- مبدّلات اللغة/المظهر -->
-      <div class="mb-6 flex justify-end gap-2">
+      <div class="mb-5 flex justify-end gap-2">
         <Button
           type="button"
           severity="secondary"
+          rounded
           outlined
           size="small"
           :label="ui.locale === 'ar' ? 'EN' : 'ع'"
@@ -94,6 +116,7 @@ function backToCredentials(): void {
         <Button
           type="button"
           severity="secondary"
+          rounded
           outlined
           size="small"
           :icon="ui.theme === 'dark' ? 'pi pi-sun' : 'pi pi-moon'"
@@ -102,19 +125,30 @@ function backToCredentials(): void {
         />
       </div>
 
-      <div class="rounded-2xl border border-surface-200 bg-white p-8 shadow-sm dark:border-surface-800 dark:bg-surface-900">
-        <header class="mb-6 text-center">
-          <img v-if="!logoError" :src="appIcon" alt="" class="mx-auto mb-3 size-14 rounded-2xl object-contain" @error="logoError = true" />
-          <span v-else class="mx-auto mb-3 grid size-12 place-items-center rounded-2xl bg-primary text-primary-contrast">
-            <i class="pi pi-clock !text-xl" />
-          </span>
-          <h1 class="text-2xl font-bold text-surface-900 dark:text-white">{{ t('app.title') }}</h1>
-          <p class="mt-1 text-sm text-surface-500 dark:text-surface-400">
+      <div
+        class="rounded-3xl border border-surface-200/70 bg-white/90 p-8 shadow-xl backdrop-blur-sm dark:border-surface-800/80 dark:bg-surface-900/90"
+      >
+        <header class="mb-7 text-center">
+          <div class="mx-auto mb-4 grid size-20 place-items-center rounded-3xl bg-white shadow-md ring-1 ring-surface-200/80 dark:bg-surface-800 dark:ring-surface-700">
+            <img v-if="!logoError" :src="appIcon" alt="" class="size-14 rounded-2xl object-contain" @error="logoError = true" />
+            <i v-else class="pi pi-clock !text-2xl text-primary" />
+          </div>
+          <p class="text-sm font-medium text-primary-600 dark:text-primary-400">{{ t('auth.welcomeBack') }}</p>
+          <h1 class="mt-0.5 text-2xl font-bold tracking-tight text-surface-900 dark:text-white">{{ t('app.title') }}</h1>
+          <p class="mt-1.5 text-sm text-surface-500 dark:text-surface-400">
             {{ step === 'credentials' ? t('auth.loginSubtitle') : t('auth.twoFactorSubtitle') }}
           </p>
         </header>
 
-        <Message v-if="error" severity="error" :closable="false" class="mb-4">{{ error }}</Message>
+        <Message
+          v-if="error"
+          :severity="errorIsConnection ? 'warn' : 'error'"
+          :icon="errorIsConnection ? 'pi pi-server' : 'pi pi-times-circle'"
+          :closable="false"
+          class="mb-5"
+        >
+          {{ error }}
+        </Message>
 
         <!-- الخطوة 1: بيانات الدخول -->
         <form v-if="step === 'credentials'" class="space-y-4" @submit.prevent="submitCredentials">
@@ -122,14 +156,17 @@ function backToCredentials(): void {
             <label for="username" class="mb-1.5 block text-sm font-medium text-surface-700 dark:text-surface-300">
               {{ t('auth.username') }}
             </label>
-            <InputText
-              id="username"
-              v-model="username"
-              autocomplete="username"
-              required
-              :placeholder="t('auth.usernamePlaceholder')"
-              fluid
-            />
+            <IconField>
+              <InputIcon class="pi pi-user" />
+              <InputText
+                id="username"
+                v-model="username"
+                autocomplete="username"
+                required
+                :placeholder="t('auth.usernamePlaceholder')"
+                fluid
+              />
+            </IconField>
           </div>
           <div>
             <label for="password" class="mb-1.5 block text-sm font-medium text-surface-700 dark:text-surface-300">
@@ -146,6 +183,8 @@ function backToCredentials(): void {
           </div>
           <Button
             type="submit"
+            class="mt-1"
+            icon="pi pi-sign-in"
             :loading="auth.loading"
             :label="auth.loading ? t('auth.signingIn') : t('auth.signIn')"
             fluid
@@ -164,12 +203,13 @@ function backToCredentials(): void {
               inputmode="numeric"
               autocomplete="one-time-code"
               required
-              class="text-center font-mono !text-lg tracking-widest"
+              class="text-center font-mono !text-lg !tracking-[0.4em]"
               fluid
             />
           </div>
           <Button
             type="submit"
+            icon="pi pi-check"
             :loading="auth.loading"
             :label="auth.loading ? t('auth.verifying') : t('auth.verify')"
             fluid
@@ -178,12 +218,17 @@ function backToCredentials(): void {
             type="button"
             severity="secondary"
             text
+            icon="pi pi-arrow-right rtl:pi-arrow-left"
             :label="t('auth.back')"
             fluid
             @click="backToCredentials"
           />
         </form>
       </div>
+
+      <p class="mt-6 text-center text-xs text-surface-400 dark:text-surface-500">
+        {{ t('app.title') }} · {{ currentYear }}
+      </p>
     </div>
   </div>
 </template>
