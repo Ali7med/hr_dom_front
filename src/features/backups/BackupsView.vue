@@ -10,6 +10,7 @@ import Select from 'primevue/select'
 import InputNumber from 'primevue/inputnumber'
 import ToggleSwitch from 'primevue/toggleswitch'
 import InputChips from 'primevue/inputchips'
+import Password from 'primevue/password'
 import Tag from 'primevue/tag'
 import PageHeader from '@/components/PageHeader.vue'
 import { ApiException } from '@/api/client'
@@ -18,6 +19,7 @@ import {
   backupsApi,
   type Backup,
   type BackupSettings,
+  type BackupSettingsPayload,
   type BackupFrequency,
 } from '@/api/backups'
 
@@ -130,9 +132,14 @@ const settings = reactive<BackupSettings>({
   run_at: '02:00',
   retention_count: 14,
   attach_to_message: false,
+  encryption_enabled: false,
   notify_telegram_chat_ids: [],
   notify_emails: [],
 })
+// كلمة مرور التشفير: write-only — لا تُحمَّل من الخادم، تُرسَل فقط عند تعيين/تغيير.
+const encryptionPassword = ref('')
+// هل كان التشفير مفعّلاً خادمياً (أي كلمة مرور مضبوطة مسبقاً) — يحدّد إن كان الحقل إلزامياً.
+const hadEncryption = ref(false)
 const savingSettings = ref(false)
 
 const frequencyOptions: { value: BackupFrequency; label: string }[] = [
@@ -150,32 +157,55 @@ async function loadSettings(): Promise<void> {
       run_at: (s.run_at ?? '02:00').slice(0, 5),
       retention_count: s.retention_count ?? null,
       attach_to_message: s.attach_to_message ?? false,
+      encryption_enabled: s.encryption_enabled ?? false,
       notify_telegram_chat_ids: s.notify_telegram_chat_ids ?? [],
       notify_emails: s.notify_emails ?? [],
     })
+    hadEncryption.value = settings.encryption_enabled
+    encryptionPassword.value = ''
   } catch {
     // الإعدادات اختيارية — قد لا تكون مهيّأة بعد.
   }
 }
 
 const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+function warn(detail: string): void {
+  toast.add({ severity: 'warn', summary: t('common.error'), detail, life: 4000 })
+}
 async function saveSettings(): Promise<void> {
   const bad = settings.notify_emails.find((e) => !emailRe.test(e))
   if (bad) {
-    toast.add({ severity: 'warn', summary: t('common.error'), detail: t('backups.invalidEmail', { email: bad }), life: 4000 })
+    warn(t('backups.invalidEmail', { email: bad }))
+    return
+  }
+  // تحقّق كلمة مرور التشفير: إلزامية عند تفعيل التشفير لأول مرة؛ 8 أحرف فأكثر إن أُدخلت.
+  if (settings.encryption_enabled && !hadEncryption.value && !encryptionPassword.value) {
+    warn(t('backups.passwordRequired'))
+    return
+  }
+  if (encryptionPassword.value && encryptionPassword.value.length < 8) {
+    warn(t('backups.passwordTooShort'))
     return
   }
   savingSettings.value = true
   try {
-    await backupsApi.updateSettings({
+    const payload: BackupSettingsPayload = {
       scheduled_enabled: settings.scheduled_enabled,
       frequency: settings.frequency,
       run_at: settings.run_at,
       retention_count: settings.retention_count,
       attach_to_message: settings.attach_to_message,
+      encryption_enabled: settings.encryption_enabled,
       notify_telegram_chat_ids: settings.notify_telegram_chat_ids,
       notify_emails: settings.notify_emails,
-    })
+    }
+    // ترسَل كلمة المرور فقط عند إدخال قيمة (تعيين/تغيير)؛ تركها فارغة = إبقاء الحالية.
+    if (settings.encryption_enabled && encryptionPassword.value) {
+      payload.encryption_password = encryptionPassword.value
+    }
+    await backupsApi.updateSettings(payload)
+    hadEncryption.value = settings.encryption_enabled
+    encryptionPassword.value = ''
     toast.add({ severity: 'success', summary: t('common.saved'), life: 2500 })
   } catch (e) {
     notifyError(e, t('common.saveError'))
@@ -338,6 +368,36 @@ onMounted(async () => {
             <span class="mt-1 block text-xs text-surface-500">{{ t('backups.chipsHint') }}</span>
           </label>
         </div>
+      </div>
+    </div>
+
+    <!-- التشفير -->
+    <div class="mt-6 rounded-2xl border border-surface-200 bg-white p-5 dark:border-surface-800 dark:bg-surface-900">
+      <h2 class="mb-4 text-sm font-semibold text-surface-700 dark:text-surface-200">{{ t('backups.encryptionTitle') }}</h2>
+      <div class="grid gap-4">
+        <label class="flex items-center justify-between gap-3 text-sm">
+          <span class="font-medium text-surface-700 dark:text-surface-300">{{ t('backups.encryptionEnabled') }}</span>
+          <ToggleSwitch v-model="settings.encryption_enabled" />
+        </label>
+        <template v-if="settings.encryption_enabled">
+          <label class="block text-sm sm:max-w-sm">
+            <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('backups.encryptionPassword') }}</span>
+            <Password
+              v-model="encryptionPassword"
+              :feedback="false"
+              toggle-mask
+              :placeholder="hadEncryption ? t('backups.passwordKeep') : t('backups.passwordSet')"
+              fluid
+              input-class="w-full"
+            />
+            <span class="mt-1 block text-xs text-surface-500">
+              {{ hadEncryption ? t('backups.passwordKeepHint') : t('backups.passwordNewHint') }}
+            </span>
+          </label>
+          <p class="text-xs text-amber-600 dark:text-amber-400">
+            <i class="pi pi-exclamation-circle me-1" />{{ t('backups.passwordLossWarning') }}
+          </p>
+        </template>
       </div>
     </div>
 

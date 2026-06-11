@@ -1416,7 +1416,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** إعدادات النسخ الاحتياطية (الجدولة + القنوات + المستلمون + الإرفاق) */
+        /**
+         * إعدادات النسخ الاحتياطية (الجدولة + القنوات + المستلمون + الإرفاق + encryption_enabled)
+         * @description يُرجِع إعدادات النسخ. حقل encryption_enabled (منطقي) يبيّن إن كانت كلمة مرور التشفير مضبوطة؛ كلمة المرور نفسها لا تُعاد أبداً (write-only في الإدخال).
+         */
         get: operations["getBackupSettings"];
         /** تحديث إعدادات النسخ الاحتياطية (تشغيل/إيقاف الجدولة + القنوات) — يتطلّب backups.manage */
         put: operations["updateBackupSettings"];

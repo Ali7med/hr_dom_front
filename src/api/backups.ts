@@ -25,11 +25,16 @@ export interface BackupSettings {
   run_at: string // HH:mm
   retention_count: number | null // null = بلا حدّ
   attach_to_message: boolean
+  // التشفير: GET يُرجِع encryption_enabled فقط (كلمة المرور write-only لا تُعاد).
+  encryption_enabled: boolean
   notify_telegram_chat_ids: string[]
   notify_emails: string[]
 }
 
-export type BackupSettingsPayload = Partial<BackupSettings>
+// حمولة التحديث: كل الحقول اختيارية + كلمة مرور التشفير (write-only، تُرسَل عند الضبط فقط).
+export type BackupSettingsPayload = Partial<BackupSettings> & {
+  encryption_password?: string | null
+}
 
 export const backupsApi = {
   // سجلّ النسخ (مرقّم).
