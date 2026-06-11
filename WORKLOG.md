@@ -17,6 +17,12 @@
 
 ---
 
+## [2026-06-11] FE-PERM-LABELS — تسميات الصلاحيات الجديدة في منتقي الصلاحيات (done)
+- ما أُنجز: منتقي الصلاحيات (`PermissionPicker`، يُستخدم في بوب تعديل الدور وبوب الصلاحيات المباشرة للمستخدم) **ديناميكي** يجلب القائمة من `GET /permissions` ويجمّعها بالبادئة، لكنه يحتاج تسميات i18n وإلا يعرض المفتاح الخام. فُحِصت القائمة الفعلية من الباك (:8000) فتبيّن أن **الجديد = مجموعة `absences`** (`absences.view/resolve/manage`، من BE-16) بلا تسمية، و**الإجراء `resolve` بلا تسمية**. أُضيفت التسميات الناقصة: `permGroups.absences` («معالجة الغياب» / Absence resolution)، `permGroups.backups` («النسخ الاحتياطية» / Backups — **استباقي** لـ BE-64 إذ `backups.manage` غير مزروع بالباك بعد)، و`permActions.resolve` («معالجة» / Resolve). (`manage` موجود مسبقاً فيغطّي `backups.manage`.)
+- الملفات الرئيسية: `src/locales/{ar,en}.json` (إضافة لـ`permGroups` و`permActions` فقط — لا تغيير منطقي). الفرع `feature/perm-labels-absences-backups`.
+- قرارات/ملاحظات: لا تغيير على الباك ولا العقد (تسميات عرض فقط). المنتقي يعرض أي صلاحية يُرجِعها الباك تلقائياً؛ المطلوب فقط تسمية المجموعات/الإجراءات الجديدة. مجموعة «النسخ الاحتياطية» لن تظهر حتى يزرع BE-64 صلاحية `backups.manage` (التسمية جاهزة).
+- الاختبارات: `type-check`+`build` خضراء. **تحقّق حيّ (:8000، Acme Admin)**: بوب تعديل الدور يعرض مجموعة «معالجة الغياب» بثلاثة أسطر معرّبة («— إدارة/معالجة/عرض») بلا تسرّب مفاتيح خام؛ صفر أخطاء console.
+
 ## [2026-06-11] FE-21 — صفحة النسخ الاحتياطية المُدارة (review، Contract-First)
 - ما أُنجز: صفحة إدارة النسخ الاحتياطية (Super Admin، PrimeVue 4، Contract-First فوق BE-64/BE-65 غير المنشورين): زر **«نسخة احتياطية الآن»** (`POST /backups`، غير متزامن → يحدّث السجل)، **DataTable** للسجل (التاريخ/الحجم بصيغة بشرية/الحالة كـ`Tag` ناجحة/فاشلة/جارية/بالانتظار + تنزيل `blob`→`saveBlob` مفعّل للناجحة فقط + حذف `useConfirm`)، **بطاقة جدولة** (`ToggleSwitch` تشغيل + `Select` تكرار + حقل وقت `run_at` + `InputNumber` احتفاظ قابل للمسح «فارغ=بلا حدّ»)، **بطاقة إشعارات** (`ToggleSwitch` إرفاق + `InputChips` لمعرّفات تلكرام والإيميلات مع تحقّق صيغة البريد قبل الحفظ) + حفظ `PUT /backups/settings`. **تنبيه أمني** بارز. أُضيف كتبويب في صفحة الإعدادات (`/settings/backups`) بصلاحية `backups.manage` (يُخفى تلقائياً لغير Super Admin).
 - الملفات الرئيسية: `src/api/backups.ts` (جديد)، `src/features/backups/BackupsView.vue` (جديد)، `src/features/settings/settingsTabs.ts` (تبويب backups)، `src/router/index.ts` (مسار `/settings/backups`)، `src/locales/{ar,en}.json` (`nav.backups` + قسم `backups`)، و`src/api/schema.ts` (مُعاد توليده). الفرع `feature/FE-21`.

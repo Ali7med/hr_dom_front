@@ -638,7 +638,9 @@
     "webhooks": "Webhooks",
     "integration": "التكامل",
     "audit": "التدقيق",
-    "alerts": "التنبيهات"
+    "alerts": "التنبيهات",
+    "absences": "معالجة الغياب",
+    "backups": "النسخ الاحتياطية"
   },
   "permActions": {
     "view": "عرض",
@@ -653,6 +655,7 @@
     "import": "استيراد",
     "manage": "إدارة",
     "manage_balances": "إدارة الأرصدة",
+    "resolve": "معالجة",
     "manual_add": "إضافة يدوية",
     "rebind_approve": "اعتماد إعادة الربط",
     "daily_manager": "تقرير المدير اليومي",

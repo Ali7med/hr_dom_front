@@ -638,7 +638,9 @@
     "webhooks": "Webhooks",
     "integration": "Integration",
     "audit": "Audit",
-    "alerts": "Alerts"
+    "alerts": "Alerts",
+    "absences": "Absence resolution",
+    "backups": "Backups"
   },
   "permActions": {
     "view": "View",
@@ -653,6 +655,7 @@
     "import": "Import",
     "manage": "Manage",
     "manage_balances": "Manage balances",
+    "resolve": "Resolve",
     "manual_add": "Manual add",
     "rebind_approve": "Approve rebind",
     "daily_manager": "Daily manager report",
