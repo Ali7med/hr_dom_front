@@ -140,6 +140,96 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/shifts/open": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * ورديات الموظف الحالي المفتوحة الآن للبصم (دخول/خروج) مع حالة كل وردية
+         * @description يُرجِع الورديات المجدولة للموظف اليوم مع حالة كل واحدة لحظياً: can_check_in / can_check_out (حسب نوافذ early/grace/end)، الأوقات، وحدّ الغياب. التطبيق يستخدمها: وردية واحدة → بصم مباشر؛ أكثر من وردية مفتوحة → اختيار.
+         */
+        get: operations["getMyOpenShifts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/absences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** سجلّ الغيابات لـ HR (فلاتر + ترقيم) — يتطلّب absences.view */
+        get: operations["listAbsences"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/absences/{absence}/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** تأشير معالجة على غياب (يتطلّب absences.resolve) — بلا أثر مالي */
+        post: operations["resolveAbsence"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/absence-resolution-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** أنواع معالجة الغياب (قابلة للتخصيص) — يتطلّب absences.view */
+        get: operations["listAbsenceResolutionTypes"];
+        put?: never;
+        /** إنشاء نوع معالجة غياب — يتطلّب absences.manage */
+        post: operations["createAbsenceResolutionType"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/absence-resolution-types/{type}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** تعديل نوع معالجة غياب — يتطلّب absences.manage */
+        put: operations["updateAbsenceResolutionType"];
+        post?: never;
+        /** حذف نوع معالجة غياب — يتطلّب absences.manage */
+        delete: operations["deleteAbsenceResolutionType"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/companies": {
         parameters: {
             query?: never;
@@ -1720,6 +1810,8 @@ export interface components {
              * @default false
              */
             is_mock: boolean;
+            /** @description معرّف الوردية المختارة عند تعدد الورديات المفتوحة الآن للموظف. يُهمَل/يُستنتَج إن كانت وردية واحدة. */
+            shift_id?: number | null;
         };
         AttendanceRecord: {
             id?: string;
@@ -1862,10 +1954,17 @@ export interface components {
              */
             hours: number;
             /**
-             * @description دقائق السماح قبل احتساب التأخير
+             * @description دقائق السماح بعد البدء قبل احتساب التأخير (ضمنها = حاضر في الوقت).
              * @default 0
              */
             grace_minutes: number;
+            /**
+             * @description السماح بالبصم قبل بدء الوردية بهذا العدد من الدقائق (0 = من البدء تماماً).
+             * @default 0
+             */
+            early_checkin_minutes: number;
+            /** @description بعد هذا العدد من الدقائق من بدء الوردية يُعلَّم تسجيل الحضور «غياباً» (تُقبل البصمة لكن تظهر لـ HR للمعالجة). null = لا حدّ غياب لهذه الوردية. */
+            absence_after_minutes?: number | null;
             /** @description هل تمتدّ الوردية بعد منتصف الليل (يُضبط تلقائياً عند end_time ≤ start_time) */
             crosses_midnight?: boolean;
         };
@@ -2070,6 +2169,18 @@ export interface components {
             data?: {
                 [key: string]: unknown;
             } | null;
+        };
+        AbsenceResolutionTypeInput: {
+            /** @description اسم نوع المعالجة (مثل إجازة/إيفاد/تعذّر بصمة…). قابل للتخصيص. */
+            name: string;
+            /** @default true */
+            is_active: boolean;
+        };
+        AbsenceResolveInput: {
+            /** @description معرّف نوع المعالجة المختار (من /absence-resolution-types). */
+            resolution_type_id: number;
+            /** @description ملاحظة اختيارية للأرشيف. */
+            note?: string | null;
         };
     };
     responses: {
@@ -2305,6 +2416,121 @@ export interface operations {
             201: components["responses"]["EnvelopeOk"];
             403: components["responses"]["ErrorResponse"];
             422: components["responses"]["ErrorResponse"];
+        };
+    };
+    getMyOpenShifts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+        };
+    };
+    listAbsences: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+                department_id?: number;
+                user_id?: number;
+                status?: "unresolved" | "resolved";
+                per_page?: number;
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+        };
+    };
+    resolveAbsence: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                absence: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AbsenceResolveInput"];
+            };
+        };
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            404: components["responses"]["ErrorResponse"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    listAbsenceResolutionTypes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+        };
+    };
+    createAbsenceResolutionType: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AbsenceResolutionTypeInput"];
+            };
+        };
+        responses: {
+            201: components["responses"]["EnvelopeOk"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    updateAbsenceResolutionType: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                type: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AbsenceResolutionTypeInput"];
+            };
+        };
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            404: components["responses"]["ErrorResponse"];
+        };
+    };
+    deleteAbsenceResolutionType: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                type: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            404: components["responses"]["ErrorResponse"];
         };
     };
     listCompanies: {

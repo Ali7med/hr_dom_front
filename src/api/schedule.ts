@@ -8,7 +8,10 @@ export interface Shift {
   start_time: string
   end_time: string
   hours: number
-  grace_minutes: number
+  // نوافذ بصمة الوردية (BE-15):
+  grace_minutes: number // دقائق السماح بعد البدء (ضمنها = حاضر في الوقت).
+  early_checkin_minutes: number // السماح بالبصم قبل البدء بهذا العدد (0 = من البدء).
+  absence_after_minutes: number | null // بعدها من البدء يُعلَّم غياباً (null = لا حدّ).
   crosses_midnight: boolean
 }
 
@@ -18,6 +21,8 @@ export interface ShiftPayload {
   end_time: string
   hours: number
   grace_minutes?: number
+  early_checkin_minutes?: number
+  absence_after_minutes?: number | null
 }
 
 // ===== الجداول =====

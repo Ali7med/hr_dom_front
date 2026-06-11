@@ -58,6 +58,8 @@ const shiftName = (id: number) => shifts.value.find((s) => s.id === id)?.name ??
 const hhmm = (time: string) => time.slice(0, 5)
 // الباك قد يُرجع التاريخ بصيغة ISO كاملة؛ نعرض/نحرّر جزء YYYY-MM-DD فقط.
 const ymd = (date: string) => date.slice(0, 10)
+// لاحقة وحدة الدقائق على حقول النوافذ (متوافقة مع اللغة).
+const minSuffix = computed(() => ' ' + t('schedule.minutesUnit'))
 
 async function loadAll(): Promise<void> {
   try {
@@ -85,6 +87,8 @@ const shiftForm = reactive({
   end_time: '16:00',
   hours: 8,
   grace_minutes: 0,
+  early_checkin_minutes: 0,
+  absence_after_minutes: null as number | null, // فارغ = لا حدّ غياب
 })
 function openShift(s?: Shift): void {
   shiftForm.open = true
@@ -94,6 +98,8 @@ function openShift(s?: Shift): void {
   shiftForm.end_time = s ? hhmm(s.end_time) : '16:00'
   shiftForm.hours = s?.hours ?? 8
   shiftForm.grace_minutes = s?.grace_minutes ?? 0
+  shiftForm.early_checkin_minutes = s?.early_checkin_minutes ?? 0
+  shiftForm.absence_after_minutes = s?.absence_after_minutes ?? null
 }
 async function submitShift(): Promise<void> {
   saving.value = true
@@ -104,6 +110,9 @@ async function submitShift(): Promise<void> {
       end_time: shiftForm.end_time,
       hours: shiftForm.hours,
       grace_minutes: shiftForm.grace_minutes,
+      early_checkin_minutes: shiftForm.early_checkin_minutes,
+      // فارغ = لا حدّ غياب لهذه الوردية (null يُرسل صراحةً).
+      absence_after_minutes: shiftForm.absence_after_minutes,
     }
     if (shiftForm.id === null) await shiftsApi.create(payload)
     else await shiftsApi.update(shiftForm.id, payload)
@@ -473,9 +482,33 @@ onMounted(loadAll)
           <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('schedule.endTime') }}</span>
           <input v-model="shiftForm.end_time" type="time" required class="p-component w-full rounded-md border border-surface-300 bg-white px-3 py-2 text-sm text-surface-900 outline-none focus:border-primary-500 dark:border-surface-700 dark:bg-surface-950 dark:text-surface-0" />
         </label>
+        <!-- ===== نوافذ البصمة (BE-15) ===== -->
+        <div class="sm:col-span-2">
+          <p class="mb-1 text-sm font-semibold text-surface-800 dark:text-surface-200">{{ t('schedule.windowsTitle') }}</p>
+          <p class="text-xs leading-relaxed text-surface-500">{{ t('schedule.windowsHelp') }}</p>
+        </div>
+        <label class="block text-sm">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('schedule.earlyCheckinMinutes') }}</span>
+          <InputNumber v-model="shiftForm.early_checkin_minutes" :min="0" :max="240" :suffix="minSuffix" fluid />
+          <span class="mt-1 block text-xs text-surface-500">{{ t('schedule.earlyCheckinHelp') }}</span>
+        </label>
         <label class="block text-sm">
           <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('schedule.graceMinutes') }}</span>
-          <InputNumber v-model="shiftForm.grace_minutes" :min="0" :max="240" fluid />
+          <InputNumber v-model="shiftForm.grace_minutes" :min="0" :max="240" :suffix="minSuffix" fluid />
+          <span class="mt-1 block text-xs text-surface-500">{{ t('schedule.graceHelp') }}</span>
+        </label>
+        <label class="block text-sm sm:col-span-2">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('schedule.absenceAfterMinutes') }}</span>
+          <InputNumber
+            v-model="shiftForm.absence_after_minutes"
+            :min="0"
+            :max="1440"
+            :suffix="minSuffix"
+            :placeholder="t('schedule.noAbsenceLimit')"
+            show-clear
+            fluid
+          />
+          <span class="mt-1 block text-xs text-surface-500">{{ t('schedule.absenceAfterHelp') }}</span>
         </label>
 
         <div class="mt-2 flex justify-end gap-2 sm:col-span-2">
