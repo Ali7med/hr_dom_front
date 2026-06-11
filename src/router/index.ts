@@ -50,6 +50,12 @@ const router = createRouter({
           meta: { permission: 'alerts.view' },
         },
         {
+          path: 'absences',
+          name: 'absences',
+          component: () => import('@/features/absences/AbsencesView.vue'),
+          meta: { permission: 'absences.view' },
+        },
+        {
           path: 'reports',
           name: 'reports',
           component: () => import('@/features/reports/ReportsView.vue'),
