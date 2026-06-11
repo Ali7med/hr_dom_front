@@ -846,6 +846,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/reports/leave-balances": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** تقرير أرصدة إجازات الموظفين الحالية (فلاتر + تصدير) — يتطلّب reports.view */
+        get: operations["getLeaveBalancesReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reports/leaves": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** تقرير الإجازات (حسب الفترة/القسم/النوع/الحالة، قابل للتجميع والتصدير) — يتطلّب reports.view */
+        get: operations["getLeavesReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/reports/exports": {
         parameters: {
             query?: never;
@@ -1897,6 +1931,11 @@ export interface components {
              * @description الحد الأقصى لعدد ساعات الإجازة في اليوم (للنوع hourly). null = بلا حد.
              */
             max_hours_per_day?: number | null;
+            /**
+             * Format: double
+             * @description كم ساعة تُعادل «يوماً كاملاً» لهذا النوع الزمني (لاحتساب الرصيد/الخصم من الراتب). null = يُؤخذ من إعداد ساعات اليوم للشركة.
+             */
+            day_equivalent_hours?: number | null;
             /**
              * @description أول وقت مسموح لبدء الإجازة الزمنية (HH:mm، للنوع hourly).
              * @example 08:00
@@ -3270,6 +3309,51 @@ export interface operations {
             200: components["responses"]["EnvelopeOk"];
             403: components["responses"]["ErrorResponse"];
             422: components["responses"]["ErrorResponse"];
+        };
+    };
+    getLeaveBalancesReport: {
+        parameters: {
+            query?: {
+                /** @description بحث باسم/رقم الموظف */
+                q?: string;
+                department_id?: number;
+                balance_type?: "normal" | "sick";
+                per_page?: number;
+                page?: number;
+                export?: "excel" | "pdf";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+        };
+    };
+    getLeavesReport: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+                department_id?: number;
+                leave_type_id?: number;
+                status?: "pending" | "approved" | "rejected";
+                /** @description تجميع النتائج (مثال: إجازات اليوم حسب القسم = from=to=today و group_by=department) */
+                group_by?: "department" | "type" | "status";
+                per_page?: number;
+                page?: number;
+                export?: "excel" | "pdf";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
         };
     };
     listReportExports: {

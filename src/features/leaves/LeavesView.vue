@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useConfirm } from 'primevue/useconfirm'
 import { useToast } from 'primevue/usetoast'
@@ -18,6 +18,7 @@ import Select from 'primevue/select'
 import DatePicker from 'primevue/datepicker'
 import Checkbox from 'primevue/checkbox'
 import Tag from 'primevue/tag'
+import Message from 'primevue/message'
 import { ApiException } from '@/api/client'
 import {
   leaveTypesApi,
@@ -27,6 +28,7 @@ import {
   type LeaveRequest,
   type LeaveBalance,
   type LeaveStatus,
+  type LeaveRequestPayload,
 } from '@/api/leaves'
 import { usersApi, type User } from '@/api/users'
 import { useAuthStore } from '@/stores/auth'
@@ -125,7 +127,96 @@ async function decide(r: LeaveRequest, approve: boolean): Promise<void> {
   })
 }
 
-const reqForm = reactive({ open: false, user_id: 0, leave_type_id: 0, start_at: '', end_at: '' })
+const reqForm = reactive({ open: false, user_id: 0, leave_type_id: 0, start_at: '', end_at: '', start_time: '', end_time: '' })
+
+// ===== الواجهة الشرطية حسب نوع الإجازة (FE-18) =====
+const selectedReqType = computed(() => types.value.find((x) => x.id === reqForm.leave_type_id) ?? null)
+const isHourlyReq = computed(() => selectedReqType.value?.kind === 'hourly')
+
+function toHHmm(s: string | null | undefined): string | null {
+  return s ? s.slice(0, 5) : null
+}
+function hmToMin(s: string): number {
+  const [h, m] = s.split(':').map(Number)
+  return h * 60 + m
+}
+function minToHm(m: number): string {
+  return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`
+}
+function buildSlots(fromMin: number, toMin: number): string[] {
+  const out: string[] = []
+  for (let m = fromMin; m <= toMin; m += 30) out.push(minToHm(m))
+  return out
+}
+
+// حدود النوع الزمني: نافذة الوقت المسموحة (افتراضي اليوم كامل) + أقصى ساعات/أيام.
+const windowFromMin = computed(() => hmToMin(toHHmm(selectedReqType.value?.allowed_from) ?? '00:00'))
+const windowToMin = computed(() => hmToMin(toHHmm(selectedReqType.value?.allowed_to) ?? '23:30'))
+const maxHours = computed(() => {
+  const v = selectedReqType.value?.max_hours_per_day
+  return v == null ? null : Number(v)
+})
+const maxDays = computed(() => selectedReqType.value?.max_days_per_request ?? null)
+
+// قوائم الوقت كل 30 دقيقة: البداية ضمن النافذة، والنهاية بعد البداية وضمن النافذة و≤ أقصى ساعات.
+const startTimeOptions = computed(() => buildSlots(windowFromMin.value, windowToMin.value - 30))
+const endTimeOptions = computed(() => {
+  if (!reqForm.start_time) return []
+  const startMin = hmToMin(reqForm.start_time)
+  let cap = windowToMin.value
+  if (maxHours.value != null) cap = Math.min(cap, startMin + maxHours.value * 60)
+  return buildSlots(startMin + 30, cap)
+})
+
+const reqHours = computed(() =>
+  reqForm.start_time && reqForm.end_time ? (hmToMin(reqForm.end_time) - hmToMin(reqForm.start_time)) / 60 : 0,
+)
+const reqDays = computed(() => {
+  if (!reqForm.start_at || !reqForm.end_at) return 0
+  return Math.floor((new Date(reqForm.end_at).getTime() - new Date(reqForm.start_at).getTime()) / 86400000) + 1
+})
+
+// خطأ تجاوز حدّ النوع (يعطّل الإرسال).
+const reqLimitError = computed<string | null>(() => {
+  if (!selectedReqType.value) return null
+  if (isHourlyReq.value) {
+    if (reqForm.start_time && reqForm.end_time && hmToMin(reqForm.end_time) <= hmToMin(reqForm.start_time))
+      return t('leaves.endTimeAfterStart')
+    if (maxHours.value != null && reqHours.value > maxHours.value) return t('leaves.maxHoursError', { n: maxHours.value })
+  } else {
+    if (reqForm.start_at && reqForm.end_at && reqForm.end_at < reqForm.start_at) return t('leaves.endAfterStart')
+    if (maxDays.value != null && reqDays.value > maxDays.value) return t('leaves.maxDaysError', { n: maxDays.value })
+  }
+  return null
+})
+
+// نصّ حدود النوع للعرض.
+const reqLimitHint = computed(() => {
+  const ty = selectedReqType.value
+  if (!ty) return ''
+  if (isHourlyReq.value) {
+    const parts: string[] = []
+    if (ty.allowed_from && ty.allowed_to) parts.push(`${toHHmm(ty.allowed_from)}–${toHHmm(ty.allowed_to)}`)
+    if (maxHours.value != null) parts.push(t('leaves.maxHoursHint', { n: maxHours.value }))
+    return parts.join(' · ')
+  }
+  return maxDays.value != null ? t('leaves.maxDaysHint', { n: maxDays.value }) : ''
+})
+
+// عند تبديل النوع: صفّر الأوقات/التواريخ. وعند تبديل وقت البداية: ألغِ نهاية صارت خارج الخيارات.
+watch(
+  () => reqForm.leave_type_id,
+  () => {
+    reqForm.start_time = ''
+    reqForm.end_time = ''
+  },
+)
+watch(
+  () => reqForm.start_time,
+  () => {
+    if (reqForm.end_time && !endTimeOptions.value.includes(reqForm.end_time)) reqForm.end_time = ''
+  },
+)
 const reqStartDate = computed({
   get: () => (reqForm.start_at ? new Date(reqForm.start_at) : null),
   set: (d: Date | null) => {
@@ -150,17 +241,29 @@ function openRequest(): void {
   reqForm.leave_type_id = types.value[0]?.id ?? 0
   reqForm.start_at = ''
   reqForm.end_at = ''
+  reqForm.start_time = ''
+  reqForm.end_time = ''
 }
 async function submitRequest(): Promise<void> {
+  if (reqLimitError.value) {
+    toast.add({ severity: 'warn', summary: reqLimitError.value, life: 3000 })
+    return
+  }
   saving.value = true
   try {
-    await leavesApi.create({
+    const payload: LeaveRequestPayload = {
       user_id: reqForm.user_id,
       leave_type_id: reqForm.leave_type_id,
       start_at: reqForm.start_at,
-      end_at: reqForm.end_at,
+      // الزمنية: نفس اليوم (start_at)؛ غيرها: «من»/«إلى».
+      end_at: isHourlyReq.value ? reqForm.start_at : reqForm.end_at,
       source: 'panel',
-    })
+    }
+    if (isHourlyReq.value) {
+      payload.start_time = reqForm.start_time
+      payload.end_time = reqForm.end_time
+    }
+    await leavesApi.create(payload)
     reqForm.open = false
     toast.add({ severity: 'success', summary: t('common.saved'), life: 2500 })
     await loadRequests()
@@ -605,18 +708,62 @@ onMounted(async () => {
           <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('leaves.type') }}</span>
           <Select v-model="reqForm.leave_type_id" :options="types" option-label="name" option-value="id" required fluid />
         </label>
-        <label class="block text-sm">
-          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('leaves.startAt') }}</span>
-          <DatePicker v-model="reqStartDate" date-format="yy-mm-dd" show-icon fluid />
-        </label>
-        <label class="block text-sm">
-          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('leaves.endAt') }}</span>
-          <DatePicker v-model="reqEndDate" date-format="yy-mm-dd" show-icon fluid />
-        </label>
+        <!-- حدود النوع المختار -->
+        <p v-if="reqLimitHint" class="-mt-1 flex items-center gap-1.5 text-xs text-surface-500 sm:col-span-2">
+          <i class="pi pi-info-circle" />{{ t('leaves.limitsLabel') }}: {{ reqLimitHint }}
+        </p>
+
+        <!-- زمنية: يوم واحد + قائمتا وقت كل 30 دقيقة -->
+        <template v-if="isHourlyReq">
+          <label class="block text-sm sm:col-span-2">
+            <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('leaves.date') }}</span>
+            <DatePicker v-model="reqStartDate" date-format="yy-mm-dd" show-icon fluid />
+          </label>
+          <label class="block text-sm">
+            <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('leaves.fromTime') }}</span>
+            <Select v-model="reqForm.start_time" :options="startTimeOptions" :placeholder="t('leaves.pickTime')" fluid />
+          </label>
+          <label class="block text-sm">
+            <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('leaves.toTime') }}</span>
+            <Select
+              v-model="reqForm.end_time"
+              :options="endTimeOptions"
+              :placeholder="t('leaves.pickTime')"
+              :disabled="!reqForm.start_time"
+              fluid
+            />
+          </label>
+          <p v-if="reqHours > 0" class="text-xs text-surface-500 sm:col-span-2">
+            {{ t('leaves.computedHours', { n: reqHours }) }}
+          </p>
+        </template>
+
+        <!-- يومية/مرضية/طويلة: من/إلى بالتاريخ -->
+        <template v-else>
+          <label class="block text-sm">
+            <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('leaves.startAt') }}</span>
+            <DatePicker v-model="reqStartDate" date-format="yy-mm-dd" show-icon fluid />
+          </label>
+          <label class="block text-sm">
+            <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('leaves.endAt') }}</span>
+            <DatePicker v-model="reqEndDate" date-format="yy-mm-dd" :min-date="reqStartDate ?? undefined" show-icon fluid />
+          </label>
+          <p v-if="reqDays > 0" class="text-xs text-surface-500 sm:col-span-2">
+            {{ t('leaves.computedDays', { n: reqDays }) }}
+          </p>
+        </template>
+
+        <Message v-if="reqLimitError" severity="warn" :closable="false" class="sm:col-span-2">{{ reqLimitError }}</Message>
 
         <div class="mt-2 flex justify-end gap-2 sm:col-span-2">
           <Button type="button" :label="t('common.cancel')" severity="secondary" text @click="reqForm.open = false" />
-          <Button type="submit" :label="saving ? t('common.saving') : t('common.save')" icon="pi pi-check" :loading="saving" />
+          <Button
+            type="submit"
+            :label="saving ? t('common.saving') : t('common.save')"
+            icon="pi pi-check"
+            :loading="saving"
+            :disabled="!!reqLimitError"
+          />
         </div>
       </form>
     </Dialog>

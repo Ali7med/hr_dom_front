@@ -63,6 +63,9 @@ export interface LeaveRequestPayload {
   start_at: string
   end_at: string
   hours?: number
+  // للإجازة الزمنية (hourly): يُحسَب الباك الساعات منهما ويتحقّق من النطاق/الحد (BE-23).
+  start_time?: string
+  end_time?: string
   user_id?: number
   source?: 'app' | 'panel'
 }
