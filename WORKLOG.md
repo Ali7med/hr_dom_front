@@ -17,6 +17,12 @@
 
 ---
 
+## [2026-06-11] FE-17 — صفحة تقارير الإجازات (review)
+- ما أُنجز: صفحة `/leave-reports` (PrimeVue، نمط FE-09) تستهلك BE-25 بثلاثة أوضاع عبر `SelectButton`: **أرصدة الموظفين** (`/reports/leave-balances` + فلاتر بحث `q`/قسم/نوع الرصيد)، **إجازات اليوم حسب القسم** (`/reports/leaves` بـ `from=to=today`+`group_by=department`)، و**تقرير الإجازات العام** (`/reports/leaves` بفلاتر من/إلى/قسم/نوع/حالة/تجميع). جدول ديناميكي (الأعمدة من `meta.report.headings` مع تسميات معرّبة + fallback)، الحالة كـ `Tag` ملوّن، وتصدير **Excel/PDF** لكل وضع. مسار `reports.view` + عنصر تنقّل.
+- الملفات الرئيسية: `src/api/leaveReports.ts` (جديد)، `src/features/leaves/LeaveReportsView.vue` (جديد)، `src/router/index.ts`، `src/layouts/AppLayout.vue`، `src/locales/{ar,en}.json` (قسم `leaveReports` + `nav.leaveReports`). الفرع `feature/FE-17`.
+- قرارات/ملاحظات: أُعيد استخدام `saveBlob`/`ReportRow`/`ReportResult` من `reports.ts` ونمط الجدول الديناميكي. الفلاتر تُبنى حسب الوضع (`buildParams`). «اليوم حسب القسم» = اختصار للعام بـ today+group_by. لا تغيير على العقد (مستهلِك).
+- الاختبارات: `type-check`+`build` خضراء، صفر أخطاء console. **تحقّق حيّ كامل (:8000, BE-25 منشور)**: الأرصدة (2 صفّ، أعمدة معرّبة) + بحث `q=Acme`→1/`q=zzz`→0؛ اليوم حسب القسم (group/count/total_days/total_hours)؛ العام (id/employee/type/start/end/days/hours/status كـTag)؛ تصدير Excel (200، spreadsheet) وPDF (200، application/pdf).
+
 ## [2026-06-11] FE-18 — واجهة تقديم الإجازة الشرطية حسب النوع (review)
 - ما أُنجز: تعديل نموذج «طلب بالنيابة» في `LeavesView` (فوق FE-08، عقد BE-23): عند اختيار النوع تظهر حقول حسب `kind`: **يومية/مرضية/طويلة** → منتقيا تاريخ «من»/«إلى» (DatePicker، `min-date` للنهاية = البداية) + حساب الأيام + منع تجاوز `max_days_per_request` (رسالة + تعطيل الإرسال). **زمنية (hourly)** → منتقي تاريخ اليوم + **قائمتا وقت كل 30 دقيقة** مبنيّتان من `[allowed_from, allowed_to]`؛ خيارات «إلى» بعد «من» و**مقصوصة عند `start+max_hours_per_day`** (تمنع التجاوز من الواجهة) + حساب الساعات + يُرسَل `start_time`/`end_time`. عرض حدود النوع كنصّ، وأخطاء الباك (422) عبر `useToast`.
 - الملفات الرئيسية: `src/features/leaves/LeavesView.vue`، `src/api/leaves.ts` (`start_time`/`end_time` في `LeaveRequestPayload`)، `src/locales/{ar,en}.json` (مفاتيح FE-18)، `src/api/schema.ts` (مُعاد توليده). الفرع `feature/FE-18` (فوق main).

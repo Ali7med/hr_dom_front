@@ -33,6 +33,7 @@ const allNavItems: NavItem[] = [
   { to: { name: 'schedule' }, name: 'schedule', key: 'nav.schedule', icon: 'pi pi-calendar', permission: ['shifts.view', 'schedules.view', 'holidays.view'] },
   { to: { name: 'device-requests' }, name: 'device-requests', key: 'nav.deviceRequests', icon: 'pi pi-mobile', permission: 'devices.rebind_approve' },
   { to: { name: 'leaves' }, name: 'leaves', key: 'nav.leaves', icon: 'pi pi-sun', permission: 'leaves.view' },
+  { to: { name: 'leave-reports' }, name: 'leave-reports', key: 'nav.leaveReports', icon: 'pi pi-calendar-clock', permission: 'reports.view' },
   { to: { name: 'alerts' }, name: 'alerts', key: 'nav.alerts', icon: 'pi pi-bell', permission: 'alerts.view' },
   { to: { name: 'reports' }, name: 'reports', key: 'nav.reports', icon: 'pi pi-chart-bar', permission: 'reports.view' },
   { to: { name: 'payroll' }, name: 'payroll', key: 'nav.payroll', icon: 'pi pi-wallet', permission: 'payroll.view' },

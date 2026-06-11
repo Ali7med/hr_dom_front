@@ -78,6 +78,12 @@ const router = createRouter({
           meta: { permission: 'leaves.view' },
         },
         {
+          path: 'leave-reports',
+          name: 'leave-reports',
+          component: () => import('@/features/leaves/LeaveReportsView.vue'),
+          meta: { permission: 'reports.view' },
+        },
+        {
           path: 'alerts',
           name: 'alerts',
           component: () => import('@/features/alerts/AlertsView.vue'),
