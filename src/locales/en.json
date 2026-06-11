@@ -64,7 +64,14 @@
     "alerts": "Alerts",
     "reports": "Reports",
     "payroll": "Payroll",
-    "payrollConfig": "Payroll rules"
+    "payrollConfig": "Payroll rules",
+    "settings": "Settings"
+  },
+  "navSection": {
+    "general": "General",
+    "operations": "Operations",
+    "reports": "Reports",
+    "admin": "Administration"
   },
   "alerts": {
     "title": "Alerts",

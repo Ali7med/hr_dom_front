@@ -64,7 +64,14 @@
     "alerts": "التنبيهات",
     "reports": "التقارير",
     "payroll": "الرواتب",
-    "payrollConfig": "قواعد الرواتب"
+    "payrollConfig": "قواعد الرواتب",
+    "settings": "الإعدادات"
+  },
+  "navSection": {
+    "general": "عام",
+    "operations": "العمليات",
+    "reports": "التقارير",
+    "admin": "الإدارة"
   },
   "alerts": {
     "title": "التنبيهات",

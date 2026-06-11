@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { settingsTabs, allSettingsPermissions } from '@/features/settings/settingsTabs'
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -29,48 +30,7 @@ const router = createRouter({
           name: 'dashboard',
           component: () => import('@/features/home/HomeView.vue'),
         },
-        {
-          path: 'companies',
-          name: 'companies',
-          component: () => import('@/features/companies/CompaniesListView.vue'),
-          meta: { permission: 'companies.view' },
-        },
-        {
-          path: 'companies/:id/settings',
-          name: 'company-settings',
-          component: () => import('@/features/companies/CompanySettingsView.vue'),
-          meta: { permission: 'companies.view' },
-        },
-        {
-          path: 'users',
-          name: 'users',
-          component: () => import('@/features/users/UsersView.vue'),
-          meta: { permission: 'users.view' },
-        },
-        {
-          path: 'roles',
-          name: 'roles',
-          component: () => import('@/features/roles/RolesView.vue'),
-          meta: { permission: 'roles.view' },
-        },
-        {
-          path: 'work-sites',
-          name: 'work-sites',
-          component: () => import('@/features/worksites/WorkSitesView.vue'),
-          meta: { permission: 'work_sites.view' },
-        },
-        {
-          path: 'schedule',
-          name: 'schedule',
-          component: () => import('@/features/schedule/ScheduleView.vue'),
-          meta: { permission: ['shifts.view', 'schedules.view', 'holidays.view'] },
-        },
-        {
-          path: 'device-requests',
-          name: 'device-requests',
-          component: () => import('@/features/devices/DeviceRebindView.vue'),
-          meta: { permission: 'devices.rebind_approve' },
-        },
+        // ===== العمليات (تنقّل رئيسي) =====
         {
           path: 'leaves',
           name: 'leaves',
@@ -101,11 +61,73 @@ const router = createRouter({
           component: () => import('@/features/payroll/PayrollView.vue'),
           meta: { permission: 'payroll.view' },
         },
+        // ===== الإعدادات (الضبط الإداري — تبويبات داخل SettingsLayout) =====
         {
-          path: 'payroll-config',
-          name: 'payroll-config',
-          component: () => import('@/features/payroll-config/PayrollConfigView.vue'),
-          meta: { permission: ['currencies.view', 'salary_rules.view', 'penalty_rules.view', 'bonuses.view'] },
+          path: 'settings',
+          component: () => import('@/layouts/SettingsLayout.vue'),
+          meta: { permission: allSettingsPermissions },
+          children: [
+            {
+              path: '',
+              name: 'settings',
+              // إعادة توجيه لأول تبويب يملك المستخدم صلاحيته.
+              redirect: () => {
+                const auth = useAuthStore()
+                const first = settingsTabs.find((tab) =>
+                  auth.canAny(typeof tab.permission === 'string' ? [tab.permission] : tab.permission),
+                )
+                return { name: first?.name ?? 'forbidden' }
+              },
+            },
+            {
+              path: 'companies',
+              name: 'companies',
+              component: () => import('@/features/companies/CompaniesListView.vue'),
+              meta: { permission: 'companies.view' },
+            },
+            {
+              path: 'companies/:id',
+              name: 'company-settings',
+              component: () => import('@/features/companies/CompanySettingsView.vue'),
+              meta: { permission: 'companies.view' },
+            },
+            {
+              path: 'users',
+              name: 'users',
+              component: () => import('@/features/users/UsersView.vue'),
+              meta: { permission: 'users.view' },
+            },
+            {
+              path: 'roles',
+              name: 'roles',
+              component: () => import('@/features/roles/RolesView.vue'),
+              meta: { permission: 'roles.view' },
+            },
+            {
+              path: 'work-sites',
+              name: 'work-sites',
+              component: () => import('@/features/worksites/WorkSitesView.vue'),
+              meta: { permission: 'work_sites.view' },
+            },
+            {
+              path: 'schedule',
+              name: 'schedule',
+              component: () => import('@/features/schedule/ScheduleView.vue'),
+              meta: { permission: ['shifts.view', 'schedules.view', 'holidays.view'] },
+            },
+            {
+              path: 'devices',
+              name: 'device-requests',
+              component: () => import('@/features/devices/DeviceRebindView.vue'),
+              meta: { permission: 'devices.rebind_approve' },
+            },
+            {
+              path: 'payroll-config',
+              name: 'payroll-config',
+              component: () => import('@/features/payroll-config/PayrollConfigView.vue'),
+              meta: { permission: ['currencies.view', 'salary_rules.view', 'penalty_rules.view', 'bonuses.view'] },
+            },
+          ],
         },
         {
           path: '403',

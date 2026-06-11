@@ -17,6 +17,12 @@
 
 ---
 
+## [2026-06-11] FE-NAV — إعادة تصنيف القائمة + صفحة إعدادات بتبويبات (نمط Claude) (review)
+- ما أُنجز: القائمة الجانبية كبرت لـ13 عنصراً مسطّحاً؛ أُعيد تصنيفها إلى **7 عناصر في أقسام** (عام: لوحة التحكم · العمليات: الإجازات/الرواتب/التنبيهات · التقارير: الحضور/الإجازات · الإدارة: **الإعدادات**). ونُقِلت كل شاشات الضبط (الشركات/المستخدمون/الأدوار/مواقع العمل/الورديات/الأجهزة/قواعد الرواتب) إلى **صفحة إعدادات `/settings`** بنمط Claude: **شريط فئات جانبي** (عمودي على الشاشات الكبيرة، أفقي قابل للتمرير على الهاتف) + لوحة محتوى. المسارات نُقِلت تحت `/settings/*` مع **إبقاء أسماء المسارات** (كل التنقّل بالاسم فبقي سليماً)، و`/settings` يعيد التوجيه لأول تبويب يملك المستخدم صلاحيته. العناوين تُصفّى بالصلاحية (Super Admin يرى الكل).
+- الملفات الرئيسية: `src/features/settings/settingsTabs.ts` (جديد — مصدر واحد للتبويبات + `allSettingsPermissions`)، `src/layouts/SettingsLayout.vue` (جديد)، `src/router/index.ts` (إعادة هيكلة الأطفال تحت `/settings`)، `src/layouts/AppLayout.vue` (قائمة مصنّفة بأقسام + عنوان الصفحة)، `src/locales/{ar,en}.json` (`nav.settings` + `navSection.*`). الفرع `feature/nav-settings-redesign`.
+- قرارات/ملاحظات: لا تغيير على العقد ولا على أي شاشة ضبط (أُعيد استخدامها كما هي كأطفال للإعدادات). `company-settings` صار `/settings/companies/:id` (الاسم محفوظ → `router.push({name:'company-settings'})` يعمل). الأقسام الفارغة تُخفى؛ في الوضع المطويّ تُستبدل عناوين الأقسام بفواصل خفيفة.
+- الاختبارات: `type-check`+`build` خضراء، صفر أخطاء console. **تحقّق حيّ (:8000)**: الشريط الجديد 7 عناصر بأقسام (العمليات/التقارير/الإدارة)؛ `/settings`→ توجيه لـ`/settings/companies`؛ الشريط الجانبي للإعدادات 7 تبويبات مع تفعيل صحيح؛ تبديل لـ«المستخدمون» يبدّل المحتوى؛ `/settings/companies/4` يعرض إعدادات الشركة مع بقاء الشريط.
+
 ## [2026-06-11] FE-17 — صفحة تقارير الإجازات (review)
 - ما أُنجز: صفحة `/leave-reports` (PrimeVue، نمط FE-09) تستهلك BE-25 بثلاثة أوضاع عبر `SelectButton`: **أرصدة الموظفين** (`/reports/leave-balances` + فلاتر بحث `q`/قسم/نوع الرصيد)، **إجازات اليوم حسب القسم** (`/reports/leaves` بـ `from=to=today`+`group_by=department`)، و**تقرير الإجازات العام** (`/reports/leaves` بفلاتر من/إلى/قسم/نوع/حالة/تجميع). جدول ديناميكي (الأعمدة من `meta.report.headings` مع تسميات معرّبة + fallback)، الحالة كـ `Tag` ملوّن، وتصدير **Excel/PDF** لكل وضع. مسار `reports.view` + عنصر تنقّل.
 - الملفات الرئيسية: `src/api/leaveReports.ts` (جديد)، `src/features/leaves/LeaveReportsView.vue` (جديد)، `src/router/index.ts`، `src/layouts/AppLayout.vue`، `src/locales/{ar,en}.json` (قسم `leaveReports` + `nav.leaveReports`). الفرع `feature/FE-17`.

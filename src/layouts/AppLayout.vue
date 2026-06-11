@@ -9,6 +9,7 @@ import ConfirmDialog from 'primevue/confirmdialog'
 import type { MenuItem } from 'primevue/menuitem'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
+import { settingsTabs, allSettingsPermissions } from '@/features/settings/settingsTabs'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -16,28 +17,23 @@ const route = useRoute()
 const auth = useAuthStore()
 const ui = useUiStore()
 
-// روابط التنقّل — أيقونات PrimeIcons + مفتاح i18n + صلاحية اختيارية.
+// روابط التنقّل — مصنّفة في أقسام؛ خيارات الضبط جُمِعت في «الإعدادات» (صفحة تبويبات).
 interface NavItem {
   to: RouteLocationRaw
   name: string
   key: string
   icon: string
+  section: string
   permission?: string | string[]
 }
 const allNavItems: NavItem[] = [
-  { to: { name: 'dashboard' }, name: 'dashboard', key: 'nav.dashboard', icon: 'pi pi-th-large' },
-  { to: { name: 'companies' }, name: 'companies', key: 'nav.companies', icon: 'pi pi-building', permission: 'companies.view' },
-  { to: { name: 'users' }, name: 'users', key: 'nav.users', icon: 'pi pi-users', permission: 'users.view' },
-  { to: { name: 'roles' }, name: 'roles', key: 'nav.roles', icon: 'pi pi-shield', permission: 'roles.view' },
-  { to: { name: 'work-sites' }, name: 'work-sites', key: 'nav.worksites', icon: 'pi pi-map-marker', permission: 'work_sites.view' },
-  { to: { name: 'schedule' }, name: 'schedule', key: 'nav.schedule', icon: 'pi pi-calendar', permission: ['shifts.view', 'schedules.view', 'holidays.view'] },
-  { to: { name: 'device-requests' }, name: 'device-requests', key: 'nav.deviceRequests', icon: 'pi pi-mobile', permission: 'devices.rebind_approve' },
-  { to: { name: 'leaves' }, name: 'leaves', key: 'nav.leaves', icon: 'pi pi-sun', permission: 'leaves.view' },
-  { to: { name: 'leave-reports' }, name: 'leave-reports', key: 'nav.leaveReports', icon: 'pi pi-calendar-clock', permission: 'reports.view' },
-  { to: { name: 'alerts' }, name: 'alerts', key: 'nav.alerts', icon: 'pi pi-bell', permission: 'alerts.view' },
-  { to: { name: 'reports' }, name: 'reports', key: 'nav.reports', icon: 'pi pi-chart-bar', permission: 'reports.view' },
-  { to: { name: 'payroll' }, name: 'payroll', key: 'nav.payroll', icon: 'pi pi-wallet', permission: 'payroll.view' },
-  { to: { name: 'payroll-config' }, name: 'payroll-config', key: 'nav.payrollConfig', icon: 'pi pi-sliders-h', permission: ['currencies.view', 'salary_rules.view', 'penalty_rules.view', 'bonuses.view'] },
+  { to: { name: 'dashboard' }, name: 'dashboard', key: 'nav.dashboard', icon: 'pi pi-th-large', section: 'general' },
+  { to: { name: 'leaves' }, name: 'leaves', key: 'nav.leaves', icon: 'pi pi-sun', permission: 'leaves.view', section: 'operations' },
+  { to: { name: 'payroll' }, name: 'payroll', key: 'nav.payroll', icon: 'pi pi-wallet', permission: 'payroll.view', section: 'operations' },
+  { to: { name: 'alerts' }, name: 'alerts', key: 'nav.alerts', icon: 'pi pi-bell', permission: 'alerts.view', section: 'operations' },
+  { to: { name: 'reports' }, name: 'reports', key: 'nav.reports', icon: 'pi pi-chart-bar', permission: 'reports.view', section: 'reports' },
+  { to: { name: 'leave-reports' }, name: 'leave-reports', key: 'nav.leaveReports', icon: 'pi pi-calendar-clock', permission: 'reports.view', section: 'reports' },
+  { to: { name: 'settings' }, name: 'settings', key: 'nav.settings', icon: 'pi pi-cog', permission: allSettingsPermissions, section: 'admin' },
 ]
 // تُعرض العناصر التي يملك المستخدم صلاحيتها فقط (Super Admin يرى الكل).
 const navItems = computed(() =>
@@ -45,12 +41,29 @@ const navItems = computed(() =>
     (item) => !item.permission || auth.canAny(typeof item.permission === 'string' ? [item.permission] : item.permission),
   ),
 )
+// تجميع الروابط في أقسام مرتّبة (تُخفى الأقسام الفارغة).
+const sectionOrder: { key: string; label: string }[] = [
+  { key: 'general', label: 'navSection.general' },
+  { key: 'operations', label: 'navSection.operations' },
+  { key: 'reports', label: 'navSection.reports' },
+  { key: 'admin', label: 'navSection.admin' },
+]
+const navSections = computed(() =>
+  sectionOrder
+    .map((s) => ({ ...s, items: navItems.value.filter((i) => i.section === s.key) }))
+    .filter((s) => s.items.length > 0),
+)
 
 // عنوان الصفحة الحالي (للترويسة) من اسم المسار.
 const pageTitle = computed(() => {
   const match = allNavItems.find((i) => i.name === route.name)
   if (match) return t(match.key)
-  if (route.name === 'company-settings') return t('nav.companies')
+  // أي مسار ضمن الإعدادات → «الإعدادات».
+  const inSettings =
+    route.name === 'settings' ||
+    route.name === 'company-settings' ||
+    settingsTabs.some((tab) => tab.name === route.name)
+  if (inSettings) return t('nav.settings')
   if (route.name === 'forbidden') return t('forbidden.title')
   return t('app.title')
 })
@@ -132,21 +145,31 @@ async function onLogout(): Promise<void> {
         <span v-if="showLabels" class="truncate text-base font-bold tracking-tight">{{ t('app.title') }}</span>
       </div>
 
-      <!-- روابط التنقّل -->
-      <nav class="flex-1 space-y-1 overflow-y-auto overflow-x-hidden p-2">
-        <RouterLink
-          v-for="item in navItems"
-          :key="item.key"
-          :to="item.to"
-          v-tooltip="{ value: t(item.key), disabled: showLabels, showDelay: 120 }"
-          class="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-surface-600 transition hover:bg-surface-100 hover:text-surface-900 dark:text-surface-300 dark:hover:bg-surface-800 dark:hover:text-white"
-          active-class="!bg-primary-50 !text-primary-700 dark:!bg-primary-500/15 dark:!text-primary-300"
-          :class="showLabels ? 'justify-start' : 'justify-center'"
-          @click="closeMobile"
-        >
-          <i :class="item.icon" class="shrink-0 text-lg" />
-          <span v-if="showLabels" class="truncate">{{ t(item.key) }}</span>
-        </RouterLink>
+      <!-- روابط التنقّل (مصنّفة في أقسام) -->
+      <nav class="flex-1 overflow-y-auto overflow-x-hidden p-2">
+        <div v-for="(sec, idx) in navSections" :key="sec.key" class="space-y-1">
+          <!-- عنوان القسم (موسّع) أو فاصل خفيف (مطويّ) -->
+          <p
+            v-if="showLabels && sec.key !== 'general'"
+            class="px-3 pb-1 pt-4 text-[0.7rem] font-semibold uppercase tracking-wider text-surface-400 dark:text-surface-500"
+          >
+            {{ t(sec.label) }}
+          </p>
+          <div v-else-if="!showLabels && idx > 0" class="mx-3 my-2 border-t border-surface-200 dark:border-surface-800" />
+          <RouterLink
+            v-for="item in sec.items"
+            :key="item.key"
+            :to="item.to"
+            v-tooltip="{ value: t(item.key), disabled: showLabels, showDelay: 120 }"
+            class="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-surface-600 transition hover:bg-surface-100 hover:text-surface-900 dark:text-surface-300 dark:hover:bg-surface-800 dark:hover:text-white"
+            active-class="!bg-primary-50 !text-primary-700 dark:!bg-primary-500/15 dark:!text-primary-300"
+            :class="showLabels ? 'justify-start' : 'justify-center'"
+            @click="closeMobile"
+          >
+            <i :class="item.icon" class="shrink-0 text-lg" />
+            <span v-if="showLabels" class="truncate">{{ t(item.key) }}</span>
+          </RouterLink>
+        </div>
       </nav>
 
       <!-- زر التثبيت (شاشات كبيرة فقط — لا معنى له داخل درور الهاتف) -->
