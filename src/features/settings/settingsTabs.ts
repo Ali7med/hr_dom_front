@@ -24,6 +24,7 @@ export const settingsTabs: SettingsTab[] = [
     icon: 'pi pi-sliders-h',
     permission: ['currencies.view', 'salary_rules.view', 'penalty_rules.view', 'bonuses.view'],
   },
+  { name: 'backups', key: 'nav.backups', icon: 'pi pi-database', permission: 'backups.manage' },
 ]
 
 // كل صلاحيات الضبط مجموعةً — للوصول لصفحة الإعدادات يكفي امتلاك أيٍّ منها.

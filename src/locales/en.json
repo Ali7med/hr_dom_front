@@ -66,6 +66,7 @@
     "reports": "Reports",
     "payroll": "Payroll",
     "payrollConfig": "Payroll rules",
+    "backups": "Backups",
     "settings": "Settings"
   },
   "navSection": {
@@ -142,6 +143,52 @@
     "addType": "Add type",
     "noTypes": "No resolution types yet.",
     "confirmDeleteType": "Delete resolution type \"{name}\"?"
+  },
+  "backups": {
+    "title": "Backups",
+    "subtitle": "Manage database backups: run now, history, scheduling, and notifications.",
+    "runNow": "Back up now",
+    "running": "Running…",
+    "startedTitle": "Backup started",
+    "startedBody": "It runs in the background; it will appear in the history once complete.",
+    "securityWarning": "A backup contains the entire system's sensitive data. Be careful sharing download links or files, and never store them somewhere untrusted.",
+    "historyTitle": "Backup history",
+    "empty": "No backups yet.",
+    "date": "Date",
+    "size": "Size",
+    "statusCol": "Status",
+    "download": "Download",
+    "downloadError": "Could not download the backup.",
+    "confirmDelete": "Delete the backup ({date})?",
+    "status": {
+      "success": "Success",
+      "failed": "Failed",
+      "running": "Running",
+      "pending": "Pending"
+    },
+    "scheduleTitle": "Automatic scheduling",
+    "scheduledEnabled": "Enable scheduling",
+    "frequency": "Frequency",
+    "freq": {
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly"
+    },
+    "runAt": "Run at",
+    "runAtHint": "Server time (HH:mm).",
+    "retention": "Backups to keep",
+    "retentionHint": "Oldest are deleted automatically beyond this. Empty = no limit.",
+    "retentionUnlimited": "No limit",
+    "notifyTitle": "Notifications",
+    "attach": "Attach the backup file to the message",
+    "attachHint": "If within the size limit the file is attached, otherwise a temporary download link is sent. When off = always a link.",
+    "telegram": "Telegram chat IDs",
+    "telegramPlaceholder": "Add a chat ID and press Enter",
+    "emails": "Email addresses",
+    "emailsPlaceholder": "Add an email and press Enter",
+    "chipsHint": "Type a value and press Enter or comma to add it.",
+    "invalidEmail": "Invalid email: {email}",
+    "saveSettings": "Save settings"
   },
   "home": {
     "welcome": "Welcome to the dashboard",

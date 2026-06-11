@@ -133,6 +133,12 @@ const router = createRouter({
               component: () => import('@/features/payroll-config/PayrollConfigView.vue'),
               meta: { permission: ['currencies.view', 'salary_rules.view', 'penalty_rules.view', 'bonuses.view'] },
             },
+            {
+              path: 'backups',
+              name: 'backups',
+              component: () => import('@/features/backups/BackupsView.vue'),
+              meta: { permission: 'backups.manage' },
+            },
           ],
         },
         {

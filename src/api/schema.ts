@@ -1357,6 +1357,76 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/backups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** سجلّ النسخ الاحتياطية (الحجم/الحالة/التاريخ) — يتطلّب backups.manage (Super Admin) */
+        get: operations["listBackups"];
+        put?: never;
+        /** تشغيل نسخة احتياطية آنية (غير متزامن عبر الطابور) — يتطلّب backups.manage */
+        post: operations["createBackup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backups/{backup}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** تنزيل ملف نسخة احتياطية (رابط موقّع مؤقّت + Super Admin فقط) */
+        get: operations["downloadBackup"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backups/{backup}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** حذف نسخة احتياطية — يتطلّب backups.manage */
+        delete: operations["deleteBackup"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/backups/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** إعدادات النسخ الاحتياطية (الجدولة + القنوات + المستلمون + الإرفاق) */
+        get: operations["getBackupSettings"];
+        /** تحديث إعدادات النسخ الاحتياطية (تشغيل/إيقاف الجدولة + القنوات) — يتطلّب backups.manage */
+        put: operations["updateBackupSettings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/version": {
         parameters: {
             query?: never;
@@ -2181,6 +2251,41 @@ export interface components {
             resolution_type_id: number;
             /** @description ملاحظة اختيارية للأرشيف. */
             note?: string | null;
+        };
+        BackupSettingsInput: {
+            /**
+             * @description تشغيل/إيقاف الجدولة التلقائية من اللوحة.
+             * @default false
+             */
+            scheduled_enabled: boolean;
+            /**
+             * @description تكرار النسخة المجدولة.
+             * @enum {string}
+             */
+            frequency?: "daily" | "weekly" | "monthly";
+            /**
+             * @description وقت تشغيل النسخة المجدولة (HH:mm، توقيت الخادم).
+             * @example 02:00
+             */
+            run_at?: string;
+            /** @description عدد النسخ المحتفَظ بها (تُحذف الأقدم). null = بلا حدّ. */
+            retention_count?: number | null;
+            /**
+             * @description هل يُرفَق ملف النسخة في رسالة الإشعار. عند true يُرفَق إن كان ضمن حدّ الحجم، وإلا يُرسَل رابط تنزيل موقّت. عند false = رابط دائماً.
+             * @default false
+             */
+            attach_to_message: boolean;
+            /**
+             * @description تشفير ملف النسخة بكلمة مرور (AES) قبل التخزين/الإرسال. يُنصح به بشدّة لأن النسخة تحوي كل البيانات.
+             * @default false
+             */
+            encryption_enabled: boolean;
+            /** @description كلمة مرور التشفير — تُرسَل في PUT فقط ولا تُعاد أبداً في GET. مطلوبة عند encryption_enabled=true. تُخزَّن مشفّرة على الخادم (لازمة للجدولة التلقائية). */
+            encryption_password?: string | null;
+            /** @description معرّفات محادثات تلكرام التي تُرسَل إليها إشعارات النسخة (لكل شركة). */
+            notify_telegram_chat_ids?: string[];
+            /** @description عناوين الإيميل التي تُرسَل إليها إشعارات النسخة (لكل شركة). */
+            notify_emails?: string[];
         };
     };
     responses: {
@@ -4183,6 +4288,104 @@ export interface operations {
         responses: {
             200: components["responses"]["EnvelopeOk"];
             403: components["responses"]["ErrorResponse"];
+        };
+    };
+    listBackups: {
+        parameters: {
+            query?: {
+                per_page?: number;
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+        };
+    };
+    createBackup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            202: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+        };
+    };
+    downloadBackup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                backup: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description ملف النسخة (تنزيل ثنائي) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["ErrorResponse"];
+            404: components["responses"]["ErrorResponse"];
+        };
+    };
+    deleteBackup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                backup: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+            404: components["responses"]["ErrorResponse"];
+        };
+    };
+    getBackupSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+        };
+    };
+    updateBackupSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BackupSettingsInput"];
+            };
+        };
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+            422: components["responses"]["ErrorResponse"];
         };
     };
     getVersion: {
