@@ -664,7 +664,11 @@
   "permPicker": {
     "selectAll": "تحديد الكل",
     "clearAll": "إلغاء التحديد",
-    "selected": "محدّد {n} من {total}"
+    "selected": "محدّد {n} من {total}",
+    "search": "ابحث عن صلاحية…",
+    "noResults": "لا توجد صلاحية تطابق «{q}».",
+    "expandAll": "فتح الكل",
+    "collapseAll": "طيّ الكل"
   },
   "companies": {
     "title": "الشركات",

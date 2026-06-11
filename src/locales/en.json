@@ -664,7 +664,11 @@
   "permPicker": {
     "selectAll": "Select all",
     "clearAll": "Clear all",
-    "selected": "{n} of {total} selected"
+    "selected": "{n} of {total} selected",
+    "search": "Search permissions…",
+    "noResults": "No permissions match \"{q}\".",
+    "expandAll": "Expand all",
+    "collapseAll": "Collapse all"
   },
   "companies": {
     "title": "Companies",
