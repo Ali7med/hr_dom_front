@@ -17,6 +17,17 @@
 
 ---
 
+## [2026-06-14] FE-26→FE-30 — تاسكات اللوحة للدفعة 2 (إضافي/تبديل ورديات/سلف/مستندات/تفويض) (review، Contract-First)
+- ما أُنجز: نُفِّذت الخمس تاسكات على سلسلة فروع خطّية فوق `main` (`feature/FE-26→FE-27→FE-28→FE-29→FE-30`، **غير مدموجة**). أُعيد توليد `src/api/schema.ts` من العقد أولاً (التقط مسارات/مخططات الدفعة 2). كلها PrimeVue 4 + `v-can` + تعريب ar/en، عملاء API بأنواع يدوية دفاعية:
+  - **FE-26** `feature/FE-26` (`0fcc9f8`): `src/api/overtime.ts` + `src/features/overtime/OvertimeView.vue` — صفحة `/overtime` (فلاتر from/to/قسم/حالة + اعتماد/رفض + تقديم بالنيابة `InputNumber` للساعات). عرض `overtime.view`، اعتماد `overtime.approve`.
+  - **FE-27** `feature/FE-27` (`342c0a0`): `src/api/shiftSwaps.ts` + `src/features/shiftSwaps/ShiftSwapsView.vue` — صفحة `/shift-swaps` (قائمة المشرف + فلتر حالة + اعتماد/رفض؛ وسم «تنازل» عند غياب وردية الزميل). `shifts.manage`. (الإنشاء جهة التطبيق MO-22).
+  - **FE-28** `feature/FE-28` (`0ae2568`): `src/api/loans.ts` + `src/features/loans/LoansView.vue` — صفحة `/loans` (فلاتر موظف/حالة + إنشاء [مبلغ/أقساط/شهر البدء + قسط مشتقّ] + حوار تفاصيل بجدول أقساط مخصوم/غير مخصوم + حذف إن لم يبدأ الخصم). `payroll.manage_rules`.
+  - **FE-29** `feature/FE-29` (`b0eaedf`): `src/api/documents.ts` + `src/features/documents/EmployeeDocumentsView.vue` — صفحة `/employee-documents` (اختيار موظف → قائمة + رفع multipart [نوع/عنوان/انتهاء/ملف] + تنزيل blob عبر `saveBlob` + حذف + **إبراز المنتهية ≤30 يوماً**). عرض `documents.view`، إدارة `documents.manage`.
+  - **FE-30** `feature/FE-30` (`19a060c`): `src/api/delegations.ts` + `src/features/delegations/DelegationsView.vue` — صفحة `/approval-delegations` (قائمة + إنشاء [البديل/النطاق/الفترة] + إلغاء + وسم نشط). canAny(`leaves.approve`/`excuses.approve`/`overtime.approve`).
+- الملفات الرئيسية: 5 عملاء API + 5 صفحات + `src/router/index.ts` (5 مسارات) + `src/layouts/AppLayout.vue` (5 عناصر تنقّل، قسم العمليات) + `src/locales/{ar,en}.json` (5 أقسام + مفاتيح nav) + `src/api/schema.ts` (مُعاد توليده). **لا تغيير على العقد**.
+- قرارات/ملاحظات: **Contract-First** (نمط FE-23/24/25). **التحقّق الحيّ محجوب:** الباك BE-29/66/67/68/69 todo (404) + صلاحيات `overtime.*`/`documents.*` غير مزروعة (تُخفي عنصرَي تنقّل overtime/documents حتى يزرعها الباك). بنى السجلات دفاعية. التفاصيل الموسّعة في `hr_dom_docs/WORKLOG.md`.
+- الاختبارات: `type-check` + `build` خضراء على قمة السلسلة (`feature/FE-30`)، صفر أخطاء، الخمس صفحات في chunks منفصلة. تحقّق حيّ مؤجَّل لما بعد نشر الباك.
+
 ## [2026-06-11] FE-22 — إعداد تذكيرات البصمة في إعدادات الشركة (review)
 - ما أُنجز: أُضيفت لصفحة إعدادات الشركة (`CompanySettingsView`) بطاقة **«تذكيرات البصمة»** (تعديل على FE-03، تُمكِّن BE-19): مفتاحا تفعيل (`ToggleSwitch`) لتذكير **الدخول** و**الخروج** + حقلا إزاحة (`InputNumber`، يُعطَّلان عند إيقاف التذكير) + نصوص مساعدة. تُقرأ/تُحفظ ضمن **جسم settings الحرّ** عبر `PUT /companies/{id}/settings` القائم (دمج مع بقية المفاتيح، **بلا تغيير على العقد**).
 - الملفات الرئيسية: `src/features/companies/CompanySettingsView.vue` (حالة `reminders` + قراءة من `settings` + دمج في حمولة الحفظ + البطاقة)، `src/locales/{ar,en}.json` (قسم `settings`)، و`src/api/schema.ts` (مُعاد توليده). الفرع `feature/FE-22`.
