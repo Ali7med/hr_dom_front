@@ -86,6 +86,12 @@ const router = createRouter({
           meta: { permission: 'payroll.manage_rules' },
         },
         {
+          path: 'employee-documents',
+          name: 'employee-documents',
+          component: () => import('@/features/documents/EmployeeDocumentsView.vue'),
+          meta: { permission: 'documents.view' },
+        },
+        {
           path: 'reports',
           name: 'reports',
           component: () => import('@/features/reports/ReportsView.vue'),

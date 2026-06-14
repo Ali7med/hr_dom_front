@@ -37,6 +37,7 @@ const allNavItems: NavItem[] = [
   { to: { name: 'overtime' }, name: 'overtime', key: 'nav.overtime', icon: 'pi pi-stopwatch', permission: 'overtime.view', section: 'operations' },
   { to: { name: 'shift-swaps' }, name: 'shift-swaps', key: 'nav.shiftSwaps', icon: 'pi pi-sync', permission: 'shifts.manage', section: 'operations' },
   { to: { name: 'loans' }, name: 'loans', key: 'nav.loans', icon: 'pi pi-money-bill', permission: 'payroll.manage_rules', section: 'operations' },
+  { to: { name: 'employee-documents' }, name: 'employee-documents', key: 'nav.documents', icon: 'pi pi-folder', permission: 'documents.view', section: 'operations' },
   { to: { name: 'reports' }, name: 'reports', key: 'nav.reports', icon: 'pi pi-chart-bar', permission: 'reports.view', section: 'reports' },
   { to: { name: 'leave-reports' }, name: 'leave-reports', key: 'nav.leaveReports', icon: 'pi pi-calendar-clock', permission: 'reports.view', section: 'reports' },
   { to: { name: 'report-subscriptions' }, name: 'report-subscriptions', key: 'nav.reportSubscriptions', icon: 'pi pi-envelope', permission: 'reports.view', section: 'reports' },
