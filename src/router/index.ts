@@ -67,6 +67,12 @@ const router = createRouter({
           component: () => import('@/features/payroll/PayrollView.vue'),
           meta: { permission: 'payroll.view' },
         },
+        {
+          // قسيمة راتب الموظف الحالي — متاحة لأي مستخدم مُصادَق (بلا صلاحية).
+          path: 'my-payslips',
+          name: 'my-payslips',
+          component: () => import('@/features/payslips/MyPayslipsView.vue'),
+        },
         // ===== الإعدادات (الضبط الإداري — تبويبات داخل SettingsLayout) =====
         {
           path: 'settings',
