@@ -92,6 +92,13 @@ const router = createRouter({
           meta: { permission: 'documents.view' },
         },
         {
+          path: 'approval-delegations',
+          name: 'approval-delegations',
+          component: () => import('@/features/delegations/DelegationsView.vue'),
+          // التفويض متاح لمن يملك صلاحية اعتماد ما (إجازات/أذونات/إضافي).
+          meta: { permission: ['leaves.approve', 'excuses.approve', 'overtime.approve'] },
+        },
+        {
           path: 'reports',
           name: 'reports',
           component: () => import('@/features/reports/ReportsView.vue'),
