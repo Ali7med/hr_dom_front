@@ -62,6 +62,7 @@
     "deviceRequests": "طلبات الأجهزة",
     "leaves": "الإجازات",
     "leaveReports": "تقارير الإجازات",
+    "reportSubscriptions": "اشتراكات التقارير",
     "alerts": "التنبيهات",
     "absences": "معالجة الغياب",
     "excuses": "الأذونات",
@@ -184,6 +185,39 @@
     "submit": "تقديم",
     "submitted": "تم تقديم الإذن",
     "endAfterStart": "وقت النهاية يجب أن يكون بعد وقت البداية."
+  },
+  "reportSubs": {
+    "title": "اشتراكات التقارير المجدولة",
+    "subtitle": "أنشئ اشتراكات لإرسال التقارير تلقائياً عبر الإيميل/تلكرام وفق جدول.",
+    "create": "إنشاء اشتراك",
+    "edit": "تعديل الاشتراك",
+    "empty": "لا توجد اشتراكات بعد.",
+    "reportType": "نوع التقرير",
+    "frequency": "التكرار",
+    "format": "الصيغة",
+    "channels": "القنوات",
+    "recipients": "المستلمون",
+    "recipientsPlaceholder": "أضِف بريداً أو معرّف تلكرام واضغط Enter",
+    "recipientsHint": "اكتب القيمة واضغط Enter أو فاصلة لإضافتها.",
+    "active": "الحالة",
+    "activeLabel": "مُفعّل",
+    "activeYes": "مُفعّل",
+    "activeNo": "متوقّف",
+    "channelsRequired": "اختر قناة إرسال واحدة على الأقل.",
+    "recipientsRequired": "أضِف مستلِماً واحداً على الأقل.",
+    "confirmDelete": "حذف اشتراك «{type}»؟",
+    "type": {
+      "attendance": "الحضور",
+      "late-absence": "التأخير والغياب",
+      "timesheet": "كشف الدوام",
+      "leave-balances": "أرصدة الإجازات",
+      "leaves": "الإجازات"
+    },
+    "freq": {
+      "daily": "يومياً",
+      "weekly": "أسبوعياً",
+      "monthly": "شهرياً"
+    }
   },
   "backups": {
     "title": "النسخ الاحتياطية",

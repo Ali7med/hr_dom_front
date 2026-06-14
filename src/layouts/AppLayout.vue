@@ -36,6 +36,7 @@ const allNavItems: NavItem[] = [
   { to: { name: 'excuses' }, name: 'excuses', key: 'nav.excuses', icon: 'pi pi-clock', permission: 'excuses.view', section: 'operations' },
   { to: { name: 'reports' }, name: 'reports', key: 'nav.reports', icon: 'pi pi-chart-bar', permission: 'reports.view', section: 'reports' },
   { to: { name: 'leave-reports' }, name: 'leave-reports', key: 'nav.leaveReports', icon: 'pi pi-calendar-clock', permission: 'reports.view', section: 'reports' },
+  { to: { name: 'report-subscriptions' }, name: 'report-subscriptions', key: 'nav.reportSubscriptions', icon: 'pi pi-envelope', permission: 'reports.view', section: 'reports' },
   { to: { name: 'settings' }, name: 'settings', key: 'nav.settings', icon: 'pi pi-cog', permission: allSettingsPermissions, section: 'admin' },
 ]
 // تُعرض العناصر التي يملك المستخدم صلاحيتها فقط (Super Admin يرى الكل).
