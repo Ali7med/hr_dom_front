@@ -61,6 +61,7 @@
     "deviceRequests": "Device requests",
     "leaves": "Leaves",
     "leaveReports": "Leave reports",
+    "reportSubscriptions": "Report subscriptions",
     "alerts": "Alerts",
     "absences": "Absences",
     "reports": "Reports",
@@ -143,6 +144,39 @@
     "addType": "Add type",
     "noTypes": "No resolution types yet.",
     "confirmDeleteType": "Delete resolution type \"{name}\"?"
+  },
+  "reportSubs": {
+    "title": "Scheduled report subscriptions",
+    "subtitle": "Create subscriptions to send reports automatically over email/Telegram on a schedule.",
+    "create": "New subscription",
+    "edit": "Edit subscription",
+    "empty": "No subscriptions yet.",
+    "reportType": "Report type",
+    "frequency": "Frequency",
+    "format": "Format",
+    "channels": "Channels",
+    "recipients": "Recipients",
+    "recipientsPlaceholder": "Add an email or Telegram ID and press Enter",
+    "recipientsHint": "Type a value and press Enter or comma to add it.",
+    "active": "Status",
+    "activeLabel": "Active",
+    "activeYes": "Active",
+    "activeNo": "Paused",
+    "channelsRequired": "Pick at least one channel.",
+    "recipientsRequired": "Add at least one recipient.",
+    "confirmDelete": "Delete the \"{type}\" subscription?",
+    "type": {
+      "attendance": "Attendance",
+      "late-absence": "Late & absence",
+      "timesheet": "Timesheet",
+      "leave-balances": "Leave balances",
+      "leaves": "Leaves"
+    },
+    "freq": {
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly"
+    }
   },
   "backups": {
     "title": "Backups",

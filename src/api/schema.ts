@@ -1430,6 +1430,145 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/payslips": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** قسائم راتب الموظف الحالي (الفترات المُولَّدة له) */
+        get: operations["listMyPayslips"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/payslips/{period}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** قسيمة راتب فترة (تفاصيل أو PDF عبر format=pdf) */
+        get: operations["getMyPayslip"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/excuses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** سجلّ الأذونات (للمشرف، فلاتر) — يتطلّب excuses.view */
+        get: operations["listExcuses"];
+        put?: never;
+        /** تقديم إذن (موظف أو بالنيابة) */
+        post: operations["createExcuse"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/excuses/mine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** أذونات الموظف الحالي */
+        get: operations["listMyExcuses"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/excuses/{excuse}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** اعتماد إذن — يتطلّب excuses.approve */
+        post: operations["approveExcuse"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/excuses/{excuse}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** رفض إذن — يتطلّب excuses.approve */
+        post: operations["rejectExcuse"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/report-subscriptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** قائمة اشتراكات التقارير المجدولة — يتطلّب reports.view */
+        get: operations["listReportSubscriptions"];
+        put?: never;
+        /** إنشاء اشتراك تقرير مجدول */
+        post: operations["createReportSubscription"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/report-subscriptions/{subscription}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** تعديل اشتراك تقرير */
+        put: operations["updateReportSubscription"];
+        post?: never;
+        /** حذف اشتراك تقرير */
+        delete: operations["deleteReportSubscription"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/version": {
         parameters: {
             query?: never;
@@ -2254,6 +2393,34 @@ export interface components {
             resolution_type_id: number;
             /** @description ملاحظة اختيارية للأرشيف. */
             note?: string | null;
+        };
+        ExcuseInput: {
+            /** @description للتقديم بالنيابة (المخوّلون)؛ يُهمَل للتقديم الذاتي. */
+            user_id?: number | null;
+            /** Format: date */
+            date: string;
+            /** @example 10:00 */
+            start_time: string;
+            /** @example 12:00 */
+            end_time: string;
+            reason: string;
+        };
+        ReportSubscriptionInput: {
+            /** @description نوع التقرير (attendance/late-absence/timesheet/leave-balances/leaves…). */
+            report_type: string;
+            /** @enum {string} */
+            frequency: "daily" | "weekly" | "monthly";
+            /**
+             * @default excel
+             * @enum {string}
+             */
+            format: "excel" | "pdf";
+            /** @description قنوات الإرسال (تعيد استخدام notify_channels). */
+            channels?: ("email" | "telegram")[];
+            /** @description المستلمون (إيميلات أو معرّفات تلكرام). */
+            recipients?: string[];
+            /** @default true */
+            is_active: boolean;
         };
         BackupSettingsInput: {
             /**
@@ -4389,6 +4556,175 @@ export interface operations {
             200: components["responses"]["EnvelopeOk"];
             403: components["responses"]["ErrorResponse"];
             422: components["responses"]["ErrorResponse"];
+        };
+    };
+    listMyPayslips: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+        };
+    };
+    getMyPayslip: {
+        parameters: {
+            query?: {
+                format?: "json" | "pdf";
+            };
+            header?: never;
+            path: {
+                period: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            404: components["responses"]["ErrorResponse"];
+        };
+    };
+    listExcuses: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+                department_id?: number;
+                status?: "pending" | "approved" | "rejected";
+                per_page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+        };
+    };
+    createExcuse: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExcuseInput"];
+            };
+        };
+        responses: {
+            201: components["responses"]["EnvelopeOk"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    listMyExcuses: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+        };
+    };
+    approveExcuse: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                excuse: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            404: components["responses"]["ErrorResponse"];
+        };
+    };
+    rejectExcuse: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                excuse: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            404: components["responses"]["ErrorResponse"];
+        };
+    };
+    listReportSubscriptions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+        };
+    };
+    createReportSubscription: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReportSubscriptionInput"];
+            };
+        };
+        responses: {
+            201: components["responses"]["EnvelopeOk"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    updateReportSubscription: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                subscription: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReportSubscriptionInput"];
+            };
+        };
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            404: components["responses"]["ErrorResponse"];
+        };
+    };
+    deleteReportSubscription: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                subscription: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            404: components["responses"]["ErrorResponse"];
         };
     };
     getVersion: {

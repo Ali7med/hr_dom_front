@@ -44,6 +44,12 @@ const router = createRouter({
           meta: { permission: 'reports.view' },
         },
         {
+          path: 'report-subscriptions',
+          name: 'report-subscriptions',
+          component: () => import('@/features/reports/ReportSubscriptionsView.vue'),
+          meta: { permission: 'reports.view' },
+        },
+        {
           path: 'alerts',
           name: 'alerts',
           component: () => import('@/features/alerts/AlertsView.vue'),
