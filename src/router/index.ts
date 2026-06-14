@@ -56,6 +56,12 @@ const router = createRouter({
           meta: { permission: 'absences.view' },
         },
         {
+          path: 'excuses',
+          name: 'excuses',
+          component: () => import('@/features/excuses/ExcusesView.vue'),
+          meta: { permission: 'excuses.view' },
+        },
+        {
           path: 'reports',
           name: 'reports',
           component: () => import('@/features/reports/ReportsView.vue'),
