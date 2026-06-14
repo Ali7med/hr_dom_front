@@ -17,6 +17,14 @@
 
 ---
 
+## [2026-06-14] FE-31 + FE-32 — إعدادات الإشعارات لكل شركة + تعريب صلاحيتَي excuses/overtime (review)
+- ما أُنجز: فرعان مستقلّان فوق `main` (اعتماديات خلفية مختلفة):
+  - **FE-31** `feature/FE-31` (`2204b9a`): تبويب إعدادات `/settings/notifications` (محروس `notification_settings.manage`). `src/api/notificationSettings.ts` (get/update/test) + `src/features/settings/NotificationSettingsView.vue` — بطاقة تلكرام (ToggleSwitch + توكن `Password` write-only + InputChips محادثات + زر اختبار) + بطاقة SMTP (host/port/encryption/username/password write-only/from/InputChips إيميلات + زر اختبار) + تنبيه أمني ADR-0004. الأسرار تُرسَل عند الإدخال فقط. أُعيد توليد `schema.ts`. أُضيف لـ `settingsTabs.ts` + المسار + locales + `permGroups.notification_settings`.
+  - **FE-32** `feature/FE-32` (`92aa785`): تعريب `permGroups.excuses` + `permGroups.overtime` (ar/en). حارس النسخ كان أصلاً `backups.manage` (لا `isSuperAdmin`) — لا تغيير حارس مطلوب.
+- الملفات الرئيسية: `src/api/notificationSettings.ts`، `src/features/settings/NotificationSettingsView.vue`، `settingsTabs.ts`، `router/index.ts`، `locales/{ar,en}.json`، `schema.ts`. وفي غرفة العمليات [`PROGRESS.md`](../hr_dom_docs/PROGRESS.md). **لا تغيير على العقد**.
+- قرارات/ملاحظات: الشركة من `auth.user.company_id`. **محجوب حيّاً:** BE-70/BE-71 todo (404 + صلاحية غير مزروعة). التفاصيل في `hr_dom_docs/WORKLOG.md`.
+- الاختبارات: `type-check`+`build` خضراء؛ FE-32 تعريب فقط.
+
 ## [2026-06-11] FE-22 — إعداد تذكيرات البصمة في إعدادات الشركة (review)
 - ما أُنجز: أُضيفت لصفحة إعدادات الشركة (`CompanySettingsView`) بطاقة **«تذكيرات البصمة»** (تعديل على FE-03، تُمكِّن BE-19): مفتاحا تفعيل (`ToggleSwitch`) لتذكير **الدخول** و**الخروج** + حقلا إزاحة (`InputNumber`، يُعطَّلان عند إيقاف التذكير) + نصوص مساعدة. تُقرأ/تُحفظ ضمن **جسم settings الحرّ** عبر `PUT /companies/{id}/settings` القائم (دمج مع بقية المفاتيح، **بلا تغيير على العقد**).
 - الملفات الرئيسية: `src/features/companies/CompanySettingsView.vue` (حالة `reminders` + قراءة من `settings` + دمج في حمولة الحفظ + البطاقة)، `src/locales/{ar,en}.json` (قسم `settings`)، و`src/api/schema.ts` (مُعاد توليده). الفرع `feature/FE-22`.
