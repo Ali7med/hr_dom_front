@@ -53,6 +53,7 @@
   },
   "nav": {
     "dashboard": "لوحة التحكم",
+    "myPayslips": "قسيمة راتبي",
     "companies": "الشركات",
     "users": "المستخدمون",
     "roles": "الأدوار",
@@ -143,6 +144,15 @@
     "addType": "إضافة نوع",
     "noTypes": "لا توجد أنواع معالجة بعد.",
     "confirmDeleteType": "حذف نوع المعالجة \"{name}\"؟"
+  },
+  "payslips": {
+    "title": "قسيمة راتبي",
+    "subtitle": "اعرض وحمّل قسائم راتبك للفترات السابقة.",
+    "empty": "لا توجد قسائم راتب بعد.",
+    "details": "التفاصيل",
+    "downloadPdf": "تنزيل PDF",
+    "downloadError": "تعذّر تنزيل القسيمة.",
+    "payslipFor": "قسيمة راتب {period}"
   },
   "backups": {
     "title": "النسخ الاحتياطية",

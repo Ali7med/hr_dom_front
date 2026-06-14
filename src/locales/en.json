@@ -53,6 +53,7 @@
   },
   "nav": {
     "dashboard": "Dashboard",
+    "myPayslips": "My payslip",
     "companies": "Companies",
     "users": "Users",
     "roles": "Roles",
@@ -143,6 +144,15 @@
     "addType": "Add type",
     "noTypes": "No resolution types yet.",
     "confirmDeleteType": "Delete resolution type \"{name}\"?"
+  },
+  "payslips": {
+    "title": "My payslip",
+    "subtitle": "View and download your payslips for past periods.",
+    "empty": "No payslips yet.",
+    "details": "Details",
+    "downloadPdf": "Download PDF",
+    "downloadError": "Could not download the payslip.",
+    "payslipFor": "Payslip for {period}"
   },
   "backups": {
     "title": "Backups",
