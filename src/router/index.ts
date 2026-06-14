@@ -80,6 +80,12 @@ const router = createRouter({
           meta: { permission: 'shifts.manage' },
         },
         {
+          path: 'loans',
+          name: 'loans',
+          component: () => import('@/features/loans/LoansView.vue'),
+          meta: { permission: 'payroll.manage_rules' },
+        },
+        {
           path: 'reports',
           name: 'reports',
           component: () => import('@/features/reports/ReportsView.vue'),
