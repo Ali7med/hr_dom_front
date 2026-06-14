@@ -715,6 +715,8 @@
     "audit": "Audit",
     "alerts": "Alerts",
     "absences": "Absence resolution",
+    "excuses": "Excuses",
+    "overtime": "Overtime",
     "backups": "Backups"
   },
   "permActions": {
