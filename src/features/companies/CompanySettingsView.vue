@@ -42,6 +42,14 @@ const form = reactive<CompanySettings>({
   settings: {},
 })
 
+// تذكيرات البصمة (BE-19) — تُخزَّن ضمن جسم settings الحرّ (لا تغيير على العقد).
+const reminders = reactive({
+  checkin_reminder_enabled: false,
+  checkin_reminder_offset_minutes: 0,
+  checkout_reminder_enabled: false,
+  checkout_reminder_offset_minutes: 0,
+})
+
 function messageFor(e: unknown, fallback: string): string {
   return e instanceof ApiException ? e.message : fallback
 }
@@ -59,6 +67,12 @@ function applySettings(s: CompanySettings | null): void {
   form.hourly_leave_monthly_cap = s.hourly_leave_monthly_cap
   form.notify_channels = s.notify_channels ?? []
   form.settings = s.settings ?? {}
+  // تذكيرات البصمة من جسم settings الحرّ.
+  const st = form.settings as Record<string, unknown>
+  reminders.checkin_reminder_enabled = Boolean(st.checkin_reminder_enabled)
+  reminders.checkin_reminder_offset_minutes = Number(st.checkin_reminder_offset_minutes ?? 0)
+  reminders.checkout_reminder_enabled = Boolean(st.checkout_reminder_enabled)
+  reminders.checkout_reminder_offset_minutes = Number(st.checkout_reminder_offset_minutes ?? 0)
 }
 
 async function load(): Promise<void> {
@@ -88,6 +102,14 @@ async function save(): Promise<void> {
       hourly_leave_needs_approval: form.hourly_leave_needs_approval,
       hourly_leave_monthly_cap: form.hourly_leave_monthly_cap,
       notify_channels: form.notify_channels,
+      // دمج تذكيرات البصمة مع بقية إعدادات settings الحرّة.
+      settings: {
+        ...form.settings,
+        checkin_reminder_enabled: reminders.checkin_reminder_enabled,
+        checkin_reminder_offset_minutes: reminders.checkin_reminder_offset_minutes,
+        checkout_reminder_enabled: reminders.checkout_reminder_enabled,
+        checkout_reminder_offset_minutes: reminders.checkout_reminder_offset_minutes,
+      },
     })
     applySettings(updated)
     toast.add({ severity: 'success', summary: t('common.saved'), life: 2500 })
@@ -173,6 +195,54 @@ onMounted(load)
             display="chip"
             fluid
           />
+        </div>
+
+        <!-- تذكيرات البصمة (BE-19) -->
+        <div class="rounded-2xl border border-surface-200 bg-white p-6 dark:border-surface-800 dark:bg-surface-900">
+          <p class="mb-1 font-medium text-surface-700 dark:text-surface-300">{{ t('settings.remindersTitle') }}</p>
+          <p class="mb-4 text-xs leading-relaxed text-surface-500">{{ t('settings.remindersHelp') }}</p>
+
+          <div class="space-y-5">
+            <!-- تذكير الدخول -->
+            <div class="grid items-end gap-4 sm:grid-cols-[auto_1fr]">
+              <label class="flex items-center gap-2 text-sm">
+                <ToggleSwitch v-model="reminders.checkin_reminder_enabled" />
+                <span class="font-medium text-surface-700 dark:text-surface-300">{{ t('settings.checkinReminder') }}</span>
+              </label>
+              <label class="block text-sm">
+                <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('settings.checkinReminderOffset') }}</span>
+                <InputNumber
+                  v-model="reminders.checkin_reminder_offset_minutes"
+                  :min="0"
+                  :max="240"
+                  :disabled="!reminders.checkin_reminder_enabled"
+                  :use-grouping="false"
+                  fluid
+                />
+                <span class="mt-1 block text-xs text-surface-500">{{ t('settings.checkinReminderHelp') }}</span>
+              </label>
+            </div>
+
+            <!-- تذكير الخروج -->
+            <div class="grid items-end gap-4 sm:grid-cols-[auto_1fr]">
+              <label class="flex items-center gap-2 text-sm">
+                <ToggleSwitch v-model="reminders.checkout_reminder_enabled" />
+                <span class="font-medium text-surface-700 dark:text-surface-300">{{ t('settings.checkoutReminder') }}</span>
+              </label>
+              <label class="block text-sm">
+                <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('settings.checkoutReminderOffset') }}</span>
+                <InputNumber
+                  v-model="reminders.checkout_reminder_offset_minutes"
+                  :min="0"
+                  :max="240"
+                  :disabled="!reminders.checkout_reminder_enabled"
+                  :use-grouping="false"
+                  fluid
+                />
+                <span class="mt-1 block text-xs text-surface-500">{{ t('settings.checkoutReminderHelp') }}</span>
+              </label>
+            </div>
+          </div>
         </div>
 
         <Button

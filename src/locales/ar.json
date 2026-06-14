@@ -701,7 +701,15 @@
     "hourlyLeaveCap": "السقف الشهري للإجازة الزمنية",
     "hourlyLeaveApproval": "الإجازة الزمنية تحتاج موافقة",
     "weekendDays": "أيام نهاية الأسبوع",
-    "notifyChannels": "قنوات الإشعار"
+    "notifyChannels": "قنوات الإشعار",
+    "remindersTitle": "تذكيرات البصمة",
+    "remindersHelp": "إشعارات تُرسَل للموظف عبر التطبيق لتذكيره بالبصمة إن لم يبصم ضمن النافذة (تُحترَم تفضيلات كتم الإشعارات).",
+    "checkinReminder": "تذكير الدخول",
+    "checkinReminderOffset": "الإزاحة (دقائق)",
+    "checkinReminderHelp": "يُذكَّر الموظف بعد بدء الوردية بهذا العدد من الدقائق إن لم يسجّل دخولاً.",
+    "checkoutReminder": "تذكير الخروج",
+    "checkoutReminderOffset": "الإزاحة (دقائق)",
+    "checkoutReminderHelp": "يُذكَّر الموظف بعد نهاية الوردية بهذا العدد من الدقائق إن كان قد سجّل دخولاً ولم يسجّل خروجاً."
   },
   "days": {
     "sat": "السبت",

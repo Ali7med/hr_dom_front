@@ -701,7 +701,15 @@
     "hourlyLeaveCap": "Hourly-leave monthly cap",
     "hourlyLeaveApproval": "Hourly leave needs approval",
     "weekendDays": "Weekend days",
-    "notifyChannels": "Notification channels"
+    "notifyChannels": "Notification channels",
+    "remindersTitle": "Check-in reminders",
+    "remindersHelp": "Push notifications that remind the employee to check in/out if they haven't within the window (mute preferences are respected).",
+    "checkinReminder": "Check-in reminder",
+    "checkinReminderOffset": "Offset (minutes)",
+    "checkinReminderHelp": "The employee is reminded this many minutes after the shift starts if they haven't checked in.",
+    "checkoutReminder": "Check-out reminder",
+    "checkoutReminderOffset": "Offset (minutes)",
+    "checkoutReminderHelp": "The employee is reminded this many minutes after the shift ends if they checked in but not out."
   },
   "days": {
     "sat": "Saturday",
