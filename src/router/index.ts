@@ -74,6 +74,12 @@ const router = createRouter({
           meta: { permission: 'overtime.view' },
         },
         {
+          path: 'shift-swaps',
+          name: 'shift-swaps',
+          component: () => import('@/features/shiftSwaps/ShiftSwapsView.vue'),
+          meta: { permission: 'shifts.manage' },
+        },
+        {
           path: 'reports',
           name: 'reports',
           component: () => import('@/features/reports/ReportsView.vue'),
