@@ -1569,6 +1569,267 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/overtime-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** سجلّ طلبات الإضافي (مشرف، فلاتر) — يتطلّب overtime.view */
+        get: operations["listOvertimeRequests"];
+        put?: never;
+        /** تقديم طلب إضافي (ذاتي أو بالنيابة) */
+        post: operations["createOvertimeRequest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/overtime-requests/mine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** طلبات الإضافي للموظف الحالي */
+        get: operations["listMyOvertimeRequests"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/overtime-requests/{overtime}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** اعتماد طلب إضافي — يتطلّب overtime.approve */
+        post: operations["approveOvertimeRequest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/overtime-requests/{overtime}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** رفض طلب إضافي — يتطلّب overtime.approve */
+        post: operations["rejectOvertimeRequest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/shift-swaps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** سجلّ طلبات تبديل الورديات (مشرف) — يتطلّب shifts.manage */
+        get: operations["listShiftSwaps"];
+        put?: never;
+        /** طلب تبديل وردية مع زميل */
+        post: operations["createShiftSwap"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/shift-swaps/mine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** طلبات تبديل الورديات للموظف الحالي */
+        get: operations["listMyShiftSwaps"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/shift-swaps/{swap}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** اعتماد طلب تبديل — يتطلّب shifts.manage */
+        post: operations["approveShiftSwap"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/shift-swaps/{swap}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** رفض طلب تبديل — يتطلّب shifts.manage */
+        post: operations["rejectShiftSwap"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/loans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** سجلّ السلف (مشرف، فلاتر) — يتطلّب payroll.manage_rules */
+        get: operations["listLoans"];
+        put?: never;
+        /** إنشاء سلفة (مبلغ + أقساط) — يتطلّب payroll.manage_rules */
+        post: operations["createLoan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/loans/{loan}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** تفاصيل سلفة + جدول الأقساط */
+        get: operations["showLoan"];
+        put?: never;
+        post?: never;
+        /** إلغاء سلفة (إن لم يبدأ الخصم) — يتطلّب payroll.manage_rules */
+        delete: operations["deleteLoan"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{user}/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** مستندات موظف — يتطلّب documents.view */
+        get: operations["listUserDocuments"];
+        put?: never;
+        /** رفع مستند لموظف (multipart) — يتطلّب documents.manage */
+        post: operations["uploadUserDocument"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/documents/{document}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** حذف مستند — يتطلّب documents.manage */
+        delete: operations["deleteDocument"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/documents/{document}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** تنزيل مستند (رابط موقّع) — يتطلّب documents.view */
+        get: operations["downloadDocument"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/approval-delegations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** قائمة تفويضات الموافقة */
+        get: operations["listApprovalDelegations"];
+        put?: never;
+        /** إنشاء تفويض موافقة لبديل ضمن فترة */
+        post: operations["createApprovalDelegation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/approval-delegations/{delegation}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** إلغاء تفويض موافقة */
+        delete: operations["deleteApprovalDelegation"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/version": {
         parameters: {
             query?: never;
@@ -2421,6 +2682,69 @@ export interface components {
             recipients?: string[];
             /** @default true */
             is_active: boolean;
+        };
+        OvertimeRequestInput: {
+            /** @description للتقديم بالنيابة؛ يُهمَل للذاتي. */
+            user_id?: number | null;
+            /** Format: date */
+            date: string;
+            /** Format: double */
+            hours: number;
+            reason: string;
+        };
+        ShiftSwapInput: {
+            /** @description جدول ورديتي المراد تبديلها. */
+            my_schedule_id: number;
+            /** @description الزميل المراد التبديل معه. */
+            with_user_id: number;
+            /** @description وردية الزميل المقابلة (اختياري — تنازل إن غاب). */
+            with_schedule_id?: number | null;
+            note?: string | null;
+        };
+        LoanInput: {
+            user_id: number;
+            /**
+             * Format: double
+             * @description مبلغ السلفة (DECIMAL).
+             */
+            amount: number;
+            /** @description عدد الأقساط الشهرية. */
+            installments: number;
+            /**
+             * @description شهر بدء الخصم (YYYY-MM).
+             * @example 2026-07
+             */
+            start_period: string;
+            reason?: string | null;
+        };
+        DocumentInput: {
+            /** @description نوع المستند (عقد/هوية/شهادة…). */
+            type: string;
+            title?: string | null;
+            /**
+             * Format: date
+             * @description تاريخ انتهاء الصلاحية (للتنبيه قبله).
+             */
+            expiry_date?: string | null;
+            /**
+             * Format: binary
+             * @description الملف المرفوع (multipart).
+             */
+            file: string;
+        };
+        ApprovalDelegationInput: {
+            /** @description البديل الذي تنتقل إليه الموافقات. */
+            to_user_id: number;
+            /**
+             * @description نطاق التفويض.
+             * @default all
+             * @enum {string}
+             */
+            scope: "leaves" | "excuses" | "overtime" | "all";
+            /** Format: date */
+            from_date: string;
+            /** Format: date */
+            to_date: string;
         };
         BackupSettingsInput: {
             /**
@@ -4718,6 +5042,333 @@ export interface operations {
             header?: never;
             path: {
                 subscription: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            404: components["responses"]["ErrorResponse"];
+        };
+    };
+    listOvertimeRequests: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+                department_id?: number;
+                status?: "pending" | "approved" | "rejected";
+                per_page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+        };
+    };
+    createOvertimeRequest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OvertimeRequestInput"];
+            };
+        };
+        responses: {
+            201: components["responses"]["EnvelopeOk"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    listMyOvertimeRequests: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+        };
+    };
+    approveOvertimeRequest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                overtime: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            404: components["responses"]["ErrorResponse"];
+        };
+    };
+    rejectOvertimeRequest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                overtime: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            404: components["responses"]["ErrorResponse"];
+        };
+    };
+    listShiftSwaps: {
+        parameters: {
+            query?: {
+                status?: "pending" | "approved" | "rejected";
+                per_page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+        };
+    };
+    createShiftSwap: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShiftSwapInput"];
+            };
+        };
+        responses: {
+            201: components["responses"]["EnvelopeOk"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    listMyShiftSwaps: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+        };
+    };
+    approveShiftSwap: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                swap: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            404: components["responses"]["ErrorResponse"];
+        };
+    };
+    rejectShiftSwap: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                swap: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            404: components["responses"]["ErrorResponse"];
+        };
+    };
+    listLoans: {
+        parameters: {
+            query?: {
+                user_id?: number;
+                status?: "active" | "settled" | "pending" | "rejected";
+                per_page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+        };
+    };
+    createLoan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoanInput"];
+            };
+        };
+        responses: {
+            201: components["responses"]["EnvelopeOk"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    showLoan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                loan: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            404: components["responses"]["ErrorResponse"];
+        };
+    };
+    deleteLoan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                loan: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            404: components["responses"]["ErrorResponse"];
+        };
+    };
+    listUserDocuments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+        };
+    };
+    uploadUserDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["DocumentInput"];
+            };
+        };
+        responses: {
+            201: components["responses"]["EnvelopeOk"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    deleteDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            404: components["responses"]["ErrorResponse"];
+        };
+    };
+    downloadDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description ملف المستند (تنزيل) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            404: components["responses"]["ErrorResponse"];
+        };
+    };
+    listApprovalDelegations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+        };
+    };
+    createApprovalDelegation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApprovalDelegationInput"];
+            };
+        };
+        responses: {
+            201: components["responses"]["EnvelopeOk"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    deleteApprovalDelegation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                delegation: number;
             };
             cookie?: never;
         };

@@ -68,6 +68,12 @@ const router = createRouter({
           meta: { permission: 'excuses.view' },
         },
         {
+          path: 'overtime',
+          name: 'overtime',
+          component: () => import('@/features/overtime/OvertimeView.vue'),
+          meta: { permission: 'overtime.view' },
+        },
+        {
           path: 'reports',
           name: 'reports',
           component: () => import('@/features/reports/ReportsView.vue'),
