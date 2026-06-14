@@ -77,13 +77,13 @@ const router = createRouter({
           path: 'shift-swaps',
           name: 'shift-swaps',
           component: () => import('@/features/shiftSwaps/ShiftSwapsView.vue'),
-          meta: { permission: 'shifts.manage' },
+          meta: { permission: 'shift_swaps.view' },
         },
         {
           path: 'loans',
           name: 'loans',
           component: () => import('@/features/loans/LoansView.vue'),
-          meta: { permission: 'payroll.manage_rules' },
+          meta: { permission: 'loans.view' },
         },
         {
           path: 'employee-documents',

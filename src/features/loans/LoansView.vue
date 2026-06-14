@@ -192,7 +192,7 @@ onMounted(async () => {
   <div class="mx-auto max-w-5xl">
     <PageHeader :title="t('loans.title')" :subtitle="t('loans.subtitle')">
       <template #actions>
-        <Button v-can="'payroll.manage_rules'" icon="pi pi-plus" :label="t('loans.create')" @click="openForm" />
+        <Button v-can="'loans.manage'" icon="pi pi-plus" :label="t('loans.create')" @click="openForm" />
       </template>
     </PageHeader>
 
@@ -256,7 +256,7 @@ onMounted(async () => {
               <Button v-tooltip.top="t('loans.details')" icon="pi pi-eye" severity="secondary" text rounded @click="openDetails(data)" />
               <Button
                 v-if="canDelete(data)"
-                v-can="'payroll.manage_rules'"
+                v-can="'loans.manage'"
                 v-tooltip.top="t('common.delete')"
                 icon="pi pi-trash"
                 severity="danger"

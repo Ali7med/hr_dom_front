@@ -156,7 +156,7 @@ onMounted(run)
           <template #body="{ data }">
             <div v-if="data.status === 'pending'" class="flex justify-end gap-1">
               <Button
-                v-can="'shifts.manage'"
+                v-can="'shift_swaps.approve'"
                 v-tooltip.top="t('shiftSwaps.approve')"
                 icon="pi pi-check"
                 severity="success"
@@ -166,7 +166,7 @@ onMounted(run)
                 @click="decide(data, true)"
               />
               <Button
-                v-can="'shifts.manage'"
+                v-can="'shift_swaps.approve'"
                 v-tooltip.top="t('shiftSwaps.reject')"
                 icon="pi pi-times"
                 severity="danger"
