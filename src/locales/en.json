@@ -54,6 +54,7 @@
   "nav": {
     "dashboard": "Dashboard",
     "myPayslips": "My payslip",
+    "telegramLink": "Telegram link",
     "companies": "Companies",
     "users": "Users",
     "roles": "Roles",
@@ -185,6 +186,26 @@
     "submit": "Submit",
     "submitted": "Excuse submitted",
     "endAfterStart": "End time must be after start time."
+  },
+  "telegram": {
+    "title": "Telegram link",
+    "subtitle": "Link your Telegram account to receive and approve requests directly from Telegram.",
+    "cardTitle": "Telegram for approvals",
+    "cardHint": "Receive leave/overtime/excuse requests with approve/reject buttons in Telegram.",
+    "linked": "Linked",
+    "notLinked": "Not linked",
+    "account": "Account",
+    "linkedNoUser": "Linked",
+    "instructions": "Click \"Link\" to generate a link that opens the company bot in Telegram; start the chat to complete linking.",
+    "link": "Link account",
+    "linkError": "Could not generate the link.",
+    "linkReady": "Link is ready — open it in Telegram and start the chat:",
+    "orSendCode": "Or send the bot:",
+    "afterLinkHint": "After starting the Telegram chat, click \"Refresh status\" to confirm.",
+    "refreshStatus": "Refresh status",
+    "unlink": "Unlink",
+    "confirmUnlink": "Unlink your Telegram account? You will stop receiving approval requests there.",
+    "unlinked": "Unlinked"
   },
   "reportSubs": {
     "title": "Scheduled report subscriptions",

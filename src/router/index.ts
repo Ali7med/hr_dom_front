@@ -85,6 +85,12 @@ const router = createRouter({
           name: 'my-payslips',
           component: () => import('@/features/payslips/MyPayslipsView.vue'),
         },
+        {
+          // ربط تيليجرام لبوت الموافقات — خدمة ذاتية لأي مستخدم مُصادَق (بلا صلاحية).
+          path: 'telegram-link',
+          name: 'telegram-link',
+          component: () => import('@/features/telegram/TelegramLinkView.vue'),
+        },
         // ===== الإعدادات (الضبط الإداري — تبويبات داخل SettingsLayout) =====
         {
           path: 'settings',
