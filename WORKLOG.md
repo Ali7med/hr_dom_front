@@ -17,6 +17,11 @@
 
 ---
 
+## [2026-06-15] FE-43 — ربط حساب تيليجرام لبوت الموافقات (review، تحقّق جزئي)
+- ما أُنجز: صفحة `/telegram-link` (خدمة ذاتية، قسم «عام»، بلا صلاحية) تستهلك BE-75: `src/api/telegramLink.ts` (get/create/remove + `deepLinkOf`) + `src/features/telegram/TelegramLinkView.vue` (بطاقة حالة: مربوط+اسم+فكّ ربط / غير مربوط+تعليمات+زر ربط→deep-link+كود+تحديث). schema مُعاد توليده + nav + locales. **لا تغيير على العقد**.
+- قرارات/ملاحظات: **GET الحالة مُتحقَّق حيّاً** (200، الصفحة تُرسَم «غير مربوط» نظيفة). **POST توليد الرابط محجوب:** 500 `telegram_link_codes doesn't exist` — هجرة BE-75 لم تُشغَّل (نمط BE-69). يحتاج الباك `php artisan migrate`. التفاصيل في `hr_dom_docs/WORKLOG.md`.
+- الاختبارات: `build` أخضر (chunk 4.7KB) + تحقّق GET. توليد الرابط بعد الهجرة.
+
 ## [2026-06-11] FE-22 — إعداد تذكيرات البصمة في إعدادات الشركة (review)
 - ما أُنجز: أُضيفت لصفحة إعدادات الشركة (`CompanySettingsView`) بطاقة **«تذكيرات البصمة»** (تعديل على FE-03، تُمكِّن BE-19): مفتاحا تفعيل (`ToggleSwitch`) لتذكير **الدخول** و**الخروج** + حقلا إزاحة (`InputNumber`، يُعطَّلان عند إيقاف التذكير) + نصوص مساعدة. تُقرأ/تُحفظ ضمن **جسم settings الحرّ** عبر `PUT /companies/{id}/settings` القائم (دمج مع بقية المفاتيح، **بلا تغيير على العقد**).
 - الملفات الرئيسية: `src/features/companies/CompanySettingsView.vue` (حالة `reminders` + قراءة من `settings` + دمج في حمولة الحفظ + البطاقة)، `src/locales/{ar,en}.json` (قسم `settings`)، و`src/api/schema.ts` (مُعاد توليده). الفرع `feature/FE-22`.
