@@ -61,6 +61,7 @@
     "schedule": "Shifts & scheduling",
     "deviceRequests": "Device requests",
     "leaves": "Leaves",
+    "calendar": "Calendar",
     "leaveReports": "Leave reports",
     "reportSubscriptions": "Report subscriptions",
     "alerts": "Alerts",
@@ -185,6 +186,18 @@
     "submit": "Submit",
     "submitted": "Excuse submitted",
     "endAfterStart": "End time must be after start time."
+  },
+  "calendar": {
+    "title": "Calendar",
+    "subtitle": "Monthly view of shifts, leaves, and public holidays. Click a day for details.",
+    "prev": "Previous month",
+    "next": "Next month",
+    "today": "Today",
+    "shifts": "Shifts",
+    "leaves": "Leaves",
+    "holidays": "Holidays",
+    "onLeave": "{n} on leave",
+    "shiftsCount": "{n} shifts"
   },
   "reportSubs": {
     "title": "Scheduled report subscriptions",

@@ -30,6 +30,7 @@ const allNavItems: NavItem[] = [
   { to: { name: 'dashboard' }, name: 'dashboard', key: 'nav.dashboard', icon: 'pi pi-th-large', section: 'general' },
   { to: { name: 'my-payslips' }, name: 'my-payslips', key: 'nav.myPayslips', icon: 'pi pi-receipt', section: 'general' },
   { to: { name: 'leaves' }, name: 'leaves', key: 'nav.leaves', icon: 'pi pi-sun', permission: 'leaves.view', section: 'operations' },
+  { to: { name: 'calendar' }, name: 'calendar', key: 'nav.calendar', icon: 'pi pi-calendar', permission: ['shifts.view', 'schedules.view', 'holidays.view', 'leaves.view'], section: 'operations' },
   { to: { name: 'payroll' }, name: 'payroll', key: 'nav.payroll', icon: 'pi pi-wallet', permission: 'payroll.view', section: 'operations' },
   { to: { name: 'alerts' }, name: 'alerts', key: 'nav.alerts', icon: 'pi pi-bell', permission: 'alerts.view', section: 'operations' },
   { to: { name: 'absences' }, name: 'absences', key: 'nav.absences', icon: 'pi pi-user-minus', permission: 'absences.view', section: 'operations' },
