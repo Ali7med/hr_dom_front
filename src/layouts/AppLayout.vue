@@ -34,6 +34,7 @@ const allNavItems: NavItem[] = [
   { to: { name: 'alerts' }, name: 'alerts', key: 'nav.alerts', icon: 'pi pi-bell', permission: 'alerts.view', section: 'operations' },
   { to: { name: 'absences' }, name: 'absences', key: 'nav.absences', icon: 'pi pi-user-minus', permission: 'absences.view', section: 'operations' },
   { to: { name: 'excuses' }, name: 'excuses', key: 'nav.excuses', icon: 'pi pi-clock', permission: 'excuses.view', section: 'operations' },
+  { to: { name: 'onboarding' }, name: 'onboarding', key: 'nav.onboarding', icon: 'pi pi-user-plus', permission: 'onboarding.manage', section: 'operations' },
   { to: { name: 'reports' }, name: 'reports', key: 'nav.reports', icon: 'pi pi-chart-bar', permission: 'reports.view', section: 'reports' },
   { to: { name: 'leave-reports' }, name: 'leave-reports', key: 'nav.leaveReports', icon: 'pi pi-calendar-clock', permission: 'reports.view', section: 'reports' },
   { to: { name: 'report-subscriptions' }, name: 'report-subscriptions', key: 'nav.reportSubscriptions', icon: 'pi pi-envelope', permission: 'reports.view', section: 'reports' },
