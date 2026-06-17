@@ -83,6 +83,7 @@ const pageTitle = computed(() => {
 // سلوك الشريط الجانبي:
 // - افتراضياً مغلق (شريط أيقونات)، ينفتح عند التمرير/التركيز ويُغلق عند المغادرة.
 // - زر «التثبيت» بالأسفل يجعله ثابتاً مفتوحاً (يلغي الانغلاق التلقائي). الحالة محفوظة.
+const appVersion = __APP_VERSION__
 const PIN_KEY = 'hr_dom.sidebar.pinned'
 const pinned = ref(localStorage.getItem(PIN_KEY) === '1')
 const hovered = ref(false)
@@ -201,6 +202,11 @@ async function onLogout(): Promise<void> {
           <i class="pi shrink-0 text-lg" :class="pinned ? 'pi-lock' : 'pi-lock-open'" />
           <span v-if="showLabels" class="truncate">{{ pinned ? t('layout.unpin') : t('layout.pin') }}</span>
         </button>
+      </div>
+
+      <!-- رقم نسخة اللوحة -->
+      <div v-if="showLabels" class="px-4 pb-3 pt-1 text-center text-[11px] text-surface-400 dark:text-surface-600" dir="ltr">
+        v{{ appVersion }}
       </div>
     </aside>
 

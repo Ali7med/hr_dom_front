@@ -48,8 +48,9 @@
 1. المتطلّب مُنفّذ ويعمل وفق وصف التاسك.
 2. `npm run type-check` و`npm run build` يمرّان بلا أخطاء، ولا أخطاء console.
 3. لأي تغيير يمسّ العقد: أُعيد توليد الأنواع عبر `npm run generate:api`.
-4. حالة التاسك مُحدّثة في `PROGRESS.md` (المحلي + `hr_dom_docs`) + مدخلة في `WORKLOG.md`.
-5. مراجعة عبر Pull Request قبل الدمج.
+4. **زِد رقم النسخة في `package.json` مع كل تحديث** (عادةً patch: `1.0.0 → 1.0.1`؛ minor لميزة؛ major لتغيير كاسر). تُحقَن كـ `__APP_VERSION__` (vite) وتُعرَض في الشريط الجانبي وصفحة الدخول (`v<version>`).
+5. حالة التاسك مُحدّثة في `PROGRESS.md` (المحلي + `hr_dom_docs`) + مدخلة في `WORKLOG.md`.
+6. مراجعة عبر Pull Request قبل الدمج.
 
 ## للتعديل على ميزة قائمة
 اقرأ `WORKLOG.md` وكود الميزة (`src/features/<feature>/`) أولاً، عدّل على فرع جديد، ثم شغّل

@@ -1,7 +1,14 @@
 import { defineConfig, loadEnv, type Plugin } from 'vite'
 import { fileURLToPath, URL } from 'node:url'
+import { readFileSync } from 'node:fs'
 import vue from '@vitejs/plugin-vue'
 import tailwindcss from '@tailwindcss/vite'
+
+// رقم نسخة اللوحة من package.json — يُحقَن كثابت __APP_VERSION__ ويُعرَض في الواجهة
+// (الشريط الجانبي + صفحة الدخول). تُزاد النسخة (patch) مع كل تحديث — انظر CLAUDE.md.
+const pkg = JSON.parse(
+  readFileSync(fileURLToPath(new URL('./package.json', import.meta.url)), 'utf-8'),
+) as { version: string }
 
 // يحقن Content-Security-Policy في بناء الإنتاج فقط (لا يكسر HMR في التطوير).
 // السكربت الوحيد المضمّن نُقل إلى /theme-init.js فصار script-src 'self' كافياً.
@@ -41,6 +48,9 @@ export default defineConfig(({ mode }) => {
   }
   return {
     plugins: [vue(), tailwindcss(), cspPlugin(apiOrigin)],
+    define: {
+      __APP_VERSION__: JSON.stringify(pkg.version),
+    },
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
