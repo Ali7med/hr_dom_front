@@ -7,10 +7,10 @@ import { settingsTabs } from '@/features/settings/settingsTabs'
 const { t } = useI18n()
 const auth = useAuthStore()
 
-// التبويبات التي يملك المستخدم صلاحيتها فقط (Super Admin يرى الكل).
+// التبويبات التي يملك المستخدم صلاحيتها فقط (Super Admin يرى الكل؛ التبويب الذاتي بلا صلاحية يظهر دائماً).
 const tabs = computed(() =>
-  settingsTabs.filter((tab) =>
-    auth.canAny(typeof tab.permission === 'string' ? [tab.permission] : tab.permission),
+  settingsTabs.filter(
+    (tab) => !tab.permission || auth.canAny(typeof tab.permission === 'string' ? [tab.permission] : tab.permission),
   ),
 )
 </script>

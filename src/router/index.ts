@@ -128,12 +128,6 @@ const router = createRouter({
           name: 'my-payslips',
           component: () => import('@/features/payslips/MyPayslipsView.vue'),
         },
-        {
-          // ربط تيليجرام لبوت الموافقات — خدمة ذاتية لأي مستخدم مُصادَق (بلا صلاحية).
-          path: 'telegram-link',
-          name: 'telegram-link',
-          component: () => import('@/features/telegram/TelegramLinkView.vue'),
-        },
         // ===== الإعدادات (الضبط الإداري — تبويبات داخل SettingsLayout) =====
         {
           path: 'settings',
@@ -143,11 +137,11 @@ const router = createRouter({
             {
               path: '',
               name: 'settings',
-              // إعادة توجيه لأول تبويب يملك المستخدم صلاحيته.
+              // إعادة توجيه لأول تبويب يملك المستخدم صلاحيته (أو تبويب ذاتي بلا صلاحية).
               redirect: () => {
                 const auth = useAuthStore()
-                const first = settingsTabs.find((tab) =>
-                  auth.canAny(typeof tab.permission === 'string' ? [tab.permission] : tab.permission),
+                const first = settingsTabs.find(
+                  (tab) => !tab.permission || auth.canAny(typeof tab.permission === 'string' ? [tab.permission] : tab.permission),
                 )
                 return { name: first?.name ?? 'forbidden' }
               },
@@ -205,6 +199,12 @@ const router = createRouter({
               name: 'notification-settings',
               component: () => import('@/features/settings/NotificationSettingsView.vue'),
               meta: { permission: 'notification_settings.manage' },
+            },
+            {
+              // ربط تيليجرام لبوت الموافقات — خدمة ذاتية (بلا صلاحية)؛ نُقِل إلى الإعدادات.
+              path: 'telegram-link',
+              name: 'telegram-link',
+              component: () => import('@/features/telegram/TelegramLinkView.vue'),
             },
             {
               path: 'backups',
