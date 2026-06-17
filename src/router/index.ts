@@ -129,6 +129,18 @@ const router = createRouter({
           component: () => import('@/features/payslips/MyPayslipsView.vue'),
         },
         {
+          // بوابة الموظف (ESS — FE-36): إجازاتي — خدمة ذاتية لأي مستخدم مُصادَق (بلا صلاحية).
+          path: 'my-leaves',
+          name: 'my-leaves',
+          component: () => import('@/features/ess/MyLeavesView.vue'),
+        },
+        {
+          // بوابة الموظف (ESS — FE-36): حضوري — خدمة ذاتية لأي مستخدم مُصادَق (بلا صلاحية).
+          path: 'my-attendance',
+          name: 'my-attendance',
+          component: () => import('@/features/ess/MyAttendanceView.vue'),
+        },
+        {
           // ربط تيليجرام لبوت الموافقات — خدمة ذاتية لأي مستخدم مُصادَق (بلا صلاحية).
           path: 'telegram-link',
           name: 'telegram-link',
