@@ -2146,6 +2146,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/users/{user}/official-documents/{type}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** توليد مستند رسمي لموظف (PDF) — يتطلّب official_docs.generate */
+        get: operations["generateUserOfficialDocument"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/official-documents/{type}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** توليد مستند رسمي للموظف الحالي (PDF) — بلا صلاحية */
+        get: operations["generateMyOfficialDocument"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/version": {
         parameters: {
             query?: never;
@@ -6281,6 +6315,53 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: components["responses"]["EnvelopeOk"];
+        };
+    };
+    generateUserOfficialDocument: {
+        parameters: {
+            query?: {
+                period?: string;
+            };
+            header?: never;
+            path: {
+                user: number;
+                type: "salary-certificate" | "employment-letter";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description ملف PDF للمستند (تنزيل) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            404: components["responses"]["ErrorResponse"];
+        };
+    };
+    generateMyOfficialDocument: {
+        parameters: {
+            query?: {
+                period?: string;
+            };
+            header?: never;
+            path: {
+                type: "salary-certificate" | "employment-letter";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description ملف PDF للمستند (تنزيل) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            404: components["responses"]["ErrorResponse"];
         };
     };
     getVersion: {
