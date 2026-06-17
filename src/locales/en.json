@@ -61,6 +61,7 @@
     "schedule": "Shifts & scheduling",
     "deviceRequests": "Device requests",
     "leaves": "Leaves",
+    "calendar": "Calendar",
     "leaveReports": "Leave reports",
     "reportSubscriptions": "Report subscriptions",
     "alerts": "Alerts",
@@ -361,6 +362,18 @@
     "dueOffsetHint": "\"Days\" = due days from start date (optional). \"Assignee role\" e.g. HR/IT/Finance.",
     "needNameItems": "Enter a template name and at least one task.",
     "confirmDeleteTemplate": "Delete template \"{name}\"?"
+  },
+  "calendar": {
+    "title": "Calendar",
+    "subtitle": "Monthly view of shifts, leaves, and public holidays. Click a day for details.",
+    "prev": "Previous month",
+    "next": "Next month",
+    "today": "Today",
+    "shifts": "Shifts",
+    "leaves": "Leaves",
+    "holidays": "Holidays",
+    "onLeave": "{n} on leave",
+    "shiftsCount": "{n} shifts"
   },
   "reportSubs": {
     "title": "Scheduled report subscriptions",

@@ -38,6 +38,12 @@ const router = createRouter({
           meta: { permission: 'leaves.view' },
         },
         {
+          path: 'calendar',
+          name: 'calendar',
+          component: () => import('@/features/calendar/CalendarView.vue'),
+          meta: { permission: ['shifts.view', 'schedules.view', 'holidays.view', 'leaves.view'] },
+        },
+        {
           path: 'leave-reports',
           name: 'leave-reports',
           component: () => import('@/features/leaves/LeaveReportsView.vue'),
