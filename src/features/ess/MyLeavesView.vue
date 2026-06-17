@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useToast } from 'primevue/usetoast'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Button from 'primevue/button'
 import Select from 'primevue/select'
-import Textarea from 'primevue/textarea'
 import Tag from 'primevue/tag'
 import Message from 'primevue/message'
 import Dialog from '@/components/AppDialog.vue'
@@ -49,27 +48,23 @@ const balanceValue = (b: MyLeaveBalance) => b.balance ?? b.balance_days ?? 0
 
 async function load(): Promise<void> {
   loading.value = true
-  try {
-    requests.value = await myLeavesApi.list()
-  } catch (e) {
-    notifyError(e, t('common.loadError'))
-  } finally {
-    loading.value = false
-  }
-  // أنواع الإجازات للتقديم — اختيارية (تدهور آمن إن حُجبت).
-  try {
-    types.value = await myLeavesApi.types()
+  // الثلاثة مستقلّة — تُجلب بالتوازي؛ كلٌّ يتدهور بأمان على حدة.
+  const [req, typ, bal] = await Promise.allSettled([
+    myLeavesApi.list(),
+    myLeavesApi.types(),
+    myLeavesApi.balances(),
+  ])
+  if (req.status === 'fulfilled') requests.value = req.value
+  else notifyError(req.reason, t('common.loadError'))
+  if (typ.status === 'fulfilled') {
+    types.value = typ.value
     typesAvailable.value = true
-  } catch {
-    typesAvailable.value = false
-  }
-  // الأرصدة — اختيارية.
-  try {
-    balances.value = await myLeavesApi.balances()
+  } else typesAvailable.value = false
+  if (bal.status === 'fulfilled') {
+    balances.value = bal.value
     balancesAvailable.value = true
-  } catch {
-    balancesAvailable.value = false
-  }
+  } else balancesAvailable.value = false
+  loading.value = false
 }
 
 // ===== نموذج التقديم الذاتي =====
@@ -86,7 +81,6 @@ const form = reactive({
   end_at: '',
   start_time: '08:00',
   end_time: '11:00',
-  reason: '',
 })
 const saving = ref(false)
 
@@ -101,6 +95,15 @@ const timeOptions = computed(() => {
   const to = tp.allowed_to.slice(0, 5)
   return HALF_HOURS.filter((h) => h >= from && h <= to)
 })
+
+// عند تبديل نوع الإجازة: أعِد ضبط الوقتين ضمن نافذة النوع الجديد (تفادي قيمة سابقة خارج النطاق تُرسَل).
+watch(
+  () => form.leave_type_id,
+  () => {
+    form.start_time = timeOptions.value[0] ?? '08:00'
+    form.end_time = timeOptions.value[timeOptions.value.length - 1] ?? '11:00'
+  },
+)
 
 // حساب الأيام/الساعات + التحقّق محلياً (الباك يفرضها أيضاً).
 const dayCount = computed(() => {
@@ -147,7 +150,6 @@ function openForm(): void {
   form.end_at = ''
   form.start_time = timeOptions.value[0] ?? '08:00'
   form.end_time = timeOptions.value[timeOptions.value.length - 1] ?? '11:00'
-  form.reason = ''
 }
 
 async function submit(): Promise<void> {
@@ -293,11 +295,6 @@ onMounted(load)
             {{ t('myLeaves.daysComputed', { n: dayCount }) }}
           </p>
         </template>
-
-        <label class="block text-sm sm:col-span-2">
-          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('myLeaves.reason') }}</span>
-          <Textarea v-model="form.reason" rows="2" :maxlength="500" auto-resize fluid />
-        </label>
 
         <Message v-if="validationError" severity="warn" :closable="false" class="sm:col-span-2">{{ validationError }}</Message>
 

@@ -75,6 +75,7 @@ async function load(): Promise<void> {
 
 function shift(delta: number): void {
   const d = new Date(cursor.value)
+  d.setDate(1) // التثبيت على أول الشهر يمنع تجاوز setMonth في الأيام 29–31 (تخطّي شهر).
   d.setMonth(d.getMonth() + delta)
   cursor.value = d
   load()

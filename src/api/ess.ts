@@ -52,13 +52,13 @@ export const myLeavesApi = {
 }
 
 export const myAttendanceApi = {
-  // سجلات حضور الموظف الحالي لشهر (YYYY-MM) + ملخّص الفترة في meta.
+  // سجلات حضور الموظف الحالي لشهر (YYYY-MM) + ملخّص الفترة في meta.summary (إن وُجد).
   async list(month: string): Promise<{ records: MyAttendanceRecord[]; summary: MyAttendanceSummary }> {
     const res = await apiClient.get<Envelope<MyAttendanceRecord[]>>('/me/attendance', { params: { month } })
     const meta = (res.data.meta ?? {}) as Record<string, unknown>
     return {
       records: res.data.data ?? [],
-      summary: (meta.summary as MyAttendanceSummary) ?? (meta as MyAttendanceSummary) ?? {},
+      summary: (meta.summary as MyAttendanceSummary | undefined) ?? {},
     }
   },
 }
