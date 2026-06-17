@@ -3,7 +3,7 @@ export interface SettingsTab {
   name: string // اسم المسار (يبقى كما كان قبل النقل تحت /settings)
   key: string // مفتاح i18n للعنوان
   icon: string // PrimeIcon
-  permission: string | string[] // صلاحية (أو أيٌّ منها) للوصول
+  permission?: string | string[] // صلاحية (أو أيٌّ منها) للوصول؛ غيابها = تبويب ذاتي بلا صلاحية
 }
 
 export const settingsTabs: SettingsTab[] = [
@@ -26,9 +26,13 @@ export const settingsTabs: SettingsTab[] = [
   },
   { name: 'notification-settings', key: 'nav.notificationSettings', icon: 'pi pi-send', permission: 'notification_settings.manage' },
   { name: 'backups', key: 'nav.backups', icon: 'pi pi-database', permission: 'backups.manage' },
+  // ربط حساب تيليجرام لبوت الموافقات — خدمة ذاتية (بلا صلاحية): تظهر لأي مستخدم يصل للإعدادات.
+  // يُبقى أخيراً كي لا يصبح وجهة إعادة التوجيه الافتراضية لمستخدم يملك تبويباً واحداً فقط بصلاحية.
+  { name: 'telegram-link', key: 'nav.telegramLink', icon: 'pi pi-telegram' },
 ]
 
 // كل صلاحيات الضبط مجموعةً — للوصول لصفحة الإعدادات يكفي امتلاك أيٍّ منها.
+// (التبويبات الذاتية بلا صلاحية لا تُضيف للمجموعة — لا تفتح الإعدادات لمن لا يملك ضبطاً.)
 export const allSettingsPermissions = settingsTabs.flatMap((t) =>
-  typeof t.permission === 'string' ? [t.permission] : t.permission,
+  !t.permission ? [] : typeof t.permission === 'string' ? [t.permission] : t.permission,
 )

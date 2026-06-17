@@ -187,6 +187,7 @@ onMounted(load)
                 <Tag v-if="telegramTokenSet" :value="t('notificationSettings.set')" severity="success" />
               </span>
               <Password v-model="telegramToken" :feedback="false" toggle-mask fluid :placeholder="telegramTokenSet ? t('notificationSettings.keepCurrent') : ''" :input-props="{ autocomplete: 'off' }" />
+              <span class="mt-1 block text-xs text-surface-500">{{ t('notificationSettings.botTokenHint') }}</span>
             </label>
             <label class="block text-sm">
               <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('notificationSettings.chatIds') }}</span>
