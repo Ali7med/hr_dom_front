@@ -21,6 +21,7 @@ const ui = useUiStore()
 type Step = 'credentials' | 'two-factor'
 
 const appIcon = '/app-icon-192.png'
+const appVersion = __APP_VERSION__
 const logoError = ref(false)
 const step = ref<Step>('credentials')
 const username = ref('')
@@ -227,7 +228,7 @@ function backToCredentials(): void {
       </div>
 
       <p class="mt-6 text-center text-xs text-surface-400 dark:text-surface-500">
-        {{ t('app.title') }} · {{ currentYear }}
+        {{ t('app.title') }} · v{{ appVersion }} · {{ currentYear }}
       </p>
     </div>
   </div>
