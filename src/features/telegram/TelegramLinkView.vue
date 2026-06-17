@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useConfirm } from 'primevue/useconfirm'
 import { useToast } from 'primevue/usetoast'
@@ -8,9 +8,11 @@ import Tag from 'primevue/tag'
 import Message from 'primevue/message'
 import PageHeader from '@/components/PageHeader.vue'
 import { ApiException } from '@/api/client'
+import { useAuthStore } from '@/stores/auth'
 import { telegramLinkApi, deepLinkOf, type TelegramLinkStatus, type TelegramLinkCode } from '@/api/telegramLink'
 
 const { t } = useI18n()
+const auth = useAuthStore()
 const confirm = useConfirm()
 const toast = useToast()
 
@@ -24,6 +26,10 @@ const code = ref<TelegramLinkCode | null>(null)
 const loading = ref(false)
 const linking = ref(false)
 const unlinking = ref(false)
+
+// بوت الشركة يُضبط في «إعدادات الإشعارات» (BE-70). بدونه لا يظهر رابط ربط مباشر.
+const botConfigured = computed(() => !!status.value?.bot_username)
+const canConfigureBot = computed(() => auth.can('notification_settings.manage'))
 
 async function load(): Promise<void> {
   loading.value = true
@@ -95,6 +101,20 @@ onMounted(load)
       </div>
 
       <p v-if="loading" class="text-sm text-surface-500">{{ t('common.loading') }}</p>
+
+      <!-- البوت غير مضبوط: لن يظهر رابط ربط مباشر حتى يُضبط توكن بوت الشركة في إعدادات الإشعارات -->
+      <Message v-if="!loading && status && !botConfigured" severity="warn" :closable="false" class="mb-4">
+        <div class="flex flex-col items-start gap-2">
+          <span>{{ t('telegram.botNotConfigured') }}</span>
+          <RouterLink
+            v-if="canConfigureBot"
+            :to="{ name: 'notification-settings' }"
+            class="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:underline dark:text-primary-300"
+          >
+            <i class="pi pi-cog" />{{ t('telegram.goToNotificationSettings') }}
+          </RouterLink>
+        </div>
+      </Message>
 
       <!-- مربوط -->
       <template v-else-if="status?.linked">

@@ -394,7 +394,9 @@
     "refreshStatus": "Refresh status",
     "unlink": "Unlink",
     "confirmUnlink": "Unlink your Telegram account? You will stop receiving approval requests there.",
-    "unlinked": "Unlinked"
+    "unlinked": "Unlinked",
+    "botNotConfigured": "Your company's Telegram bot isn't configured yet in Notification settings (bot token), so no direct link will appear — the bot token must be set first.",
+    "goToNotificationSettings": "Open notification settings"
   },
   "reportSubs": {
     "title": "Scheduled report subscriptions",
@@ -910,9 +912,10 @@
     "set": "Set ✓",
     "keepCurrent": "Leave empty to keep current",
     "botToken": "Telegram bot token",
-    "chatIds": "Chat IDs",
-    "chatIdsPlaceholder": "Add a chat ID and press Enter",
-    "chatIdsHint": "Chats that receive the company's general notifications.",
+    "botTokenHint": "Create a bot via {'@'}BotFather in Telegram and paste its token here. The same bot also powers the approval bot (each approver links their account from the \"Telegram link\" page).",
+    "chatIds": "System-notification chat IDs",
+    "chatIdsPlaceholder": "Add a chat ID (or admin ID) and press Enter",
+    "chatIdsHint": "Chats/IDs that receive system notifications (daily reports, backups, admin alerts).",
     "testTelegram": "Send Telegram test",
     "mailHost": "SMTP host",
     "mailPort": "Port",
