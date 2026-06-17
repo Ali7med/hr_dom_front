@@ -884,6 +884,8 @@
     "alerts": "Alerts",
     "absences": "Absence resolution",
     "notification_settings": "Notification settings",
+    "excuses": "Excuses",
+    "overtime": "Overtime",
     "backups": "Backups"
   },
   "permActions": {

@@ -884,6 +884,8 @@
     "alerts": "التنبيهات",
     "absences": "معالجة الغياب",
     "notification_settings": "إعدادات الإشعارات",
+    "excuses": "الأذونات",
+    "overtime": "العمل الإضافي",
     "backups": "النسخ الاحتياطية"
   },
   "permActions": {
