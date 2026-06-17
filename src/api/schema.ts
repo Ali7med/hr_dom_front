@@ -1430,6 +1430,152 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/system/queue/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * حالة عامل الطابور (يعمل/متوقّف + نبضة + عدّادات) — يتطلّب queue.manage
+         * @description يُرجِع حالة عامل الطابور مشتقّة من النبضة (heartbeat): running=true إن وُجدت نبضة طازجة ضمن العتبة (heartbeat_stale_after). مع عدّادات المهام (المعلّقة/المحجوزة/الفاشلة)، ومعرّفات العمليات النشطة، والسائق المُستخدَم (process على ويندوز / supervisor على لينكس).
+         */
+        get: operations["getQueueStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/system/queue/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * تشغيل عامل الطابور (يُطلق العملية إن لم تكن تعمل) — يتطلّب queue.manage
+         * @description يُشغّل عاملاً جديداً عبر السائق المُهيّأ. حارس ضد التشغيل المزدوج (يردّ 409 إن كانت نبضة طازجة موجودة، ما لم يُمرَّر force=true). يُسجَّل في التدقيق (queue.worker.started).
+         */
+        post: operations["startQueueWorker"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/system/queue/stop": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * إيقاف عامل الطابور (إيقاف رشيق) — يتطلّب queue.manage
+         * @description يوقف العمّال رشيقاً (queue:restart يجعلها تُنهي المهمة الحالية ثم تخرج، أو إنهاء العملية المتتبَّعة/supervisorctl stop). يُسجَّل في التدقيق (queue.worker.stopped).
+         */
+        post: operations["stopQueueWorker"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/system/queue/restart": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** إعادة تشغيل عامل الطابور (إعادة رشيقة لالتقاط الكود الجديد) — يتطلّب queue.manage */
+        post: operations["restartQueueWorker"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/system/queue/failed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** قائمة المهام الفاشلة (مع ترقيم) — يتطلّب queue.manage */
+        get: operations["listFailedJobs"];
+        put?: never;
+        post?: never;
+        /** مسح كل المهام الفاشلة (flush) — يتطلّب queue.manage */
+        delete: operations["flushFailedJobs"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/system/queue/failed/retry-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** إعادة محاولة كل المهام الفاشلة — يتطلّب queue.manage */
+        post: operations["retryAllFailedJobs"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/system/queue/failed/{id}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** إعادة محاولة مهمة فاشلة واحدة — يتطلّب queue.manage */
+        post: operations["retryFailedJob"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/system/queue/failed/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** حذف مهمة فاشلة واحدة (forget) — يتطلّب queue.manage */
+        delete: operations["forgetFailedJob"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/me/payslips": {
         parameters: {
             query?: never;
@@ -1873,6 +2019,133 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/onboarding-templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** قوالب مهام التعيين/إنهاء التعيين — يتطلّب onboarding.manage */
+        get: operations["listOnboardingTemplates"];
+        put?: never;
+        /** إنشاء قالب مهام — يتطلّب onboarding.manage */
+        post: operations["createOnboardingTemplate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/onboarding-templates/{template}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** تعديل قالب مهام — يتطلّب onboarding.manage */
+        put: operations["updateOnboardingTemplate"];
+        post?: never;
+        /** حذف قالب مهام — يتطلّب onboarding.manage */
+        delete: operations["deleteOnboardingTemplate"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/onboarding-processes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** سجلّ سير التعيين/إنهاء التعيين (فلاتر + تقدّم) — يتطلّب onboarding.manage */
+        get: operations["listOnboardingProcesses"];
+        put?: never;
+        /** بدء سير تعيين/إنهاء لموظف من قالب — يتطلّب onboarding.manage */
+        post: operations["createOnboardingProcess"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/onboarding-processes/{process}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** تفاصيل سير + مهامه ونسبة الإنجاز */
+        get: operations["showOnboardingProcess"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/onboarding-tasks/{task}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** تعليم مهمة منجزة (المسؤول عنها أو onboarding.manage) */
+        post: operations["completeOnboardingTask"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/telegram-link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** حالة ربط حساب تيليجرام للموظف الحالي */
+        get: operations["getMyTelegramLink"];
+        put?: never;
+        /** توليد كود/رابط ربط لمرة واحدة (deep-link لبوت الشركة) */
+        post: operations["createMyTelegramLink"];
+        /** فكّ ربط حساب تيليجرام */
+        delete: operations["deleteMyTelegramLink"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/integrations/telegram/webhook": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * نقطة استقبال تحديثات تيليجرام (callbacks الأزرار) — محميّة بـ secret token لا OAuth
+         * @description يستدعيها خادم تيليجرام (لا عملاء المشروع). تُؤمَّن بترويسة secret token متّفق عليها مع تيليجرام. تعالج: ربط الحساب (start code) واعتماد/رفض الطلب عند ضغط الزر (callback_query) بعد التحقّق من ربط الحساب وصلاحية المعتمِد وأن الطلب ما زال pending.
+         */
+        post: operations["telegramWebhook"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/version": {
         parameters: {
             query?: never;
@@ -2222,6 +2495,24 @@ export interface paths {
         get: operations["showAlert"];
         put?: never;
         post?: never;
+        /** حذف تنبيه (يزيله من السجل وصناديق الوارد) — يتطلّب alerts.send */
+        delete: operations["deleteAlert"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/alerts/{alert}/resend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** إعادة إرسال تنبيه سابق فوراً (ينسخه ويرسله) — يتطلّب alerts.send */
+        post: operations["resendAlert"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2722,6 +3013,19 @@ export interface components {
              * @default false
              */
             requires_ack: boolean;
+            /** @description قنوات الإرسال (أي مزيج). الإيميل/تيليجرام عبر إعدادات الإشعارات للشركة (BE-70). صندوق الوارد داخل التطبيق يبقى دائماً (هو السجل). الافتراضي [push] إن غابت. */
+            channels?: ("push" | "email" | "telegram")[];
+            /**
+             * @description تكرار الإرسال. once = فوري لمرة واحدة (الافتراضي)؛ غيرها = جدولة دورية عبر أمر مجدول.
+             * @default once
+             * @enum {string}
+             */
+            frequency: "once" | "daily" | "weekly" | "monthly";
+            /**
+             * Format: date
+             * @description تاريخ إيقاف التكرار (اختياري؛ يُتجاهَل عند frequency=once).
+             */
+            repeat_until?: string | null;
             /** @description حمولة إضافية اختيارية تُمرَّر في دفع FCM. */
             data?: {
                 [key: string]: unknown;
@@ -2830,6 +3134,32 @@ export interface components {
             /** Format: date */
             to_date: string;
         };
+        OnboardingTemplateInput: {
+            /** @enum {string} */
+            type: "onboarding" | "offboarding";
+            name: string;
+            /** @description بنود المهام في القالب. */
+            items: {
+                title: string;
+                /** @description الدور المسؤول افتراضياً (HR/IT/Finance…). */
+                assignee_role?: string | null;
+                /** @description أيام الاستحقاق من تاريخ البدء. */
+                due_offset_days?: number | null;
+            }[];
+        };
+        OnboardingProcessInput: {
+            /** @description الموظف المعنيّ. */
+            user_id: number;
+            /** @enum {string} */
+            type: "onboarding" | "offboarding";
+            /** @description القالب المستخدَم (إن غاب يُؤخذ القالب الافتراضي للنوع). */
+            template_id?: number | null;
+            /**
+             * Format: date
+             * @description تاريخ البدء (التعيين) أو المغادرة (إنهاء التعيين) — يُحتسب منه استحقاق المهام.
+             */
+            start_date?: string;
+        };
         BackupSettingsInput: {
             /**
              * @description تشغيل/إيقاف الجدولة التلقائية من اللوحة.
@@ -2864,6 +3194,65 @@ export interface components {
             notify_telegram_chat_ids?: string[];
             /** @description عناوين الإيميل التي تُرسَل إليها إشعارات النسخة (لكل شركة). */
             notify_emails?: string[];
+        };
+        /** @description مُدخلات اختيارية للتحكّم بعامل الطابور (BE-86). */
+        QueueControlInput: {
+            /**
+             * @description تجاوز حارس التشغيل المزدوج (يُشغّل عاملاً جديداً حتى لو بدت نبضة طازجة).
+             * @default false
+             */
+            force: boolean;
+        };
+        /** @description حالة عامل الطابور المشتقّة من النبضة والعدّادات (BE-86). */
+        QueueStatus: {
+            /** @description هل هناك عامل حيّ (نبضة ضمن العتبة). */
+            running: boolean;
+            /**
+             * @description السائق المُستخدَم لإدارة العملية (process على ويندوز/التطوير، supervisor على لينكس/الإنتاج).
+             * @enum {string}
+             */
+            driver: "process" | "supervisor";
+            /** @description عدد العمّال الذين بثّوا نبضة طازجة. */
+            worker_count?: number;
+            /** @description معرّفات عمليات العمّال النشطين (إن توفّرت من السائق). */
+            worker_pids?: number[];
+            /**
+             * Format: date-time
+             * @description وقت آخر نبضة (null إن لم تُسجَّل قطّ).
+             */
+            last_heartbeat_at?: string | null;
+            /** @description عمر آخر نبضة بالثواني (null إن لا نبضة). */
+            heartbeat_age_seconds?: number | null;
+            /** @description العتبة بالثواني التي بعدها تُعتبر النبضة قديمة فالعامل متوقّفاً (قابلة للضبط). */
+            heartbeat_stale_after?: number;
+            /** @description عدد المهام المعلّقة في جدول jobs. */
+            pending_jobs: number;
+            /** @description عدد المهام المحجوزة (قيد المعالجة). */
+            reserved_jobs: number;
+            /** @description عدد المهام الفاشلة في جدول failed_jobs. */
+            failed_jobs: number;
+            /**
+             * Format: date-time
+             * @description وقت آخر تشغيل عبر اللوحة (إن عُرِف).
+             */
+            started_at?: string | null;
+            /** @description اتصال الطابور المُهيّأ (database/redis…). */
+            queue_connection?: string;
+        };
+        /** @description مهمة فاشلة في جدول failed_jobs (BE-86). */
+        FailedJob: {
+            /** @description المعرّف التسلسلي. */
+            id?: number;
+            /** @description المعرّف الفريد للمهمة (يُستخدَم لإعادة المحاولة/الحذف). */
+            uuid?: string;
+            connection?: string;
+            queue?: string;
+            /** @description اسم صنف المهمة (displayName) إن أمكن استخراجه. */
+            job_name?: string | null;
+            /** @description ملخّص رسالة الاستثناء (السطر الأول). */
+            exception?: string;
+            /** Format: date-time */
+            failed_at?: string;
         };
         /** @description إعدادات إشعارات الشركة (BE-70). الأسرار (`telegram_bot_token`، `mail_password`) writeOnly: تُرسَل في PUT فقط ولا تُعاد في GET (يُعاد بدلها علم `*_set`). تُخزَّن مشفّرة. الحقول الفارغة/الغائبة = رجوع لقيم النظام (.env). */
         NotificationSettingsInput: {
@@ -5008,6 +5397,193 @@ export interface operations {
             422: components["responses"]["ErrorResponse"];
         };
     };
+    getQueueStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description حالة الطابور */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope"] & {
+                        data?: components["schemas"]["QueueStatus"];
+                    };
+                };
+            };
+            403: components["responses"]["ErrorResponse"];
+        };
+    };
+    startQueueWorker: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["QueueControlInput"];
+            };
+        };
+        responses: {
+            /** @description تمّ التشغيل (تُرجَع الحالة المحدّثة) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope"] & {
+                        data?: components["schemas"]["QueueStatus"];
+                    };
+                };
+            };
+            403: components["responses"]["ErrorResponse"];
+            409: components["responses"]["ErrorResponse"];
+            422: components["responses"]["ErrorResponse"];
+            500: components["responses"]["ErrorResponse"];
+        };
+    };
+    stopQueueWorker: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description تمّ الإيقاف (تُرجَع الحالة المحدّثة) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope"] & {
+                        data?: components["schemas"]["QueueStatus"];
+                    };
+                };
+            };
+            403: components["responses"]["ErrorResponse"];
+            500: components["responses"]["ErrorResponse"];
+        };
+    };
+    restartQueueWorker: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description تمّت إعادة التشغيل (تُرجَع الحالة المحدّثة) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope"] & {
+                        data?: components["schemas"]["QueueStatus"];
+                    };
+                };
+            };
+            403: components["responses"]["ErrorResponse"];
+            500: components["responses"]["ErrorResponse"];
+        };
+    };
+    listFailedJobs: {
+        parameters: {
+            query?: {
+                per_page?: number;
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description المهام الفاشلة */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope"] & {
+                        data?: components["schemas"]["FailedJob"][];
+                    };
+                };
+            };
+            403: components["responses"]["ErrorResponse"];
+        };
+    };
+    flushFailedJobs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+        };
+    };
+    retryAllFailedJobs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+        };
+    };
+    retryFailedJob: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description معرّف المهمة الفاشلة (uuid أو id) */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+            404: components["responses"]["ErrorResponse"];
+        };
+    };
+    forgetFailedJob: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description معرّف المهمة الفاشلة (uuid أو id) */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+            404: components["responses"]["ErrorResponse"];
+        };
+    };
     listMyPayslips: {
         parameters: {
             query?: never;
@@ -5528,6 +6104,185 @@ export interface operations {
             404: components["responses"]["ErrorResponse"];
         };
     };
+    listOnboardingTemplates: {
+        parameters: {
+            query?: {
+                type?: "onboarding" | "offboarding";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+        };
+    };
+    createOnboardingTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OnboardingTemplateInput"];
+            };
+        };
+        responses: {
+            201: components["responses"]["EnvelopeOk"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    updateOnboardingTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                template: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OnboardingTemplateInput"];
+            };
+        };
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            404: components["responses"]["ErrorResponse"];
+        };
+    };
+    deleteOnboardingTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                template: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            404: components["responses"]["ErrorResponse"];
+        };
+    };
+    listOnboardingProcesses: {
+        parameters: {
+            query?: {
+                type?: "onboarding" | "offboarding";
+                status?: "in_progress" | "completed";
+                user_id?: number;
+                per_page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+        };
+    };
+    createOnboardingProcess: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OnboardingProcessInput"];
+            };
+        };
+        responses: {
+            201: components["responses"]["EnvelopeOk"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    showOnboardingProcess: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                process: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            404: components["responses"]["ErrorResponse"];
+        };
+    };
+    completeOnboardingTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            404: components["responses"]["ErrorResponse"];
+        };
+    };
+    getMyTelegramLink: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+        };
+    };
+    createMyTelegramLink: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: components["responses"]["EnvelopeOk"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    deleteMyTelegramLink: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+        };
+    };
+    telegramWebhook: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+        };
+    };
     getVersion: {
         parameters: {
             query?: never;
@@ -5917,6 +6672,36 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: components["responses"]["EnvelopeOk"];
+            404: components["responses"]["ErrorResponse"];
+        };
+    };
+    deleteAlert: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                alert: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            404: components["responses"]["ErrorResponse"];
+        };
+    };
+    resendAlert: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                alert: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: components["responses"]["EnvelopeOk"];
             404: components["responses"]["ErrorResponse"];
         };
     };
