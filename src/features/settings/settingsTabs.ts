@@ -24,6 +24,7 @@ export const settingsTabs: SettingsTab[] = [
     icon: 'pi pi-sliders-h',
     permission: ['currencies.view', 'salary_rules.view', 'penalty_rules.view', 'bonuses.view'],
   },
+  { name: 'notification-settings', key: 'nav.notificationSettings', icon: 'pi pi-send', permission: 'notification_settings.manage' },
   { name: 'backups', key: 'nav.backups', icon: 'pi pi-database', permission: 'backups.manage' },
 ]
 

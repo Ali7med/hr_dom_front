@@ -1364,7 +1364,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** سجلّ النسخ الاحتياطية (الحجم/الحالة/التاريخ) — يتطلّب backups.manage (Super Admin) */
+        /** سجلّ النسخ الاحتياطية (الحجم/الحالة/التاريخ) — يتطلّب backups.manage */
         get: operations["listBackups"];
         put?: never;
         /** تشغيل نسخة احتياطية آنية (غير متزامن عبر الطابور) — يتطلّب backups.manage */
@@ -1382,7 +1382,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** تنزيل ملف نسخة احتياطية (رابط موقّع مؤقّت + Super Admin فقط) */
+        /** تنزيل ملف نسخة احتياطية (رابط موقّع مؤقّت أو صاحب backups.manage) */
         get: operations["downloadBackup"];
         put?: never;
         post?: never;
@@ -1673,6 +1673,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/shift-swap-options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * خيارات بناء طلب التبديل للموظف الحالي (بلا صلاحية — مرتبط بالموظف)
+         * @description يُرجِع ما يحتاجه التطبيق لبناء طلب تبديل وردية: `my_schedules` (جداول ورديات الموظف القادمة مع schedule_id/التاريخ/اسم الوردية/الأوقات) و`colleagues` (زملاء نفس الشركة/القسم مع جداول ورديتهم القابلة للتبديل). مرتبط بالموظف الحالي عبر auth — يستهلكه MO-22.
+         */
+        get: operations["getMyShiftSwapOptions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/shift-swaps/{swap}/approve": {
         parameters: {
             query?: never;
@@ -1785,8 +1805,31 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** تنزيل مستند (رابط موقّع) — يتطلّب documents.view */
+        /**
+         * تنزيل مستند (رابط موقّع) — يتطلّب documents.view أو مالك المستند
+         * @description يتطلّب صلاحية documents.view، **أو** أن يكون الطالب مالك المستند نفسه (تنزيل ذاتي من التطبيق — MO-23).
+         */
         get: operations["downloadDocument"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * مستندات الموظف الحالي (بلا صلاحية — مرتبط بالموظف)
+         * @description يُرجِع مستندات الموظف الحالي فقط (مرتبط بـ auth، لا يحتاج documents.view). يستهلكه التطبيق (MO-23) لعرض المستندات + تاريخ الانتهاء، والتنزيل عبر `GET /documents/{document}/download` (مسموح للمالك).
+         */
+        get: operations["listMyDocuments"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2085,6 +2128,47 @@ export interface paths {
         /** تعديل إعدادات الشركة */
         put: operations["updateCompanySettings"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{company}/notification-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * جلب إعدادات إشعارات الشركة (الأسرار تُعاد كأعلام set فقط)
+         * @description يُعيد الإعدادات غير الحسّاسة + أعلام وجود الأسرار (`telegram_bot_token_set`، `mail_password_set`). توكن البوت وكلمة مرور SMTP لا تُعادان أبداً. الصلاحية `notification_settings.manage` (Company Admin لشركته، Super Admin لأي شركة).
+         */
+        get: operations["getNotificationSettings"];
+        /** تعديل إعدادات إشعارات الشركة */
+        put: operations["updateNotificationSettings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{company}/notification-settings/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * إرسال رسالة اختبار للتحقّق من الإعداد (تلكرام/إيميل)
+         * @description يرسل رسالة/إيميل اختباري باستخدام الإعدادات المحفوظة للشركة (أو القيم المُرسَلة في الجسم قبل الحفظ) ليتأكّد المدير أن التوكن/SMTP يعملان. لا يحفظ شيئاً.
+         */
+        post: operations["testNotificationSettings"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2779,6 +2863,48 @@ export interface components {
             /** @description معرّفات محادثات تلكرام التي تُرسَل إليها إشعارات النسخة (لكل شركة). */
             notify_telegram_chat_ids?: string[];
             /** @description عناوين الإيميل التي تُرسَل إليها إشعارات النسخة (لكل شركة). */
+            notify_emails?: string[];
+        };
+        /** @description إعدادات إشعارات الشركة (BE-70). الأسرار (`telegram_bot_token`، `mail_password`) writeOnly: تُرسَل في PUT فقط ولا تُعاد في GET (يُعاد بدلها علم `*_set`). تُخزَّن مشفّرة. الحقول الفارغة/الغائبة = رجوع لقيم النظام (.env). */
+        NotificationSettingsInput: {
+            /**
+             * @description تفعيل إشعارات تلكرام لهذه الشركة.
+             * @default false
+             */
+            telegram_enabled: boolean;
+            /** @description توكن بوت تلكرام (من @BotFather). تُرسَل في PUT فقط، تُخزَّن مشفّرة، ولا تُعاد. فارغ = إبقاء الحالي؛ null = مسح والرجوع لتوكن النظام. */
+            telegram_bot_token?: string | null;
+            /** @description معرّفات محادثات تلكرام الافتراضية لإشعارات الشركة العامة. */
+            telegram_chat_ids?: string[];
+            /**
+             * @description استخدام SMTP خاص بالشركة بدل خادم البريد الافتراضي للنظام.
+             * @default false
+             */
+            smtp_enabled: boolean;
+            /** @description عنوان خادم SMTP. */
+            mail_host?: string | null;
+            /**
+             * @description منفذ SMTP.
+             * @example 587
+             */
+            mail_port?: number | null;
+            /**
+             * @description نوع التشفير (tls/ssl/بلا).
+             * @enum {string|null}
+             */
+            mail_encryption?: "tls" | "ssl" | null;
+            /** @description اسم مستخدم SMTP. */
+            mail_username?: string | null;
+            /** @description كلمة مرور SMTP. تُرسَل في PUT فقط، تُخزَّن مشفّرة، ولا تُعاد. فارغ = إبقاء الحالية. */
+            mail_password?: string | null;
+            /**
+             * Format: email
+             * @description عنوان المُرسِل (From).
+             */
+            mail_from_address?: string | null;
+            /** @description اسم المُرسِل المعروض. */
+            mail_from_name?: string | null;
+            /** @description عناوين الإيميل الافتراضية لإشعارات الشركة العامة. */
             notify_emails?: string[];
         };
     };
@@ -5172,6 +5298,18 @@ export interface operations {
             200: components["responses"]["EnvelopeOk"];
         };
     };
+    getMyShiftSwapOptions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+        };
+    };
     approveShiftSwap: {
         parameters: {
             query?: never;
@@ -5332,6 +5470,18 @@ export interface operations {
                 content?: never;
             };
             404: components["responses"]["ErrorResponse"];
+        };
+    };
+    listMyDocuments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
         };
     };
     listApprovalDelegations: {
@@ -5634,6 +5784,69 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: components["responses"]["EnvelopeOk"];
+        };
+    };
+    getNotificationSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                company: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+        };
+    };
+    updateNotificationSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                company: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NotificationSettingsInput"];
+            };
+        };
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    testNotificationSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                company: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * @description القناة المراد اختبارها.
+                     * @enum {string}
+                     */
+                    channel: "telegram" | "email";
+                    /** @description وجهة الاختبار (chat_id أو بريد). إن غابت يُستخدم أول مستلِم مضبوط. */
+                    target?: string;
+                };
+            };
+        };
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+            422: components["responses"]["ErrorResponse"];
         };
     };
     listDepartments: {

@@ -27,6 +27,13 @@
 - الملفات الرئيسية: 5 عملاء API + 5 صفحات + `src/router/index.ts` (5 مسارات) + `src/layouts/AppLayout.vue` (5 عناصر تنقّل، قسم العمليات) + `src/locales/{ar,en}.json` (5 أقسام + مفاتيح nav) + `src/api/schema.ts` (مُعاد توليده). **لا تغيير على العقد**.
 - قرارات/ملاحظات: **Contract-First** (نمط FE-23/24/25). **التحقّق الحيّ محجوب:** الباك BE-29/66/67/68/69 todo (404) + صلاحيات `overtime.*`/`documents.*` غير مزروعة (تُخفي عنصرَي تنقّل overtime/documents حتى يزرعها الباك). بنى السجلات دفاعية. التفاصيل الموسّعة في `hr_dom_docs/WORKLOG.md`.
 - الاختبارات: `type-check` + `build` خضراء على قمة السلسلة (`feature/FE-30`)، صفر أخطاء، الخمس صفحات في chunks منفصلة. تحقّق حيّ مؤجَّل لما بعد نشر الباك.
+## [2026-06-14] FE-31 + FE-32 — إعدادات الإشعارات لكل شركة + تعريب صلاحيتَي excuses/overtime (review)
+- ما أُنجز: فرعان مستقلّان فوق `main` (اعتماديات خلفية مختلفة):
+  - **FE-31** `feature/FE-31` (`2204b9a`): تبويب إعدادات `/settings/notifications` (محروس `notification_settings.manage`). `src/api/notificationSettings.ts` (get/update/test) + `src/features/settings/NotificationSettingsView.vue` — بطاقة تلكرام (ToggleSwitch + توكن `Password` write-only + InputChips محادثات + زر اختبار) + بطاقة SMTP (host/port/encryption/username/password write-only/from/InputChips إيميلات + زر اختبار) + تنبيه أمني ADR-0004. الأسرار تُرسَل عند الإدخال فقط. أُعيد توليد `schema.ts`. أُضيف لـ `settingsTabs.ts` + المسار + locales + `permGroups.notification_settings`.
+  - **FE-32** `feature/FE-32` (`92aa785`): تعريب `permGroups.excuses` + `permGroups.overtime` (ar/en). حارس النسخ كان أصلاً `backups.manage` (لا `isSuperAdmin`) — لا تغيير حارس مطلوب.
+- الملفات الرئيسية: `src/api/notificationSettings.ts`، `src/features/settings/NotificationSettingsView.vue`، `settingsTabs.ts`، `router/index.ts`، `locales/{ar,en}.json`، `schema.ts`. وفي غرفة العمليات [`PROGRESS.md`](../hr_dom_docs/PROGRESS.md). **لا تغيير على العقد**.
+- قرارات/ملاحظات: الشركة من `auth.user.company_id`. **محجوب حيّاً:** BE-70/BE-71 todo (404 + صلاحية غير مزروعة). التفاصيل في `hr_dom_docs/WORKLOG.md`.
+- الاختبارات: `type-check`+`build` خضراء؛ FE-32 تعريب فقط.
 
 ## [2026-06-11] FE-22 — إعداد تذكيرات البصمة في إعدادات الشركة (review)
 - ما أُنجز: أُضيفت لصفحة إعدادات الشركة (`CompanySettingsView`) بطاقة **«تذكيرات البصمة»** (تعديل على FE-03، تُمكِّن BE-19): مفتاحا تفعيل (`ToggleSwitch`) لتذكير **الدخول** و**الخروج** + حقلا إزاحة (`InputNumber`، يُعطَّلان عند إيقاف التذكير) + نصوص مساعدة. تُقرأ/تُحفظ ضمن **جسم settings الحرّ** عبر `PUT /companies/{id}/settings` القائم (دمج مع بقية المفاتيح، **بلا تغيير على العقد**).

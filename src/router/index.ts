@@ -183,6 +183,12 @@ const router = createRouter({
               meta: { permission: ['currencies.view', 'salary_rules.view', 'penalty_rules.view', 'bonuses.view'] },
             },
             {
+              path: 'notifications',
+              name: 'notification-settings',
+              component: () => import('@/features/settings/NotificationSettingsView.vue'),
+              meta: { permission: 'notification_settings.manage' },
+            },
+            {
               path: 'backups',
               name: 'backups',
               component: () => import('@/features/backups/BackupsView.vue'),
