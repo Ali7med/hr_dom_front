@@ -116,8 +116,8 @@ onMounted(load)
         </div>
       </Message>
 
-      <!-- مربوط -->
-      <template v-else-if="status?.linked">
+      <!-- مربوط (شرط مستقلّ كي لا يبتلع تحذيرُ «البوت غير مضبوط» هذه الكتلة) -->
+      <template v-if="!loading && status?.linked">
         <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-surface-50 px-4 py-3 dark:bg-surface-800">
           <div class="text-sm">
             <span class="text-surface-500">{{ t('telegram.account') }}:</span>
@@ -128,7 +128,7 @@ onMounted(load)
       </template>
 
       <!-- غير مربوط -->
-      <template v-else-if="status">
+      <template v-if="!loading && status && !status.linked">
         <Message severity="info" :closable="false" class="mb-4">{{ t('telegram.instructions') }}</Message>
         <Button :label="t('telegram.link')" icon="pi pi-link" :loading="linking" @click="startLink" />
 

@@ -25,9 +25,10 @@ export const settingsTabs: SettingsTab[] = [
     permission: ['currencies.view', 'salary_rules.view', 'penalty_rules.view', 'bonuses.view'],
   },
   { name: 'notification-settings', key: 'nav.notificationSettings', icon: 'pi pi-send', permission: 'notification_settings.manage' },
-  // ربط حساب تيليجرام لبوت الموافقات — خدمة ذاتية (بلا صلاحية): تظهر لأي مستخدم يصل للإعدادات.
-  { name: 'telegram-link', key: 'nav.telegramLink', icon: 'pi pi-telegram' },
   { name: 'backups', key: 'nav.backups', icon: 'pi pi-database', permission: 'backups.manage' },
+  // ربط حساب تيليجرام لبوت الموافقات — خدمة ذاتية (بلا صلاحية): تظهر لأي مستخدم يصل للإعدادات.
+  // يُبقى أخيراً كي لا يصبح وجهة إعادة التوجيه الافتراضية لمستخدم يملك تبويباً واحداً فقط بصلاحية.
+  { name: 'telegram-link', key: 'nav.telegramLink', icon: 'pi pi-telegram' },
 ]
 
 // كل صلاحيات الضبط مجموعةً — للوصول لصفحة الإعدادات يكفي امتلاك أيٍّ منها.

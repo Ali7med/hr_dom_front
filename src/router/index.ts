@@ -202,9 +202,12 @@ const router = createRouter({
             },
             {
               // ربط تيليجرام لبوت الموافقات — خدمة ذاتية (بلا صلاحية)؛ نُقِل إلى الإعدادات.
+              // `permission: []` يتجاوز حارس الأب (allSettingsPermissions) فيبقى متاحاً لأي مستخدم
+              // مُصادَق (مثل المعتمِدين غير الإداريين) — وإلا لحُجبوا بـ 403.
               path: 'telegram-link',
               name: 'telegram-link',
               component: () => import('@/features/telegram/TelegramLinkView.vue'),
+              meta: { permission: [] },
             },
             {
               path: 'backups',
