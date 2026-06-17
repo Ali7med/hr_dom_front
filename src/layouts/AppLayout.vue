@@ -29,6 +29,8 @@ interface NavItem {
 const allNavItems: NavItem[] = [
   { to: { name: 'dashboard' }, name: 'dashboard', key: 'nav.dashboard', icon: 'pi pi-th-large', section: 'general' },
   { to: { name: 'my-payslips' }, name: 'my-payslips', key: 'nav.myPayslips', icon: 'pi pi-receipt', section: 'general' },
+  { to: { name: 'my-leaves' }, name: 'my-leaves', key: 'nav.myLeaves', icon: 'pi pi-sun', section: 'general' },
+  { to: { name: 'my-attendance' }, name: 'my-attendance', key: 'nav.myAttendance', icon: 'pi pi-calendar-clock', section: 'general' },
   { to: { name: 'telegram-link' }, name: 'telegram-link', key: 'nav.telegramLink', icon: 'pi pi-telegram', section: 'general' },
   { to: { name: 'leaves' }, name: 'leaves', key: 'nav.leaves', icon: 'pi pi-sun', permission: 'leaves.view', section: 'operations' },
   { to: { name: 'calendar' }, name: 'calendar', key: 'nav.calendar', icon: 'pi pi-calendar', permission: ['shifts.view', 'schedules.view', 'holidays.view', 'leaves.view'], section: 'operations' },

@@ -482,6 +482,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/schedules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * جداول ورديات الموظف الحالي ضمن مدى (بلا صلاحية — مرتبط بالموظف، MO-26)
+         * @description يُرجِع جداول ورديات الموظف الحالي (المتكرّرة + بتاريخ ضمن from/to) بشكل مسطّح (`schedule_id/date/weekday/shift_name/start_time/end_time`) لبناء التقويم في التطبيق (MO-26).
+         */
+        get: operations["getMySchedules"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/holidays": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** عطل الشركة ضمن مدى للموظف الحالي (بلا صلاحية، MO-26) */
+        get: operations["getMyHolidays"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/holidays": {
         parameters: {
             query?: never;
@@ -529,6 +566,26 @@ export interface paths {
         };
         /** TODO: سجلات الحضور */
         get: operations["listAttendance"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/attendance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * سجلات حضور الموظف الحالي (بلا صلاحية — مرتبط بالموظف) — FE-36 (ESS)
+         * @description يُرجِع سجلات حضور الموظف الحالي فقط (مرتبط بـ auth، لا يحتاج attendance.view). يدعم فلتر الشهر (month=YYYY-MM) أو from/to + ترقيم؛ وملخّص الفترة في meta (أيام الحضور/الغياب/التأخّر/ساعات العمل). يستهلكه بوابة الموظف على الويب (FE-36).
+         */
+        get: operations["listMyAttendance"];
         put?: never;
         post?: never;
         delete?: never;
@@ -705,6 +762,46 @@ export interface paths {
         };
         /** طلبات الإجازة للموظف الحالي */
         get: operations["listMyLeaves"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/leave-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * أنواع الإجازات المتاحة للموظف الحالي (بلا صلاحية — للتقديم الذاتي) — FE-36 (ESS)
+         * @description يُرجِع أنواع الإجازات الفعّالة للشركة (id/name/kind/is_paid/needs_approval + الحدود max_days_per_request/max_hours_per_day/allowed_from/allowed_to/day_equivalent_hours) لتعبئة نموذج تقديم الإجازة في بوابة الموظف (FE-36)، دون اشتراط leaves.view.
+         */
+        get: operations["listMyLeaveTypes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/leave-balances": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * أرصدة إجازات الموظف الحالي (بلا صلاحية — مرتبط بالموظف) — FE-36 (ESS)
+         * @description يُرجِع أرصدة إجازات الموظف الحالي فقط (مرتبط بـ auth، لا يحتاج leaves.view): لكل نوع {leave_type_id, leave_type_name, balance, used?}. لبوابة الموظف على الويب (FE-36).
+         */
+        get: operations["listMyLeaveBalances"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4131,6 +4228,36 @@ export interface operations {
             200: components["responses"]["EnvelopeOk"];
         };
     };
+    getMySchedules: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+        };
+    };
+    getMyHolidays: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+        };
+    };
     listHolidays: {
         parameters: {
             query?: never;
@@ -4203,6 +4330,25 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: components["responses"]["TodoResponse"];
+        };
+    };
+    listMyAttendance: {
+        parameters: {
+            query?: {
+                /** @example 2026-06 */
+                month?: string;
+                from?: string;
+                to?: string;
+                per_page?: number;
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
         };
     };
     bindDevice: {
@@ -4416,6 +4562,30 @@ export interface operations {
         };
     };
     listMyLeaves: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+        };
+    };
+    listMyLeaveTypes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+        };
+    };
+    listMyLeaveBalances: {
         parameters: {
             query?: never;
             header?: never;
