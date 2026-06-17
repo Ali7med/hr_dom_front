@@ -99,6 +99,12 @@ const router = createRouter({
           meta: { permission: ['leaves.approve', 'excuses.approve', 'overtime.approve'] },
         },
         {
+          path: 'onboarding',
+          name: 'onboarding',
+          component: () => import('@/features/onboarding/OnboardingView.vue'),
+          meta: { permission: 'onboarding.manage' },
+        },
+        {
           path: 'reports',
           name: 'reports',
           component: () => import('@/features/reports/ReportsView.vue'),
