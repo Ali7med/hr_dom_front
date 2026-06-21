@@ -2,6 +2,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useToast } from 'primevue/usetoast'
+import { useConfirm } from 'primevue/useconfirm'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Button from 'primevue/button'
@@ -11,14 +12,19 @@ import Textarea from 'primevue/textarea'
 import Select from 'primevue/select'
 import MultiSelect from 'primevue/multiselect'
 import ToggleSwitch from 'primevue/toggleswitch'
+import Checkbox from 'primevue/checkbox'
 import Tag from 'primevue/tag'
 import { ApiException } from '@/api/client'
-import { alertsApi, type Alert, type AlertInput, type AlertTargetType } from '@/api/alerts'
+import { alertsApi, type Alert, type AlertInput, type AlertTargetType, type AlertChannel, type AlertFrequency } from '@/api/alerts'
 import { usersApi, departmentsApi, type User, type Department } from '@/api/users'
 import PageHeader from '@/components/PageHeader.vue'
 
 const { t } = useI18n()
 const toast = useToast()
+const confirm = useConfirm()
+
+const CHANNELS: AlertChannel[] = ['push', 'email', 'telegram']
+const acting = ref<number | null>(null)
 
 const alerts = ref<Alert[]>([])
 const departments = ref<Department[]>([])
@@ -41,7 +47,18 @@ const form = reactive({
   department_ids: [] as number[],
   user_ids: [] as number[],
   requires_ack: false,
+  channels: ['push'] as AlertChannel[],
+  frequency: 'once' as AlertFrequency,
+  repeat_until: '',
 })
+const isRecurring = computed(() => form.frequency !== 'once')
+
+const frequencyOptions = computed(() => [
+  { label: t('alerts.freq.once'), value: 'once' },
+  { label: t('alerts.freq.daily'), value: 'daily' },
+  { label: t('alerts.freq.weekly'), value: 'weekly' },
+  { label: t('alerts.freq.monthly'), value: 'monthly' },
+])
 
 // تفاصيل تنبيه (مع قائمة المُقِرّين) — FE-15.
 const showDetails = ref(false)
@@ -75,6 +92,13 @@ function notifyError(e: unknown, fallback: string): void {
 
 function targetLabel(a: Alert): string {
   return t(`alerts.target.${a.target_type}`)
+}
+function channelIcon(c: string): string {
+  return c === 'email' ? 'pi pi-envelope' : c === 'telegram' ? 'pi pi-telegram' : 'pi pi-bell'
+}
+const alertChannels = (a: Alert): string[] => (a.channels && a.channels.length ? a.channels : ['push'])
+function freqLabel(f?: string): string {
+  return t('alerts.freq.' + (f || 'once'))
 }
 
 async function load(): Promise<void> {
@@ -110,7 +134,56 @@ function openCreate(): void {
   form.department_ids = []
   form.user_ids = []
   form.requires_ack = false
+  form.channels = ['push']
+  form.frequency = 'once'
+  form.repeat_until = ''
   showForm.value = true
+}
+
+// حذف تنبيه (بتأكيد) — يزيله من السجل وصناديق الوارد.
+function confirmDelete(a: Alert): void {
+  confirm.require({
+    message: t('alerts.confirmDelete', { title: a.title }),
+    header: t('alerts.deleteTitle'),
+    icon: 'pi pi-exclamation-triangle',
+    acceptProps: { severity: 'danger', label: t('common.delete') },
+    rejectProps: { severity: 'secondary', outlined: true, label: t('common.cancel') },
+    accept: async () => {
+      acting.value = a.id
+      try {
+        await alertsApi.remove(a.id)
+        toast.add({ severity: 'success', summary: t('alerts.deleted'), life: 2500 })
+        await load()
+      } catch (e) {
+        notifyError(e, t('common.saveError'))
+      } finally {
+        acting.value = null
+      }
+    },
+  })
+}
+
+// إعادة إرسال تنبيه سابق فوراً (كتنبيه جديد).
+function confirmResend(a: Alert): void {
+  confirm.require({
+    message: t('alerts.confirmResend', { title: a.title }),
+    header: t('alerts.resend'),
+    icon: 'pi pi-replay',
+    acceptProps: { label: t('alerts.resend') },
+    rejectProps: { severity: 'secondary', outlined: true, label: t('common.cancel') },
+    accept: async () => {
+      acting.value = a.id
+      try {
+        await alertsApi.resend(a.id)
+        toast.add({ severity: 'success', summary: t('alerts.resent'), life: 2500 })
+        await load()
+      } catch (e) {
+        notifyError(e, t('common.saveError'))
+      } finally {
+        acting.value = null
+      }
+    },
+  })
 }
 
 async function submit(): Promise<void> {
@@ -123,6 +196,10 @@ async function submit(): Promise<void> {
     toast.add({ severity: 'warn', summary: t('alerts.targetRequired'), life: 3000 })
     return
   }
+  if (!form.channels.length) {
+    toast.add({ severity: 'warn', summary: t('alerts.channelRequired'), life: 3000 })
+    return
+  }
   saving.value = true
   try {
     // أرسل فقط حقل الاستهداف المعنيّ — إرسال null يفشل تحقّق الباك (array).
@@ -130,10 +207,13 @@ async function submit(): Promise<void> {
       title: form.title,
       body: form.body,
       target_type: form.target_type,
+      channels: form.channels,
+      frequency: form.frequency,
     }
     if (form.target_type === 'department') payload.department_ids = form.department_ids
     else if (form.target_type === 'users') payload.user_ids = form.user_ids
     if (form.requires_ack) payload.requires_ack = true
+    if (isRecurring.value && form.repeat_until) payload.repeat_until = form.repeat_until
     await alertsApi.create(payload)
     showForm.value = false
     toast.add({ severity: 'success', summary: t('alerts.sent'), life: 2500 })
@@ -192,7 +272,15 @@ onMounted(() => {
         <Column field="title" :header="t('alerts.colTitle')" sortable>
           <template #body="{ data }">
             <div class="min-w-0">
-              <div class="font-medium text-surface-900 dark:text-white">{{ data.title }}</div>
+              <div class="flex items-center gap-2">
+                <span class="font-medium text-surface-900 dark:text-white">{{ data.title }}</span>
+                <Tag
+                  v-if="data.frequency && data.frequency !== 'once'"
+                  :value="freqLabel(data.frequency)"
+                  severity="warn"
+                  icon="pi pi-replay"
+                />
+              </div>
               <div class="truncate text-xs text-surface-500">{{ data.body }}</div>
             </div>
           </template>
@@ -200,6 +288,19 @@ onMounted(() => {
         <Column :header="t('alerts.colTarget')">
           <template #body="{ data }">
             <Tag :value="targetLabel(data)" severity="info" />
+          </template>
+        </Column>
+        <Column :header="t('alerts.colChannels')">
+          <template #body="{ data }">
+            <div class="flex gap-1.5 text-surface-500">
+              <i
+                v-for="c in alertChannels(data)"
+                :key="c"
+                v-tooltip.top="t('alerts.channel.' + c)"
+                :class="channelIcon(c)"
+                class="text-sm"
+              />
+            </div>
           </template>
         </Column>
         <Column field="recipients_count" :header="t('alerts.colRecipients')" sortable>
@@ -233,14 +334,36 @@ onMounted(() => {
         </Column>
         <Column class="text-end">
           <template #body="{ data }">
-            <Button
-              v-tooltip.top="t('alerts.details')"
-              icon="pi pi-eye"
-              severity="secondary"
-              text
-              rounded
-              @click="openDetails(data)"
-            />
+            <div class="flex justify-end gap-1">
+              <Button
+                v-tooltip.top="t('alerts.details')"
+                icon="pi pi-eye"
+                severity="secondary"
+                text
+                rounded
+                @click="openDetails(data)"
+              />
+              <Button
+                v-can="'alerts.send'"
+                v-tooltip.top="t('alerts.resend')"
+                icon="pi pi-replay"
+                severity="secondary"
+                text
+                rounded
+                :loading="acting === data.id"
+                @click="confirmResend(data)"
+              />
+              <Button
+                v-can="'alerts.send'"
+                v-tooltip.top="t('common.delete')"
+                icon="pi pi-trash"
+                severity="danger"
+                text
+                rounded
+                :loading="acting === data.id"
+                @click="confirmDelete(data)"
+              />
+            </div>
           </template>
         </Column>
       </DataTable>
@@ -295,6 +418,33 @@ onMounted(() => {
           />
         </label>
 
+        <!-- قنوات الإرسال -->
+        <div class="block text-sm">
+          <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('alerts.channels') }}</span>
+          <div class="flex flex-wrap gap-4">
+            <label v-for="c in CHANNELS" :key="c" class="flex items-center gap-2">
+              <Checkbox v-model="form.channels" :value="c" :input-id="'ch-' + c" />
+              <span class="flex items-center gap-1.5 text-surface-700 dark:text-surface-200">
+                <i :class="channelIcon(c)" class="text-sm text-surface-500" />{{ t('alerts.channel.' + c) }}
+              </span>
+            </label>
+          </div>
+          <span class="mt-1 block text-xs text-surface-500">{{ t('alerts.channelsHint') }}</span>
+        </div>
+
+        <!-- التكرار -->
+        <div class="grid gap-4 sm:grid-cols-2">
+          <label class="block text-sm">
+            <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('alerts.frequency') }}</span>
+            <Select v-model="form.frequency" :options="frequencyOptions" option-label="label" option-value="value" fluid />
+          </label>
+          <label v-if="isRecurring" class="block text-sm">
+            <span class="mb-1.5 block font-medium text-surface-700 dark:text-surface-300">{{ t('alerts.repeatUntil') }}</span>
+            <input v-model="form.repeat_until" type="date" class="field" />
+            <span class="mt-1 block text-xs text-surface-500">{{ t('alerts.repeatUntilHint') }}</span>
+          </label>
+        </div>
+
         <div class="flex items-center justify-between gap-3 rounded-xl border border-surface-200 p-3 dark:border-surface-700">
           <div class="min-w-0">
             <div class="text-sm font-medium text-surface-700 dark:text-surface-200">{{ t('alerts.requiresAck') }}</div>
@@ -347,3 +497,25 @@ onMounted(() => {
     </Dialog>
   </div>
 </template>
+
+<style scoped>
+.field {
+  width: 100%;
+  border-radius: 0.5rem;
+  border: 1px solid rgb(203 213 225);
+  background: #fff;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  color: rgb(15 23 42);
+  outline: none;
+}
+.field:focus {
+  border-color: rgb(99 102 241);
+  box-shadow: 0 0 0 2px rgb(99 102 241 / 0.3);
+}
+:global(.dark) .field {
+  border-color: rgb(51 65 85);
+  background: rgb(30 41 59);
+  color: #fff;
+}
+</style>

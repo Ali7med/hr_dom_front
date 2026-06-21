@@ -5,6 +5,8 @@ import type { Pagination } from './users'
 // (الردود بالغلاف الموحّد؛ الأنواع هنا تعكس ما يُرجِعه الباك المخطّط.)
 
 export type AlertTargetType = 'all' | 'department' | 'users'
+export type AlertChannel = 'push' | 'email' | 'telegram'
+export type AlertFrequency = 'once' | 'daily' | 'weekly' | 'monthly'
 
 // مُقِرّ بتنبيه (BE-52) — يظهر في تفاصيل التنبيه.
 export interface AlertAcknowledger {
@@ -21,6 +23,10 @@ export interface Alert {
   target_type: AlertTargetType
   target_meta?: Record<string, unknown> | null
   requires_ack?: boolean
+  channels?: AlertChannel[] | null
+  frequency?: AlertFrequency
+  repeat_until?: string | null
+  next_run_at?: string | null
   recipients_count: number
   read_count: number
   ack_count?: number
@@ -36,6 +42,9 @@ export interface AlertInput {
   department_ids?: number[] | null
   user_ids?: number[] | null
   requires_ack?: boolean
+  channels?: AlertChannel[]
+  frequency?: AlertFrequency
+  repeat_until?: string | null
   data?: Record<string, unknown> | null
 }
 
@@ -50,8 +59,16 @@ export const alertsApi = {
   get(id: number) {
     return unwrap<Alert>(apiClient.get(`/alerts/${id}`))
   },
-  // إنشاء تنبيه وإرساله (دفع FCM + صندوق وارد داخل التطبيق).
+  // إنشاء تنبيه وإرساله (القنوات المختارة + صندوق وارد داخل التطبيق دائماً).
   create(payload: AlertInput) {
     return unwrap<Alert>(apiClient.post('/alerts', payload))
+  },
+  // حذف تنبيه (يزيله من السجل وصناديق الوارد).
+  remove(id: number) {
+    return unwrap<{ deleted?: boolean }>(apiClient.delete(`/alerts/${id}`))
+  },
+  // إعادة إرسال تنبيه سابق فوراً (ينسخه ويرسله كتنبيه جديد).
+  resend(id: number) {
+    return unwrap<Alert>(apiClient.post(`/alerts/${id}/resend`))
   },
 }
