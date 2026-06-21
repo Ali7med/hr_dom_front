@@ -43,6 +43,7 @@ const allNavItems: NavItem[] = [
   { to: { name: 'employee-documents' }, name: 'employee-documents', key: 'nav.documents', icon: 'pi pi-folder', permission: 'documents.view', section: 'operations' },
   { to: { name: 'approval-delegations' }, name: 'approval-delegations', key: 'nav.delegations', icon: 'pi pi-users', permission: ['leaves.approve', 'excuses.approve', 'overtime.approve'], section: 'operations' },
   { to: { name: 'onboarding' }, name: 'onboarding', key: 'nav.onboarding', icon: 'pi pi-user-plus', permission: 'onboarding.manage', section: 'operations' },
+  { to: { name: 'official-documents' }, name: 'official-documents', key: 'nav.officialDocuments', icon: 'pi pi-id-card', permission: 'official_docs.generate', section: 'operations' },
   { to: { name: 'reports' }, name: 'reports', key: 'nav.reports', icon: 'pi pi-chart-bar', permission: 'reports.view', section: 'reports' },
   { to: { name: 'leave-reports' }, name: 'leave-reports', key: 'nav.leaveReports', icon: 'pi pi-calendar-clock', permission: 'reports.view', section: 'reports' },
   { to: { name: 'report-subscriptions' }, name: 'report-subscriptions', key: 'nav.reportSubscriptions', icon: 'pi pi-envelope', permission: 'reports.view', section: 'reports' },
