@@ -111,6 +111,13 @@ const router = createRouter({
           meta: { permission: 'onboarding.manage' },
         },
         {
+          // توليد المستندات الرسمية (شهادة راتب/كتاب تعريف) — BE-78.
+          path: 'official-documents',
+          name: 'official-documents',
+          component: () => import('@/features/official-documents/OfficialDocumentsView.vue'),
+          meta: { permission: 'official_docs.generate' },
+        },
+        {
           path: 'reports',
           name: 'reports',
           component: () => import('@/features/reports/ReportsView.vue'),

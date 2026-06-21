@@ -76,6 +76,7 @@
     "documents": "Employee documents",
     "delegations": "Approval delegation",
     "onboarding": "Onboarding",
+    "officialDocuments": "Official documents",
     "reports": "Reports",
     "payroll": "Payroll",
     "payrollConfig": "Payroll rules",
@@ -383,6 +384,23 @@
     "cancelDelegation": "Cancel delegation",
     "revoked": "Delegation revoked",
     "confirmDelete": "Revoke approval delegation to {name}?"
+  },
+  "officialDocuments": {
+    "title": "Official documents",
+    "subtitle": "Generate a salary certificate or employment letter for an employee as an instant PDF.",
+    "note": "Documents are generated on the fly from system data and not stored. \"Salary certificate\" is built from the employee's payslip; \"Employment letter\" is a work confirmation from the employee profile with no salary data.",
+    "employee": "Employee",
+    "selectEmployee": "Select an employee",
+    "docType": "Document type",
+    "salaryCertificate": "Salary certificate",
+    "employmentLetter": "Employment letter",
+    "period": "Period (month)",
+    "periodHint": "Optional — leave empty to use the latest payslip.",
+    "generate": "Generate & download PDF",
+    "generated": "Document generated",
+    "notAvailable": "Could not generate — there may be no payslip for this period, or the employee is unavailable.",
+    "unsupportedType": "Unsupported document type.",
+    "generateError": "Could not generate the document."
   },
   "onboarding": {
     "title": "Onboarding & offboarding",
