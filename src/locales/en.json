@@ -90,6 +90,13 @@
     "reports": "Reports",
     "admin": "Administration"
   },
+  "navGroup": {
+    "self": "My services",
+    "attendance": "Attendance & leave",
+    "payroll": "Payroll",
+    "people": "Employees",
+    "insights": "Reports & alerts"
+  },
   "alerts": {
     "title": "Alerts",
     "subtitle": "Send alerts to employees (app push + inbox).",

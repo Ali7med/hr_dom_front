@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { RouterView, RouterLink, useRouter, useRoute, type RouteLocationRaw } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Menu from 'primevue/menu'
@@ -17,60 +17,105 @@ const route = useRoute()
 const auth = useAuthStore()
 const ui = useUiStore()
 
-// روابط التنقّل — مصنّفة في أقسام؛ خيارات الضبط جُمِعت في «الإعدادات» (صفحة تبويبات).
-interface NavItem {
+// التنقّل: رابطان مفردان (لوحة/إعدادات) + مجموعات قابلة للطيّ — تقليلاً لازدحام القائمة.
+interface NavLink {
   to: RouteLocationRaw
   name: string
   key: string
   icon: string
-  section: string
   permission?: string | string[]
 }
-const allNavItems: NavItem[] = [
-  { to: { name: 'dashboard' }, name: 'dashboard', key: 'nav.dashboard', icon: 'pi pi-th-large', section: 'general' },
-  { to: { name: 'my-payslips' }, name: 'my-payslips', key: 'nav.myPayslips', icon: 'pi pi-receipt', section: 'general' },
-  { to: { name: 'my-leaves' }, name: 'my-leaves', key: 'nav.myLeaves', icon: 'pi pi-sun', section: 'general' },
-  { to: { name: 'my-attendance' }, name: 'my-attendance', key: 'nav.myAttendance', icon: 'pi pi-calendar-clock', section: 'general' },
-  { to: { name: 'leaves' }, name: 'leaves', key: 'nav.leaves', icon: 'pi pi-sun', permission: 'leaves.view', section: 'operations' },
-  { to: { name: 'calendar' }, name: 'calendar', key: 'nav.calendar', icon: 'pi pi-calendar', permission: ['shifts.view', 'schedules.view', 'holidays.view', 'leaves.view'], section: 'operations' },
-  { to: { name: 'payroll' }, name: 'payroll', key: 'nav.payroll', icon: 'pi pi-wallet', permission: 'payroll.view', section: 'operations' },
-  { to: { name: 'alerts' }, name: 'alerts', key: 'nav.alerts', icon: 'pi pi-bell', permission: 'alerts.view', section: 'operations' },
-  { to: { name: 'absences' }, name: 'absences', key: 'nav.absences', icon: 'pi pi-user-minus', permission: 'absences.view', section: 'operations' },
-  { to: { name: 'excuses' }, name: 'excuses', key: 'nav.excuses', icon: 'pi pi-clock', permission: 'excuses.view', section: 'operations' },
-  { to: { name: 'overtime' }, name: 'overtime', key: 'nav.overtime', icon: 'pi pi-stopwatch', permission: 'overtime.view', section: 'operations' },
-  { to: { name: 'shift-swaps' }, name: 'shift-swaps', key: 'nav.shiftSwaps', icon: 'pi pi-sync', permission: 'shift_swaps.view', section: 'operations' },
-  { to: { name: 'loans' }, name: 'loans', key: 'nav.loans', icon: 'pi pi-money-bill', permission: 'loans.view', section: 'operations' },
-  { to: { name: 'employee-documents' }, name: 'employee-documents', key: 'nav.documents', icon: 'pi pi-folder', permission: 'documents.view', section: 'operations' },
-  { to: { name: 'approval-delegations' }, name: 'approval-delegations', key: 'nav.delegations', icon: 'pi pi-users', permission: ['leaves.approve', 'excuses.approve', 'overtime.approve'], section: 'operations' },
-  { to: { name: 'onboarding' }, name: 'onboarding', key: 'nav.onboarding', icon: 'pi pi-user-plus', permission: 'onboarding.manage', section: 'operations' },
-  { to: { name: 'official-documents' }, name: 'official-documents', key: 'nav.officialDocuments', icon: 'pi pi-id-card', permission: 'official_docs.generate', section: 'operations' },
-  { to: { name: 'reports' }, name: 'reports', key: 'nav.reports', icon: 'pi pi-chart-bar', permission: 'reports.view', section: 'reports' },
-  { to: { name: 'leave-reports' }, name: 'leave-reports', key: 'nav.leaveReports', icon: 'pi pi-calendar-clock', permission: 'reports.view', section: 'reports' },
-  { to: { name: 'report-subscriptions' }, name: 'report-subscriptions', key: 'nav.reportSubscriptions', icon: 'pi pi-envelope', permission: 'reports.view', section: 'reports' },
-  { to: { name: 'settings' }, name: 'settings', key: 'nav.settings', icon: 'pi pi-cog', permission: allSettingsPermissions, section: 'admin' },
+interface NavGroup {
+  key: string // مفتاح i18n لعنوان المجموعة
+  icon: string
+  children: NavLink[]
+}
+
+const dashboardLink: NavLink = { to: { name: 'dashboard' }, name: 'dashboard', key: 'nav.dashboard', icon: 'pi pi-th-large' }
+const settingsLink: NavLink = { to: { name: 'settings' }, name: 'settings', key: 'nav.settings', icon: 'pi pi-cog', permission: allSettingsPermissions }
+
+const navGroups: NavGroup[] = [
+  {
+    key: 'navGroup.self',
+    icon: 'pi pi-user',
+    children: [
+      { to: { name: 'my-payslips' }, name: 'my-payslips', key: 'nav.myPayslips', icon: 'pi pi-receipt' },
+      { to: { name: 'my-leaves' }, name: 'my-leaves', key: 'nav.myLeaves', icon: 'pi pi-sun' },
+      { to: { name: 'my-attendance' }, name: 'my-attendance', key: 'nav.myAttendance', icon: 'pi pi-calendar-clock' },
+    ],
+  },
+  {
+    key: 'navGroup.attendance',
+    icon: 'pi pi-calendar',
+    children: [
+      { to: { name: 'leaves' }, name: 'leaves', key: 'nav.leaves', icon: 'pi pi-sun', permission: 'leaves.view' },
+      { to: { name: 'calendar' }, name: 'calendar', key: 'nav.calendar', icon: 'pi pi-calendar', permission: ['shifts.view', 'schedules.view', 'holidays.view', 'leaves.view'] },
+      { to: { name: 'absences' }, name: 'absences', key: 'nav.absences', icon: 'pi pi-user-minus', permission: 'absences.view' },
+      { to: { name: 'excuses' }, name: 'excuses', key: 'nav.excuses', icon: 'pi pi-clock', permission: 'excuses.view' },
+      { to: { name: 'overtime' }, name: 'overtime', key: 'nav.overtime', icon: 'pi pi-stopwatch', permission: 'overtime.view' },
+      { to: { name: 'shift-swaps' }, name: 'shift-swaps', key: 'nav.shiftSwaps', icon: 'pi pi-sync', permission: 'shift_swaps.view' },
+      { to: { name: 'approval-delegations' }, name: 'approval-delegations', key: 'nav.delegations', icon: 'pi pi-users', permission: ['leaves.approve', 'excuses.approve', 'overtime.approve'] },
+    ],
+  },
+  {
+    key: 'navGroup.payroll',
+    icon: 'pi pi-wallet',
+    children: [
+      { to: { name: 'payroll' }, name: 'payroll', key: 'nav.payroll', icon: 'pi pi-wallet', permission: 'payroll.view' },
+      { to: { name: 'loans' }, name: 'loans', key: 'nav.loans', icon: 'pi pi-money-bill', permission: 'loans.view' },
+    ],
+  },
+  {
+    key: 'navGroup.people',
+    icon: 'pi pi-id-card',
+    children: [
+      { to: { name: 'onboarding' }, name: 'onboarding', key: 'nav.onboarding', icon: 'pi pi-user-plus', permission: 'onboarding.manage' },
+      { to: { name: 'employee-documents' }, name: 'employee-documents', key: 'nav.documents', icon: 'pi pi-folder', permission: 'documents.view' },
+      { to: { name: 'official-documents' }, name: 'official-documents', key: 'nav.officialDocuments', icon: 'pi pi-id-card', permission: 'official_docs.generate' },
+    ],
+  },
+  {
+    key: 'navGroup.insights',
+    icon: 'pi pi-chart-bar',
+    children: [
+      { to: { name: 'reports' }, name: 'reports', key: 'nav.reports', icon: 'pi pi-chart-bar', permission: 'reports.view' },
+      { to: { name: 'leave-reports' }, name: 'leave-reports', key: 'nav.leaveReports', icon: 'pi pi-calendar-clock', permission: 'reports.view' },
+      { to: { name: 'report-subscriptions' }, name: 'report-subscriptions', key: 'nav.reportSubscriptions', icon: 'pi pi-envelope', permission: 'reports.view' },
+      { to: { name: 'alerts' }, name: 'alerts', key: 'nav.alerts', icon: 'pi pi-bell', permission: 'alerts.view' },
+    ],
+  },
 ]
-// تُعرض العناصر التي يملك المستخدم صلاحيتها فقط (Super Admin يرى الكل).
-const navItems = computed(() =>
-  allNavItems.filter(
-    (item) => !item.permission || auth.canAny(typeof item.permission === 'string' ? [item.permission] : item.permission),
-  ),
+
+// قائمة مسطّحة لكل الروابط (لاشتقاق عنوان الصفحة).
+const allLinks: NavLink[] = [dashboardLink, ...navGroups.flatMap((g) => g.children), settingsLink]
+
+function canSee(item: { permission?: string | string[] }): boolean {
+  return !item.permission || auth.canAny(typeof item.permission === 'string' ? [item.permission] : item.permission)
+}
+
+// المجموعات المرئية (الأبناء مفلترون بالصلاحيات؛ تُخفى المجموعة الفارغة — Super Admin يرى الكل).
+const visibleGroups = computed(() =>
+  navGroups
+    .map((g) => ({ key: g.key, icon: g.icon, items: g.children.filter(canSee) }))
+    .filter((g) => g.items.length > 0),
 )
-// تجميع الروابط في أقسام مرتّبة (تُخفى الأقسام الفارغة).
-const sectionOrder: { key: string; label: string }[] = [
-  { key: 'general', label: 'navSection.general' },
-  { key: 'operations', label: 'navSection.operations' },
-  { key: 'reports', label: 'navSection.reports' },
-  { key: 'admin', label: 'navSection.admin' },
-]
-const navSections = computed(() =>
-  sectionOrder
-    .map((s) => ({ ...s, items: navItems.value.filter((i) => i.section === s.key) }))
-    .filter((s) => s.items.length > 0),
+
+// طيّ المجموعات: مجموعة مفتوحة = مفتاحها في المجموعة؛ والحاوية للمسار النشط تُفتح تلقائياً.
+const openGroups = ref<Set<string>>(new Set())
+const activeGroupKey = computed<string | null>(
+  () => navGroups.find((g) => g.children.some((c) => c.name === route.name))?.key ?? null,
 )
+watch(activeGroupKey, (k) => { if (k) openGroups.value = new Set(openGroups.value).add(k) }, { immediate: true })
+function toggleGroup(key: string): void {
+  const s = new Set(openGroups.value)
+  if (s.has(key)) s.delete(key)
+  else s.add(key)
+  openGroups.value = s
+}
 
 // عنوان الصفحة الحالي (للترويسة) من اسم المسار.
 const pageTitle = computed(() => {
-  const match = allNavItems.find((i) => i.name === route.name)
+  const match = allLinks.find((i) => i.name === route.name)
   if (match) return t(match.key)
   // أي مسار ضمن الإعدادات → «الإعدادات».
   const inSettings =
@@ -160,31 +205,78 @@ async function onLogout(): Promise<void> {
         <span v-if="showLabels" class="truncate text-base font-bold tracking-tight">{{ t('app.title') }}</span>
       </div>
 
-      <!-- روابط التنقّل (مصنّفة في أقسام) -->
-      <nav class="flex-1 overflow-y-auto overflow-x-hidden p-2">
-        <div v-for="(sec, idx) in navSections" :key="sec.key" class="space-y-1">
-          <!-- عنوان القسم (موسّع) أو فاصل خفيف (مطويّ) -->
-          <p
-            v-if="showLabels && sec.key !== 'general'"
-            class="px-3 pb-1 pt-4 text-[0.7rem] font-semibold uppercase tracking-wider text-surface-400 dark:text-surface-500"
+      <!-- روابط التنقّل: لوحة + مجموعات قابلة للطيّ + إعدادات -->
+      <nav class="flex-1 space-y-1 overflow-y-auto overflow-x-hidden p-2">
+        <!-- لوحة التحكم -->
+        <RouterLink
+          :to="dashboardLink.to"
+          v-tooltip="{ value: t(dashboardLink.key), disabled: showLabels, showDelay: 120 }"
+          class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-surface-600 transition hover:bg-surface-100 hover:text-surface-900 dark:text-surface-300 dark:hover:bg-surface-800 dark:hover:text-white"
+          active-class="!bg-primary-50 !text-primary-700 dark:!bg-primary-500/15 dark:!text-primary-300"
+          :class="showLabels ? 'justify-start' : 'justify-center'"
+          @click="closeMobile"
+        >
+          <i :class="dashboardLink.icon" class="shrink-0 text-lg" />
+          <span v-if="showLabels" class="truncate">{{ t(dashboardLink.key) }}</span>
+        </RouterLink>
+
+        <!-- المجموعات القابلة للطيّ -->
+        <div v-for="g in visibleGroups" :key="g.key">
+          <button
+            type="button"
+            v-tooltip="{ value: t(g.key), disabled: showLabels, showDelay: 120 }"
+            class="relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition"
+            :class="[
+              showLabels ? 'justify-start' : 'justify-center',
+              activeGroupKey === g.key
+                ? 'text-primary-700 dark:text-primary-300'
+                : 'text-surface-600 hover:bg-surface-100 hover:text-surface-900 dark:text-surface-300 dark:hover:bg-surface-800 dark:hover:text-white',
+            ]"
+            @click="toggleGroup(g.key)"
           >
-            {{ t(sec.label) }}
-          </p>
-          <div v-else-if="!showLabels && idx > 0" class="mx-3 my-2 border-t border-surface-200 dark:border-surface-800" />
-          <RouterLink
-            v-for="item in sec.items"
-            :key="item.key"
-            :to="item.to"
-            v-tooltip="{ value: t(item.key), disabled: showLabels, showDelay: 120 }"
-            class="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-surface-600 transition hover:bg-surface-100 hover:text-surface-900 dark:text-surface-300 dark:hover:bg-surface-800 dark:hover:text-white"
-            active-class="!bg-primary-50 !text-primary-700 dark:!bg-primary-500/15 dark:!text-primary-300"
-            :class="showLabels ? 'justify-start' : 'justify-center'"
-            @click="closeMobile"
-          >
-            <i :class="item.icon" class="shrink-0 text-lg" />
-            <span v-if="showLabels" class="truncate">{{ t(item.key) }}</span>
-          </RouterLink>
+            <i :class="g.icon" class="shrink-0 text-lg" />
+            <span v-if="showLabels" class="flex-1 truncate text-start">{{ t(g.key) }}</span>
+            <i
+              v-if="showLabels"
+              class="pi pi-angle-down shrink-0 text-xs transition-transform"
+              :class="openGroups.has(g.key) ? 'rotate-180' : ''"
+            />
+            <!-- نقطة تشير لوجود تبويب نشط داخل المجموعة المطويّة (وضع الأيقونات) -->
+            <span
+              v-else-if="activeGroupKey === g.key"
+              class="absolute end-1.5 size-1.5 rounded-full bg-primary"
+              aria-hidden="true"
+            />
+          </button>
+          <!-- أبناء المجموعة (تظهر عند توسّع الشريط وفتح المجموعة) -->
+          <div v-if="showLabels && openGroups.has(g.key)" class="mt-0.5 space-y-0.5">
+            <RouterLink
+              v-for="item in g.items"
+              :key="item.key"
+              :to="item.to"
+              class="flex items-center gap-3 rounded-xl py-2 pe-3 ps-9 text-sm font-medium text-surface-500 transition hover:bg-surface-100 hover:text-surface-900 dark:text-surface-400 dark:hover:bg-surface-800 dark:hover:text-white"
+              active-class="!bg-primary-50 !text-primary-700 dark:!bg-primary-500/15 dark:!text-primary-300"
+              @click="closeMobile"
+            >
+              <i :class="item.icon" class="shrink-0 text-base" />
+              <span class="truncate">{{ t(item.key) }}</span>
+            </RouterLink>
+          </div>
         </div>
+
+        <!-- الإعدادات -->
+        <RouterLink
+          v-if="canSee(settingsLink)"
+          :to="settingsLink.to"
+          v-tooltip="{ value: t(settingsLink.key), disabled: showLabels, showDelay: 120 }"
+          class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-surface-600 transition hover:bg-surface-100 hover:text-surface-900 dark:text-surface-300 dark:hover:bg-surface-800 dark:hover:text-white"
+          active-class="!bg-primary-50 !text-primary-700 dark:!bg-primary-500/15 dark:!text-primary-300"
+          :class="showLabels ? 'justify-start' : 'justify-center'"
+          @click="closeMobile"
+        >
+          <i :class="settingsLink.icon" class="shrink-0 text-lg" />
+          <span v-if="showLabels" class="truncate">{{ t(settingsLink.key) }}</span>
+        </RouterLink>
       </nav>
 
       <!-- زر التثبيت (شاشات كبيرة فقط — لا معنى له داخل درور الهاتف) -->
