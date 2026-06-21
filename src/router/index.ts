@@ -234,6 +234,13 @@ const router = createRouter({
               component: () => import('@/features/backups/BackupsView.vue'),
               meta: { permission: 'backups.manage' },
             },
+            {
+              // إدارة عامل الطابور (BE-86) — Super Admin (queue.manage).
+              path: 'queue',
+              name: 'queue-manager',
+              component: () => import('@/features/system/QueueManagerView.vue'),
+              meta: { permission: 'queue.manage' },
+            },
           ],
         },
         {

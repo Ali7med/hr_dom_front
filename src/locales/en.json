@@ -82,6 +82,7 @@
     "payrollConfig": "Payroll rules",
     "notificationSettings": "Notification settings",
     "backups": "Backups",
+    "queue": "Queue worker",
     "settings": "Settings"
   },
   "navSection": {
@@ -531,6 +532,42 @@
       "weekly": "Weekly",
       "monthly": "Monthly"
     }
+  },
+  "queue": {
+    "title": "Queue worker",
+    "subtitle": "Monitor and control the queue worker (queue:work), and manage failed jobs.",
+    "unavailable": "Unavailable — requires queue management permission (Super Admin) or the feature deployed on the server.",
+    "running": "Running",
+    "stopped": "Stopped",
+    "driver": "Driver",
+    "connection": "Connection",
+    "workers": "Workers",
+    "heartbeatAge": "Last heartbeat age",
+    "lastHeartbeat": "Last heartbeat",
+    "staleAfter": "Stale threshold",
+    "forceStart": "Force start",
+    "forceStartHint": "A worker appears to be running already. Force-start another worker?",
+    "action": {
+      "start": "Start",
+      "stop": "Stop",
+      "restart": "Restart",
+      "startDone": "Worker started",
+      "stopDone": "Worker stopped",
+      "restartDone": "Worker restarted"
+    },
+    "counter": { "pending": "Pending jobs", "reserved": "Processing", "failed": "Failed jobs" },
+    "failedTitle": "Failed jobs",
+    "noFailed": "No failed jobs.",
+    "retryAll": "Retry all",
+    "flush": "Flush all",
+    "retry": "Retry",
+    "retried": "Retried",
+    "forgotten": "Deleted",
+    "confirm": {
+      "retryAll": "Retry all failed jobs?",
+      "flush": "Permanently flush all failed jobs?"
+    },
+    "col": { "queue": "Queue", "job": "Job", "error": "Error", "failedAt": "Failed at" }
   },
   "backups": {
     "title": "Backups",
