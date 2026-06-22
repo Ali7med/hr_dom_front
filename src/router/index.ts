@@ -248,6 +248,14 @@ const router = createRouter({
               component: () => import('@/features/system/QueueManagerView.vue'),
               meta: { permission: 'queue.manage' },
             },
+            {
+              // إعدادات التتبّع + تفعيل الموظفين (BE-89) — tracking.manage.
+              // تقرير المسير منفصل في /tracking (tracking.view).
+              path: 'tracking',
+              name: 'tracking-settings',
+              component: () => import('@/features/tracking/TrackingSettingsView.vue'),
+              meta: { permission: 'tracking.manage' },
+            },
           ],
         },
         {

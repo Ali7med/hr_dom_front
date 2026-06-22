@@ -1,37 +1,29 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useToast } from 'primevue/usetoast'
-import { useConfirm } from 'primevue/useconfirm'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Button from 'primevue/button'
 import Select from 'primevue/select'
-import MultiSelect from 'primevue/multiselect'
-import InputNumber from 'primevue/inputnumber'
-import ToggleSwitch from 'primevue/toggleswitch'
 import Message from 'primevue/message'
 import Tag from 'primevue/tag'
 import PageHeader from '@/components/PageHeader.vue'
 import TrackMap from '@/components/TrackMap.vue'
 import { ApiException } from '@/api/client'
-import { useAuthStore } from '@/stores/auth'
 import { trackingApi, type TrackingEnrollment, type UserTrack } from '@/api/tracking'
-import { usersApi, departmentsApi, type User, type Department } from '@/api/users'
+import { departmentsApi, type Department } from '@/api/users'
 
+// تقرير التتبّع (tracking.view): قائمة المُفعّلين (قراءة) + عرض خط المسير على الخريطة.
+// ضبط الإعدادات/التفعيل في تبويب الإعدادات المنفصل (/settings/tracking، tracking.manage).
 const { t } = useI18n()
 const toast = useToast()
-const confirm = useConfirm()
-const auth = useAuthStore()
-
-const canManage = computed(() => auth.can('tracking.manage'))
 
 const loading = ref(false)
 const unavailable = ref(false) // 403/404 → الميزة غير متاحة (صلاحية أو نشر)
 
 const enrollments = ref<TrackingEnrollment[]>([])
 const departments = ref<Department[]>([])
-const users = ref<User[]>([])
 
 const deptName = (id: number | null): string =>
   (id != null && departments.value.find((d) => d.id === id)?.name) || '—'
@@ -43,79 +35,7 @@ function notifyError(e: unknown, fallback: string): void {
 
 const ymd = (d?: string | null) => (d ? d.slice(0, 19).replace('T', ' ') : '—')
 
-// ===== إعدادات التتبّع (tracking.manage) =====
-const settings = reactive({ interval_minutes: 5, working_hours_only: false, retention_days: 30 })
-const savingSettings = ref(false)
-
-async function saveSettings(): Promise<void> {
-  savingSettings.value = true
-  try {
-    const s = await trackingApi.updateSettings({
-      interval_minutes: settings.interval_minutes,
-      working_hours_only: settings.working_hours_only,
-      retention_days: settings.retention_days,
-    })
-    settings.interval_minutes = s.interval_minutes
-    settings.working_hours_only = s.working_hours_only
-    settings.retention_days = s.retention_days
-    toast.add({ severity: 'success', summary: t('common.saved'), life: 2500 })
-  } catch (e) {
-    notifyError(e, t('common.saveError'))
-  } finally {
-    savingSettings.value = false
-  }
-}
-
-// ===== تفعيل التتبّع (tracking.manage) =====
-const enrollForm = reactive({ user_ids: [] as number[], department_ids: [] as number[] })
-const enrolling = ref(false)
-
-async function submitEnroll(): Promise<void> {
-  if (!enrollForm.user_ids.length && !enrollForm.department_ids.length) {
-    toast.add({ severity: 'warn', summary: t('tracking.enrollTargetRequired'), life: 3000 })
-    return
-  }
-  enrolling.value = true
-  try {
-    const r = await trackingApi.enroll({
-      user_ids: enrollForm.user_ids.length ? enrollForm.user_ids : undefined,
-      department_ids: enrollForm.department_ids.length ? enrollForm.department_ids : undefined,
-    })
-    toast.add({ severity: 'success', summary: t('tracking.enrolled', { n: r.enrolled }), life: 2800 })
-    enrollForm.user_ids = []
-    enrollForm.department_ids = []
-    await loadEnrollments()
-  } catch (e) {
-    notifyError(e, t('common.saveError'))
-  } finally {
-    enrolling.value = false
-  }
-}
-
-function confirmUnenroll(row: TrackingEnrollment): void {
-  confirm.require({
-    message: t('tracking.confirmUnenroll', { name: row.name }),
-    header: t('tracking.unenroll'),
-    icon: 'pi pi-exclamation-triangle',
-    acceptProps: { severity: 'danger', label: t('tracking.unenroll') },
-    rejectProps: { severity: 'secondary', outlined: true, label: t('common.cancel') },
-    accept: async () => {
-      try {
-        await trackingApi.unenroll(row.user_id)
-        toast.add({ severity: 'success', summary: t('tracking.unenrolled'), life: 2500 })
-        if (selectedUserId.value === row.user_id) {
-          selectedUserId.value = null
-          track.value = null
-        }
-        await loadEnrollments()
-      } catch (e) {
-        notifyError(e, t('common.saveError'))
-      }
-    },
-  })
-}
-
-// ===== عرض خط المسير (tracking.view) =====
+// ===== عرض خط المسير =====
 const todayStr = (): string => {
   const d = new Date()
   const p = (n: number) => String(n).padStart(2, '0')
@@ -165,28 +85,12 @@ function viewTrack(row: TrackingEnrollment): void {
   void loadTrack()
 }
 
-// ===== التحميل =====
-async function loadEnrollments(): Promise<void> {
-  enrollments.value = await trackingApi.listEnrollments()
-}
-
 onMounted(async () => {
   loading.value = true
   try {
     departments.value = await departmentsApi.list().catch(() => [])
-    await loadEnrollments()
+    enrollments.value = await trackingApi.listEnrollments()
     unavailable.value = false
-    if (canManage.value) {
-      // الإعدادات + قائمة الموظفين للتفعيل (إدارة فقط).
-      const [s, u] = await Promise.all([
-        trackingApi.getSettings(),
-        usersApi.list({ per_page: 200 }).then((r) => r.data).catch(() => [] as User[]),
-      ])
-      settings.interval_minutes = s.interval_minutes
-      settings.working_hours_only = s.working_hours_only
-      settings.retention_days = s.retention_days
-      users.value = u
-    }
   } catch (e) {
     if (e instanceof ApiException && (e.status === 403 || e.status === 404)) unavailable.value = true
     else notifyError(e, t('common.loadError'))
@@ -203,67 +107,7 @@ onMounted(async () => {
     <Message v-if="unavailable" severity="info" :closable="false">{{ t('tracking.unavailable') }}</Message>
 
     <template v-else>
-      <!-- إعدادات التتبّع + التفعيل (tracking.manage) -->
-      <div v-if="canManage" class="mb-5 grid gap-4 lg:grid-cols-2">
-        <!-- بطاقة الإعدادات -->
-        <div class="rounded-2xl border border-surface-200 bg-white p-5 dark:border-surface-800 dark:bg-surface-900">
-          <h2 class="mb-1 text-sm font-semibold text-surface-700 dark:text-surface-200">{{ t('tracking.settingsTitle') }}</h2>
-          <Message severity="warn" :closable="false" class="mb-4">{{ t('tracking.privacyNote') }}</Message>
-          <div class="space-y-4">
-            <div>
-              <label class="mb-1 block text-sm text-surface-600 dark:text-surface-300">{{ t('tracking.interval') }}</label>
-              <InputNumber v-model="settings.interval_minutes" :min="1" :max="60" :suffix="' ' + t('tracking.minutes')" fluid showButtons />
-            </div>
-            <div>
-              <label class="mb-1 block text-sm text-surface-600 dark:text-surface-300">{{ t('tracking.retention') }}</label>
-              <InputNumber v-model="settings.retention_days" :min="1" :suffix="' ' + t('tracking.days')" fluid showButtons />
-            </div>
-            <div class="flex items-center justify-between rounded-xl bg-surface-50 px-3 py-2.5 dark:bg-surface-800/50">
-              <div>
-                <p class="text-sm font-medium text-surface-700 dark:text-surface-200">{{ t('tracking.workingHoursOnly') }}</p>
-                <p class="text-xs text-surface-500">{{ t('tracking.workingHoursHint') }}</p>
-              </div>
-              <ToggleSwitch v-model="settings.working_hours_only" />
-            </div>
-            <Button :label="t('common.save')" icon="pi pi-check" :loading="savingSettings" @click="saveSettings" />
-          </div>
-        </div>
-
-        <!-- بطاقة التفعيل -->
-        <div class="rounded-2xl border border-surface-200 bg-white p-5 dark:border-surface-800 dark:bg-surface-900">
-          <h2 class="mb-1 text-sm font-semibold text-surface-700 dark:text-surface-200">{{ t('tracking.enrollTitle') }}</h2>
-          <p class="mb-4 text-xs text-surface-500">{{ t('tracking.enrollHint') }}</p>
-          <div class="space-y-4">
-            <div>
-              <label class="mb-1 block text-sm text-surface-600 dark:text-surface-300">{{ t('tracking.byDepartment') }}</label>
-              <MultiSelect
-                v-model="enrollForm.department_ids"
-                :options="departments"
-                option-label="name"
-                option-value="id"
-                :placeholder="t('tracking.selectDepartments')"
-                filter
-                fluid
-              />
-            </div>
-            <div>
-              <label class="mb-1 block text-sm text-surface-600 dark:text-surface-300">{{ t('tracking.byEmployee') }}</label>
-              <MultiSelect
-                v-model="enrollForm.user_ids"
-                :options="users"
-                option-label="name"
-                option-value="id"
-                :placeholder="t('tracking.selectEmployees')"
-                filter
-                fluid
-              />
-            </div>
-            <Button :label="t('tracking.enroll')" icon="pi pi-map-marker" :loading="enrolling" @click="submitEnroll" />
-          </div>
-        </div>
-      </div>
-
-      <!-- قائمة المُفعّلين -->
+      <!-- قائمة المُفعّلين (قراءة فقط — الإدارة في الإعدادات) -->
       <div class="mb-5 overflow-hidden rounded-2xl border border-surface-200 bg-white dark:border-surface-800 dark:bg-surface-900">
         <div class="border-b border-surface-100 px-4 py-3 dark:border-surface-800">
           <h2 class="text-sm font-semibold text-surface-700 dark:text-surface-200">{{ t('tracking.enrolledTitle') }}</h2>
@@ -288,10 +132,7 @@ onMounted(async () => {
           </Column>
           <Column class="text-end">
             <template #body="{ data }">
-              <div class="flex justify-end gap-1">
-                <Button v-tooltip.top="t('tracking.viewTrack')" icon="pi pi-map" severity="secondary" text rounded @click="viewTrack(data)" />
-                <Button v-if="canManage" v-tooltip.top="t('tracking.unenroll')" icon="pi pi-times" severity="danger" text rounded @click="confirmUnenroll(data)" />
-              </div>
+              <Button v-tooltip.top="t('tracking.viewTrack')" icon="pi pi-map" severity="secondary" text rounded @click="viewTrack(data)" />
             </template>
           </Column>
         </DataTable>

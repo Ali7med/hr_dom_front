@@ -69,6 +69,7 @@
     "reportSubscriptions": "Report subscriptions",
     "alerts": "Alerts",
     "tracking": "Employee tracking",
+    "trackingSettings": "Tracking settings",
     "absences": "Absences",
     "excuses": "Excuses",
     "overtime": "Overtime",
@@ -572,7 +573,8 @@
   },
   "tracking": {
     "title": "Employee tracking",
-    "subtitle": "Enable location tracking for employees/departments and view their route on the map over a period.",
+    "subtitle": "View tracked employees' routes on the map over a period. (Configuration and enrollment live in Settings.)",
+    "settingsSubtitle": "Configure tracking interval, retention and working hours, and enable/disable employees and departments.",
     "unavailable": "Unavailable — requires the tracking permission or the feature to be deployed on the server.",
     "settingsTitle": "Tracking settings",
     "privacyNote": "Privacy-sensitive feature — for field supervision only. Route points are deleted automatically after the retention period.",

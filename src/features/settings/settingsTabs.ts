@@ -27,6 +27,7 @@ export const settingsTabs: SettingsTab[] = [
   { name: 'notification-settings', key: 'nav.notificationSettings', icon: 'pi pi-send', permission: 'notification_settings.manage' },
   { name: 'backups', key: 'nav.backups', icon: 'pi pi-database', permission: 'backups.manage' },
   { name: 'queue-manager', key: 'nav.queue', icon: 'pi pi-server', permission: 'queue.manage' },
+  { name: 'tracking-settings', key: 'nav.trackingSettings', icon: 'pi pi-compass', permission: 'tracking.manage' },
   // ربط حساب تيليجرام لبوت الموافقات — خدمة ذاتية (بلا صلاحية): تظهر لأي مستخدم يصل للإعدادات.
   // يُبقى أخيراً كي لا يصبح وجهة إعادة التوجيه الافتراضية لمستخدم يملك تبويباً واحداً فقط بصلاحية.
   { name: 'telegram-link', key: 'nav.telegramLink', icon: 'pi pi-telegram' },
