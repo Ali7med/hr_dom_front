@@ -799,7 +799,7 @@ export interface paths {
         };
         /**
          * أرصدة إجازات الموظف الحالي (بلا صلاحية — مرتبط بالموظف) — FE-36 (ESS)
-         * @description يُرجِع أرصدة إجازات الموظف الحالي فقط (مرتبط بـ auth، لا يحتاج leaves.view): لكل نوع {leave_type_id, leave_type_name, balance, used?}. لبوابة الموظف على الويب (FE-36).
+         * @description يُرجِع أرصدة إجازات الموظف الحالي فقط (مرتبط بـ auth، لا يحتاج leaves.view). الشكل يطابق LeaveBalance الفعلي (نفس `/users/{user}/leave-balances`): صفّ لكل فئة رصيد `{balance_type (normal/sick/…), balance_days}`. لبوابة الموظف على الويب (FE-36).
          */
         get: operations["listMyLeaveBalances"];
         put?: never;
@@ -2277,6 +2277,177 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/attendance-devices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** قائمة أجهزة البصمة المسجّلة للشركة — يتطلّب attendance_devices.manage */
+        get: operations["listAttendanceDevices"];
+        put?: never;
+        /** تسجيل جهاز بصمة جديد — يتطلّب attendance_devices.manage */
+        post: operations["createAttendanceDevice"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/attendance-devices/{zk_device}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** تفاصيل جهاز بصمة — يتطلّب attendance_devices.manage */
+        get: operations["showAttendanceDevice"];
+        /** تعديل جهاز بصمة (تفعيل/إيقاف/موقع/اسم) — يتطلّب attendance_devices.manage */
+        put: operations["updateAttendanceDevice"];
+        post?: never;
+        /** حذف جهاز بصمة — يتطلّب attendance_devices.manage */
+        delete: operations["deleteAttendanceDevice"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/iclock/cdata": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * مصافحة/استطلاع إعداد الجهاز (ADMS) — مصادقة بالـ SN، لا OAuth
+         * @description يستدعيها جهاز البصمة عند الاتصال. تُصادَق بالرقم التسلسلي (?SN=): الجهاز يجب أن يكون مُسجَّلاً وفعّالاً وإلّا 401 (fail-closed). تُحدّث آخر ظهور وتُرجِع كتلة إعداد ADMS نصّية (text/plain) — لا غلاف JSON.
+         */
+        get: operations["iclockHandshake"];
+        put?: never;
+        /**
+         * رفع سجلّات الحضور (ATTLOG) من الجهاز — مصادقة بالـ SN، لا OAuth
+         * @description يرفع الجهاز سجلّات البصم بصيغة ATTLOG (نص خام، سطر لكل بصمة مفصول بـ TAB: PIN، الوقت YYYY-MM-DD HH:MM:SS، الحالة، نمط التحقّق، WorkCode). يُطابَق الـ PIN بالمستخدم داخل شركة الجهاز (device_pin ثم employee_no)، وتُنشأ سجلّات حضور (إزالة تكرار للبصمات المعادة). الرد نصّي "OK: <count>".
+         */
+        post: operations["iclockReceiveRecords"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/iclock/getrequest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * استطلاع الأوامر من الجهاز (ADMS) — مصادقة بالـ SN، لا OAuth
+         * @description يستطلع الجهاز الأوامر المعلّقة. لا أوامر صادرة حالياً → رد فارغ. مصادقة بالـ SN.
+         */
+        get: operations["iclockGetRequest"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tracking/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** إعدادات التتبّع للشركة — يتطلّب tracking.manage */
+        get: operations["getTrackingSettings"];
+        /** تحديث إعدادات التتبّع (الفاصل + ساعات العمل فقط + الاحتفاظ) — يتطلّب tracking.manage */
+        put: operations["updateTrackingSettings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tracking/enrollments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** قائمة الموظفين المُفعّل لهم التتبّع + آخر ظهور — يتطلّب tracking.view */
+        get: operations["listTrackingEnrollments"];
+        put?: never;
+        /** تفعيل التتبّع لموظفين/أقسام — يتطلّب tracking.manage */
+        post: operations["createTrackingEnrollment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tracking/enrollments/{user}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** إيقاف تتبّع موظف — يتطلّب tracking.manage */
+        delete: operations["deleteTrackingEnrollment"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{user}/track": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** خط مسير موظف ضمن فترة (نقاط للخريطة) — يتطلّب tracking.view */
+        get: operations["getUserTrack"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/locations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * رفع دفعة نقاط موقع من جهاز الموظف (للمُفعّل لهم فقط)
+         * @description يرسلها التطبيق دورياً (افتراضي كل 5 دقائق). يُتجاهَل إن لم يكن الموظف مُفعّلاً للتتبّع أو خارج نافذة الساعات إن كان working_hours_only.
+         */
+        post: operations["uploadMyLocations"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/version": {
         parameters: {
             query?: never;
@@ -3127,6 +3298,52 @@ export interface components {
         EmployeeSyncInput: {
             employees: components["schemas"]["EmployeeSyncItem"][];
         };
+        TrackingSettingsInput: {
+            /**
+             * @description الفاصل الزمني بين النقاط (دقائق).
+             * @default 5
+             */
+            interval_minutes: number;
+            /**
+             * @description إن true، يُقبَل التتبّع فقط ضمن ساعات العمل/الوردية (وإلا طوال اليوم).
+             * @default false
+             */
+            working_hours_only: boolean;
+            /**
+             * @description عدد أيام الاحتفاظ بنقاط المسير قبل حذفها.
+             * @default 30
+             */
+            retention_days: number;
+        };
+        /** @description تفعيل التتبّع لمجموعة موظفين و/أو أقسام. */
+        TrackingEnrollmentInput: {
+            user_ids?: number[];
+            department_ids?: number[];
+        };
+        LocationBatchInput: {
+            points: {
+                /** Format: double */
+                lat: number;
+                /** Format: double */
+                lng: number;
+                /**
+                 * Format: double
+                 * @description دقّة الموقع بالأمتار
+                 */
+                accuracy?: number | null;
+                /**
+                 * Format: date-time
+                 * @description وقت الالتقاط على الجهاز
+                 */
+                recorded_at: string;
+                battery?: number | null;
+                /**
+                 * @description هل الموقع مزيّف (Mock)
+                 * @default false
+                 */
+                is_mock: boolean;
+            }[];
+        };
         AlertInput: {
             title: string;
             body: string;
@@ -3250,6 +3467,20 @@ export interface components {
              * @description الملف المرفوع (multipart).
              */
             file: string;
+        };
+        AttendanceDeviceInput: {
+            /** @description الرقم التسلسلي للجهاز (SN) — فريد عالمياً، يُصادَق به على نقاط iclock. */
+            serial_number: string;
+            name: string;
+            /** @description موقع العمل المرتبط (يُسجَّل على سجلّات حضور هذا الجهاز). */
+            work_site_id?: number | null;
+            /** @description منطقة الجهاز الزمنية (مراجعة) — أجهزة ZKTeco تُبلّغ بالوقت المحلّي؛ يُحوَّل وقت البصم من هذه المنطقة إلى UTC للتخزين. null = منطقة التطبيق (رجوع آمن). */
+            timezone?: string | null;
+            /**
+             * @description جهاز غير مفعّل يُرفَض على نقاط iclock (fail-closed).
+             * @default true
+             */
+            is_active: boolean;
         };
         ApprovalDelegationInput: {
             /** @description البديل الذي تنتقل إليه الموافقات. */
@@ -6532,6 +6763,280 @@ export interface operations {
                 content?: never;
             };
             404: components["responses"]["ErrorResponse"];
+        };
+    };
+    listAttendanceDevices: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+        };
+    };
+    createAttendanceDevice: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttendanceDeviceInput"];
+            };
+        };
+        responses: {
+            201: components["responses"]["EnvelopeOk"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    showAttendanceDevice: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                zk_device: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            404: components["responses"]["ErrorResponse"];
+        };
+    };
+    updateAttendanceDevice: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                zk_device: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttendanceDeviceInput"];
+            };
+        };
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    deleteAttendanceDevice: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                zk_device: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+        };
+    };
+    iclockHandshake: {
+        parameters: {
+            query: {
+                /** @description الرقم التسلسلي للجهاز */
+                SN: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description كتلة إعداد ADMS نصّية (text/plain) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description جهاز غير مُسجَّل أو غير مفعّل */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    iclockReceiveRecords: {
+        parameters: {
+            query: {
+                SN: string;
+                table?: string;
+                Stamp?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "text/plain": string;
+            };
+        };
+        responses: {
+            /** @description استلام ناجح (نص OK مع عدد السجلّات). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description جهاز غير مُسجَّل أو غير مفعّل. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    iclockGetRequest: {
+        parameters: {
+            query: {
+                SN: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description رد فارغ (لا أوامر معلّقة) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description جهاز غير مُسجَّل أو غير مفعّل */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getTrackingSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            403: components["responses"]["ErrorResponse"];
+        };
+    };
+    updateTrackingSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TrackingSettingsInput"];
+            };
+        };
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    listTrackingEnrollments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+        };
+    };
+    createTrackingEnrollment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TrackingEnrollmentInput"];
+            };
+        };
+        responses: {
+            201: components["responses"]["EnvelopeOk"];
+            422: components["responses"]["ErrorResponse"];
+        };
+    };
+    deleteTrackingEnrollment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            404: components["responses"]["ErrorResponse"];
+        };
+    };
+    getUserTrack: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path: {
+                user: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["EnvelopeOk"];
+            404: components["responses"]["ErrorResponse"];
+        };
+    };
+    uploadMyLocations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LocationBatchInput"];
+            };
+        };
+        responses: {
+            202: components["responses"]["EnvelopeOk"];
+            422: components["responses"]["ErrorResponse"];
         };
     };
     getVersion: {

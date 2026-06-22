@@ -82,6 +82,7 @@ const navGroups: NavGroup[] = [
       { to: { name: 'leave-reports' }, name: 'leave-reports', key: 'nav.leaveReports', icon: 'pi pi-calendar-clock', permission: 'reports.view' },
       { to: { name: 'report-subscriptions' }, name: 'report-subscriptions', key: 'nav.reportSubscriptions', icon: 'pi pi-envelope', permission: 'reports.view' },
       { to: { name: 'alerts' }, name: 'alerts', key: 'nav.alerts', icon: 'pi pi-bell', permission: 'alerts.view' },
+      { to: { name: 'tracking' }, name: 'tracking', key: 'nav.tracking', icon: 'pi pi-map-marker', permission: 'tracking.view' },
     ],
   },
 ]

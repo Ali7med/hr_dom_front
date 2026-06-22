@@ -68,6 +68,13 @@ const router = createRouter({
           meta: { permission: 'absences.view' },
         },
         {
+          // تتبّع مواقع الموظفين (BE-89) — خريطة المسير + التفعيل + الإعدادات.
+          path: 'tracking',
+          name: 'tracking',
+          component: () => import('@/features/tracking/TrackingView.vue'),
+          meta: { permission: 'tracking.view' },
+        },
+        {
           path: 'excuses',
           name: 'excuses',
           component: () => import('@/features/excuses/ExcusesView.vue'),
