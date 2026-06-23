@@ -50,6 +50,13 @@ const router = createRouter({
           meta: { permission: 'reports.view' },
         },
         {
+          // جدول التتبّع اليومي للحضور/الانصراف (BE-90).
+          path: 'daily-attendance',
+          name: 'daily-attendance',
+          component: () => import('@/features/reports/DailyAttendanceView.vue'),
+          meta: { permission: 'reports.view' },
+        },
+        {
           path: 'report-subscriptions',
           name: 'report-subscriptions',
           component: () => import('@/features/reports/ReportSubscriptionsView.vue'),
