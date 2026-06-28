@@ -84,6 +84,7 @@ const navGroups: NavGroup[] = [
       { to: { name: 'report-subscriptions' }, name: 'report-subscriptions', key: 'nav.reportSubscriptions', icon: 'pi pi-envelope', permission: 'reports.view' },
       { to: { name: 'alerts' }, name: 'alerts', key: 'nav.alerts', icon: 'pi pi-bell', permission: 'alerts.view' },
       { to: { name: 'tracking' }, name: 'tracking', key: 'nav.tracking', icon: 'pi pi-map-marker', permission: 'tracking.view' },
+      { to: { name: 'tracking-map' }, name: 'tracking-map', key: 'nav.trackingMap', icon: 'pi pi-map', permission: 'tracking.view' },
     ],
   },
 ]
@@ -125,7 +126,7 @@ const pageTitle = computed(() => {
     route.name === 'company-settings' ||
     settingsTabs.some((tab) => tab.name === route.name)
   if (inSettings) return t('nav.settings')
-  if (route.name === 'forbidden') return t('forbidden.title')
+  if (route.name === 'forbidden') return t('errors.forbiddenTitle')
   return t('app.title')
 })
 

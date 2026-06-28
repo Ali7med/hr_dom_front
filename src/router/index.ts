@@ -82,6 +82,13 @@ const router = createRouter({
           meta: { permission: 'tracking.view' },
         },
         {
+          // خريطة تتبّع جماعية متعددة الموظفين (BE-92 / FE-48) — مسارات بألوان + وضعان + مشغّل زمني.
+          path: 'tracking/map',
+          name: 'tracking-map',
+          component: () => import('@/features/tracking/TrackingMapView.vue'),
+          meta: { permission: 'tracking.view' },
+        },
+        {
           path: 'excuses',
           name: 'excuses',
           component: () => import('@/features/excuses/ExcusesView.vue'),
