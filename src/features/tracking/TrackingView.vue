@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useToast } from 'primevue/usetoast'
 import DataTable from 'primevue/datatable'
@@ -85,7 +85,17 @@ function viewTrack(row: TrackingEnrollment): void {
   void loadTrack()
 }
 
+// ملء الشاشة لعارض المسير.
+const isFullscreen = ref(false)
+function toggleFullscreen(): void {
+  isFullscreen.value = !isFullscreen.value
+}
+function onKeydown(e: KeyboardEvent): void {
+  if (e.key === 'Escape') isFullscreen.value = false
+}
+
 onMounted(async () => {
+  window.addEventListener('keydown', onKeydown)
   loading.value = true
   try {
     departments.value = await departmentsApi.list().catch(() => [])
@@ -97,6 +107,10 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKeydown)
 })
 </script>
 
@@ -177,7 +191,24 @@ onMounted(async () => {
             <span>{{ t('tracking.pointsCount', { n: track?.points?.length ?? 0 }) }}</span>
           </div>
           <Message v-if="track && !track.points.length" severity="info" :closable="false">{{ t('tracking.noPoints') }}</Message>
-          <TrackMap v-else :points="track?.points ?? []" />
+          <div
+            v-else
+            :class="isFullscreen ? 'fixed inset-0 z-[1100] flex flex-col gap-3 bg-surface-50 p-4 dark:bg-surface-950' : ''"
+          >
+            <div class="mb-2 flex items-center justify-end" :class="isFullscreen ? '!mb-0' : ''">
+              <Button
+                :icon="isFullscreen ? 'pi pi-window-minimize' : 'pi pi-window-maximize'"
+                :label="isFullscreen ? t('tracking.exitFullscreen') : t('tracking.fullscreen')"
+                size="small"
+                severity="secondary"
+                outlined
+                @click="toggleFullscreen"
+              />
+            </div>
+            <div :class="isFullscreen ? 'min-h-0 flex-1' : 'h-96'">
+              <TrackMap :points="track?.points ?? []" />
+            </div>
+          </div>
         </template>
       </div>
     </template>

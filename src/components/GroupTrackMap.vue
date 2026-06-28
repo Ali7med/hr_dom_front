@@ -18,9 +18,8 @@ import { useI18n } from 'vue-i18n'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
-// خريطة جماعية (قراءة-فقط): مسارات عدّة موظفين، كلٌّ بلونه + علامة متحركة للمشغّل الزمني
-// + وضع مباشر. يعيد استخدام نمط Leaflet/OSM من TrackMap (FE-46).
-// GroupSeries و TrackPoint مرئيان من كتلة <script> أعلاه (نفس الوحدة).
+// خريطة جماعية (قراءة-فقط): مسارات عدّة موظفين، كلٌّ بلونه + علامتا بداية/نهاية واضحتان
+// + علامة متحركة نابضة للمشغّل الزمني + وضع مباشر. يعيد استخدام نمط Leaflet/OSM من TrackMap (FE-46).
 const props = defineProps<{
   series: GroupSeries[]
   mode: 'history' | 'live'
@@ -33,7 +32,8 @@ const { t, locale } = useI18n()
 const mapEl = ref<HTMLElement | null>(null)
 let map: L.Map | null = null
 let baseLayer: L.LayerGroup | null = null
-const cursorMarkers = new Map<number, L.CircleMarker>()
+let resizeObserver: ResizeObserver | null = null
+const cursorMarkers = new Map<number, L.Marker>()
 // فهرس النقاط/الأزمنة لكل موظف (لاستيفاء موضع العلامة المتحركة بكفاءة).
 const seriesIndex = new Map<number, { pts: TrackPoint[]; times: number[] }>()
 
@@ -59,6 +59,27 @@ function popupHtml(p: TrackPoint, name: string): string {
   return `<div dir="ltr" style="font-size:12px;line-height:1.5">${rows.join('<br>')}</div>`
 }
 
+// علامة بداية (دائرة + ▶) أو نهاية (مربّعة + 🏁) بلون الموظف — شكلان مختلفان ليُميَّزا بصرياً.
+function endpointIcon(color: string, kind: 'start' | 'end'): L.DivIcon {
+  const glyph = kind === 'start' ? '▶' : '🏁'
+  return L.divIcon({
+    className: 'trk-divicon',
+    html: `<span class="trk-pin trk-${kind}" style="--c:${color}">${glyph}</span>`,
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+  })
+}
+
+// علامة متحركة نابضة (للمشغّل الزمني) بلون الموظف.
+function cursorIcon(color: string): L.DivIcon {
+  return L.divIcon({
+    className: 'trk-divicon',
+    html: `<span class="trk-cursor" style="--c:${color}"><span class="trk-ping"></span></span>`,
+    iconSize: [18, 18],
+    iconAnchor: [9, 9],
+  })
+}
+
 function rebuild(): void {
   if (!map || !baseLayer) return
   baseLayer.clearLayers()
@@ -77,17 +98,17 @@ function rebuild(): void {
     })
 
     if (props.mode === 'history') {
-      L.polyline(latlngs, { color: s.color, weight: 3, opacity: 0.8 }).addTo(baseLayer)
-      // علامة البداية (حلقة) والنهاية (مملوءة) بلون الموظف.
+      L.polyline(latlngs, { color: s.color, weight: 4, opacity: 0.85 }).addTo(baseLayer)
+      // علامتا البداية (▶) والنهاية (🏁) بلون الموظف.
       const start = s.points[0]
       const end = s.points[s.points.length - 1]
-      L.circleMarker([start.lat, start.lng], { radius: 5, color: s.color, fillColor: '#fff', fillOpacity: 1, weight: 2 })
+      L.marker([start.lat, start.lng], { icon: endpointIcon(s.color, 'start') })
         .addTo(baseLayer)
-        .bindPopup(popupHtml(start, s.name))
+        .bindPopup(popupHtml(start, `${s.name} · ${t('tracking.startPoint')}`))
       if (end !== start) {
-        L.circleMarker([end.lat, end.lng], { radius: 7, color: s.color, fillColor: s.color, fillOpacity: 0.9, weight: 2 })
+        L.marker([end.lat, end.lng], { icon: endpointIcon(s.color, 'end') })
           .addTo(baseLayer)
-          .bindPopup(popupHtml(end, s.name))
+          .bindPopup(popupHtml(end, `${s.name} · ${t('tracking.endPoint')}`))
       }
     } else {
       // مباشر: أثر حديث خفيف (متقطّع) + علامة الموقع الحالي بلون الموظف.
@@ -155,7 +176,7 @@ function updateCursor(): void {
     if (!pos) continue
     let marker = cursorMarkers.get(s.userId)
     if (!marker) {
-      marker = L.circleMarker(pos, { radius: 8, color: '#fff', fillColor: s.color, fillOpacity: 1, weight: 3 })
+      marker = L.marker(pos, { icon: cursorIcon(s.color), zIndexOffset: 1000 })
       marker.bindTooltip(s.name, { permanent: true, direction: 'top', className: 'group-track-label' })
       marker.addTo(baseLayer)
       cursorMarkers.set(s.userId, marker)
@@ -175,6 +196,9 @@ onMounted(() => {
   baseLayer = L.layerGroup().addTo(map)
   rebuild()
   setTimeout(() => map?.invalidateSize(), 120)
+  // أعِد حساب حجم الخريطة عند تغيّر أبعاد الحاوية (ملء الشاشة/تبديل التخطيط).
+  resizeObserver = new ResizeObserver(() => map?.invalidateSize())
+  resizeObserver.observe(mapEl.value)
 })
 
 // إعادة البناء عند تغيّر السلاسل أو الوضع؛ تحديث خفيف للعلامة المتحركة عند تحريك المؤشّر.
@@ -183,6 +207,8 @@ watch(() => props.mode, () => rebuild())
 watch(() => props.cursorTime, () => updateCursor())
 
 onBeforeUnmount(() => {
+  resizeObserver?.disconnect()
+  resizeObserver = null
   map?.remove()
   map = null
   baseLayer = null
@@ -191,7 +217,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div ref="mapEl" class="h-[28rem] w-full rounded-xl border border-surface-200 dark:border-surface-700" style="z-index: 0"></div>
+  <div ref="mapEl" class="size-full min-h-80 rounded-xl border border-surface-200 dark:border-surface-700" style="z-index: 0"></div>
 </template>
 
 <style>
@@ -205,5 +231,62 @@ onBeforeUnmount(() => {
 }
 .group-track-label::before {
   display: none;
+}
+
+/* علامات المسير المخصّصة — إزالة خلفية divIcon الافتراضية. */
+.trk-divicon {
+  background: transparent;
+  border: none;
+}
+.trk-pin {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  background: var(--c);
+  color: #fff;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+  font-size: 13px;
+  line-height: 1;
+}
+.trk-start {
+  border-radius: 50%;
+}
+.trk-end {
+  border-radius: 7px;
+}
+/* مؤشّر المشغّل الزمني: نقطة نابضة بلون الموظف. */
+.trk-cursor {
+  position: relative;
+  display: block;
+  width: 18px;
+  height: 18px;
+}
+.trk-cursor::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--c);
+  border: 3px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+.trk-ping {
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  border: 2px solid var(--c);
+  animation: trkping 1.1s ease-out infinite;
+}
+@keyframes trkping {
+  0% {
+    transform: scale(0.55);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
 }
 </style>

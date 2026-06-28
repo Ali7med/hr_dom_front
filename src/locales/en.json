@@ -670,7 +670,11 @@
     "noPoints": "No route points in this period.",
     "accuracy": "Accuracy",
     "battery": "Battery",
-    "mock": "Mock location"
+    "mock": "Mock location",
+    "startPoint": "Start",
+    "endPoint": "End",
+    "fullscreen": "Fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "trackingMap": {
     "title": "Group tracking map",
@@ -704,7 +708,9 @@
     "hide": "Hide from map",
     "play": "Play",
     "pause": "Pause",
-    "speed": "Speed"
+    "speed": "Speed",
+    "fullscreen": "Fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "backups": {
     "title": "Backups",

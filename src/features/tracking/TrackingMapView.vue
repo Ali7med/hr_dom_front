@@ -42,6 +42,15 @@ const loading = ref(false)
 const unavailable = ref(false)
 const loadingMap = ref(false)
 
+// ملء الشاشة لقسم الخريطة (يشمل المشغّل الزمني ومفتاح الألوان للاستفادة من المساحة).
+const isFullscreen = ref(false)
+function toggleFullscreen(): void {
+  isFullscreen.value = !isFullscreen.value
+}
+function onKeydown(e: KeyboardEvent): void {
+  if (e.key === 'Escape') isFullscreen.value = false
+}
+
 const enrollments = ref<TrackingEnrollment[]>([])
 const departments = ref<Department[]>([])
 
@@ -349,6 +358,7 @@ watch(mode, (m) => {
 })
 
 onMounted(async () => {
+  window.addEventListener('keydown', onKeydown)
   loading.value = true
   try {
     departments.value = await departmentsApi.list().catch(() => [])
@@ -364,6 +374,7 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKeydown)
   stopLive()
   stopPlayback()
 })
@@ -443,12 +454,28 @@ onBeforeUnmount(() => {
         <Message severity="warn" :closable="false">{{ t('trackingMap.downsampled') }}</Message>
       </div>
 
-      <div class="grid gap-4 lg:grid-cols-[1fr_18rem]">
+      <div
+        :class="isFullscreen ? 'fixed inset-0 z-[1100] flex flex-col gap-3 overflow-auto bg-surface-50 p-4 dark:bg-surface-950' : ''"
+      >
+        <div class="mb-3 flex items-center justify-end" :class="isFullscreen ? '!mb-0' : ''">
+          <Button
+            :icon="isFullscreen ? 'pi pi-window-minimize' : 'pi pi-window-maximize'"
+            :label="isFullscreen ? t('trackingMap.exitFullscreen') : t('trackingMap.fullscreen')"
+            size="small"
+            severity="secondary"
+            outlined
+            @click="toggleFullscreen"
+          />
+        </div>
+
+        <div class="grid gap-4 lg:grid-cols-[1fr_18rem]" :class="isFullscreen ? 'min-h-0 flex-1' : ''">
         <!-- الخريطة + المشغّل الزمني -->
-        <div class="min-w-0">
+        <div class="flex min-w-0 flex-col">
           <Message v-if="!mapSeries.length" severity="info" :closable="false">{{ t('trackingMap.noTracks') }}</Message>
           <template v-else>
-            <GroupTrackMap :series="mapSeries" :mode="mode" :cursor-time="cursorTime" />
+            <div :class="isFullscreen ? 'min-h-0 flex-1' : 'h-[32rem]'">
+              <GroupTrackMap :series="mapSeries" :mode="mode" :cursor-time="cursorTime" />
+            </div>
 
             <!-- المشغّل الزمني (تاريخي) -->
             <div v-if="hasTimeline" class="mt-3 rounded-xl border border-surface-200 bg-white p-3 dark:border-surface-800 dark:bg-surface-900">
@@ -500,6 +527,7 @@ onBeforeUnmount(() => {
               <i class="pi shrink-0 text-surface-400" :class="row.hidden ? 'pi-eye-slash' : 'pi-eye'" />
             </button>
           </div>
+        </div>
         </div>
       </div>
     </template>
