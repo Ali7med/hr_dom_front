@@ -1241,7 +1241,14 @@
     "excuses": "Excuses",
     "overtime": "Overtime",
     "onboarding": "Onboarding & offboarding",
-    "backups": "Backups"
+    "backups": "Backups",
+    "tracking": "Location tracking",
+    "shift_swaps": "Shift swaps",
+    "loans": "Loans",
+    "documents": "Employee documents",
+    "official_docs": "Official documents",
+    "attendance_devices": "Attendance devices",
+    "queue": "Queue worker"
   },
   "permActions": {
     "view": "View",

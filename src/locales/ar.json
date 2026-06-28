@@ -1241,7 +1241,14 @@
     "excuses": "الأذونات",
     "overtime": "العمل الإضافي",
     "onboarding": "التعيين والإنهاء",
-    "backups": "النسخ الاحتياطية"
+    "backups": "النسخ الاحتياطية",
+    "tracking": "تتبّع المواقع",
+    "shift_swaps": "تبديل الورديات",
+    "loans": "السلف",
+    "documents": "مستندات الموظف",
+    "official_docs": "المستندات الرسمية",
+    "attendance_devices": "أجهزة البصمة",
+    "queue": "عامل الطابور"
   },
   "permActions": {
     "view": "عرض",
