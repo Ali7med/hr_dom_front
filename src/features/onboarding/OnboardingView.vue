@@ -437,7 +437,7 @@ onMounted(async () => {
             <InputText v-model="it.title" :placeholder="t('onboarding.taskTitle')" class="col-span-6" />
             <InputText v-model="it.assignee_role" :placeholder="t('onboarding.assigneeRole')" class="col-span-3" />
             <InputNumber v-model="it.due_offset_days" :placeholder="t('onboarding.dueOffset')" :min="0" :max="365" class="col-span-2" input-class="w-full" />
-            <Button type="button" icon="pi pi-times" severity="danger" text rounded class="col-span-1" :disabled="tmplForm.items.length === 1" @click="removeItem(i)" />
+            <Button type="button" v-tooltip.top="t('common.delete')" :aria-label="t('common.delete')" icon="pi pi-times" severity="danger" text rounded class="col-span-1" :disabled="tmplForm.items.length === 1" @click="removeItem(i)" />
           </div>
         </div>
         <p class="mt-1.5 text-xs text-surface-500">{{ t('onboarding.dueOffsetHint') }}</p>
