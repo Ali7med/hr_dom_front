@@ -17,6 +17,12 @@
 
 ---
 
+## [2026-06-29] FE-53 + FE-54 — خدمة ذاتية للحساب + جدول الإجازات حسب النوع (review)
+- ما أُنجز: **FE-53** خدمة ذاتية لتغيير كلمة المرور/الإيميل: `src/api/account.ts` + `src/features/settings/AccountSettingsView.vue` (بطاقتان PrimeVue، تحقّق client + ApiException toast) + تبويب `account` (`permission: []`) + مسار `/settings/account`. **FE-54** جدول إدارة الإجازات: عمود المدّة حسب `kind` + وسم النوع + عمودا «مُقدّم الطلب» و«قُدّم في» + توسيع `LeaveRequest`. مفاتيح ar/en + النسخة 1.3.0.
+- الملفات الرئيسية: `src/api/{account.ts,leaves.ts}` · `src/features/settings/{AccountSettingsView.vue,settingsTabs.ts}` · `src/features/leaves/LeavesView.vue` · `src/router/index.ts` · `src/locales/{ar,en}.json` · `package.json`. الفرع `feature/FE-53-54`.
+- قرارات/ملاحظات: يستهلك BE-97 (FE-53) و BE-98 (FE-54) — **غير منشورين (todo) + الباك :8000 متوقّف** فالتحقّق الحيّ مؤجَّل؛ تدهور آمن على 404/422.
+- الاختبارات: `npm run build` (vue-tsc + vite) أخضر؛ JSON اللغتين صالح/متطابق.
+
 ## [2026-06-23] FE-47 — جدول التتبّع اليومي للحضور/الانصراف (done — مدموج/مدفوع + تحقّق حيّ)
 - ما أُنجز: صفحة `/daily-attendance` (محروسة `reports.view`، عنصر تنقّل في «التقارير والتنبيهات») تستهلك BE-90 الحيّ. عميل `dailyAttendance.ts` (قائمة + `meta.summary` + تنزيل Excel). الصفحة: **فلاتر** (تاريخ افتراضي اليوم + حالة [طبيعي/نقص حضور/نقص انصراف/لم يبصم/أي نقص/إجازة] + تبرير [الكل/مبرّر/غير مبرّر] + قسم + موظف) + **بطاقات ملخّص** (عدّاد كل حالة + إجمالي النقص الصافي) + **DataTable** (الاسم/الرقم/القسم/الوردية/الدخول/الخروج/الحالة كـTag ملوّن/التأخّر/الخروج المبكر/النقص الصافي/مبرّر) + **تصدير Excel** للمفلتر (saveBlob) + **إجراء «تبرير»** على صفوف النقص غير المبرّر: حوار يُنشئ إذناً **بالنيابة** عبر `POST /excuses` (BE-27) ويعتمده فوراً (إن يملك `excuses.approve`) فيُسحب النقص.
 - الملفات الرئيسية: `src/api/dailyAttendance.ts` (جديد) + `src/features/reports/DailyAttendanceView.vue` (جديد) + `router/index.ts` + `layouts/AppLayout.vue` + `locales/{ar,en}.json` قسم `daily` + nav.dailyAttendance + `package.json` 1.0.6→1.0.7. **دُمج إلى `main` (FF) ودُفِع** + حُذف الفرع. **لا تغيير على العقد** (BE-90 معرّف Contract-First؛ شكل `meta.summary` تُعلِّم من الـ API الحيّ: `{counts:{...}, total_net_deficiency_minutes, total_rows}`).
