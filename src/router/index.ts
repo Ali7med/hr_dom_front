@@ -250,6 +250,14 @@ const router = createRouter({
               meta: { permission: [] },
             },
             {
+              // إعدادات الحساب (تغيير كلمة المرور/الإيميل — BE-97) — خدمة ذاتية (بلا صلاحية).
+              // `permission: []` يتجاوز حارس الأب فيبقى متاحاً لأي مستخدم مُصادَق.
+              path: 'account',
+              name: 'account',
+              component: () => import('@/features/settings/AccountSettingsView.vue'),
+              meta: { permission: [] },
+            },
+            {
               path: 'backups',
               name: 'backups',
               component: () => import('@/features/backups/BackupsView.vue'),
