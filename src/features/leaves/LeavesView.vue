@@ -28,14 +28,17 @@ import {
   type LeaveRequest,
   type LeaveBalance,
   type LeaveStatus,
+  type LeaveKind,
   type LeaveRequestPayload,
 } from '@/api/leaves'
 import { usersApi, type User } from '@/api/users'
 import { useAuthStore } from '@/stores/auth'
+import { useUiStore } from '@/stores/ui'
 import PageHeader from '@/components/PageHeader.vue'
 
 const { t } = useI18n()
 const auth = useAuthStore()
+const ui = useUiStore()
 const confirm = useConfirm()
 const toast = useToast()
 
@@ -67,6 +70,71 @@ const statusSeverity: Record<LeaveStatus, 'warn' | 'success' | 'danger' | 'secon
   approved: 'success',
   rejected: 'danger',
   auto: 'secondary',
+}
+
+// ===== عرض المدّة حسب النوع + مُقدّم الطلب (FE-54) =====
+const kindSeverity: Record<LeaveKind, 'info' | 'success' | 'warn' | 'danger'> = {
+  hourly: 'info',
+  daily: 'success',
+  long: 'warn',
+  sick: 'danger',
+}
+
+const localeTag = () => (ui.locale === 'ar' ? 'ar-u-nu-latn' : 'en')
+
+function toNum(v: string | number | null | undefined): number | null {
+  if (v === null || v === undefined || v === '') return null
+  const n = typeof v === 'number' ? v : Number(v)
+  return Number.isFinite(n) ? n : null
+}
+
+// "HH:mm" — يُفضّل start_time/end_time إن وُجدا، وإلا يُشتقّ من datetime في start_at/end_at
+function timePart(explicit: string | null | undefined, dt: string | null | undefined): string {
+  if (explicit) {
+    const hm = explicit.match(/(\d{1,2}):(\d{2})/)
+    if (hm) return `${hm[1].padStart(2, '0')}:${hm[2]}`
+  }
+  if (dt) {
+    const d = new Date(dt)
+    if (!Number.isNaN(d.getTime())) {
+      return d.toLocaleTimeString(localeTag(), { hour: '2-digit', minute: '2-digit', hour12: false })
+    }
+  }
+  return '—'
+}
+
+function durationFor(row: LeaveRequest): string {
+  const kind = row.leave_type?.kind
+  if (kind === 'hourly') {
+    const date = ymd(row.start_at)
+    const from = timePart(row.start_time, row.start_at)
+    const to = timePart(row.end_time, row.end_at)
+    const hours = toNum(row.hours)
+    return t('leaves.durationHourly', { date, from, to, hours: hours ?? '—' })
+  }
+  const from = ymd(row.start_at)
+  const to = ymd(row.end_at)
+  const days = toNum(row.days)
+  return t('leaves.durationRange', { from, to, days: days ?? '—' })
+}
+
+function submitterName(row: LeaveRequest): string {
+  if (row.creator?.name && row.creator.id !== row.user_id) return row.creator.name
+  return t('leaves.selfSubmitted')
+}
+
+function submittedAt(row: LeaveRequest): string {
+  if (!row.created_at) return '—'
+  const d = new Date(row.created_at)
+  if (Number.isNaN(d.getTime())) return '—'
+  return d.toLocaleString(localeTag(), {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
 }
 
 async function loadTypes(): Promise<void> {
@@ -506,12 +574,36 @@ onMounted(async () => {
               </Column>
               <Column :header="t('leaves.type')">
                 <template #body="{ data }">
-                  <span class="text-surface-500">{{ data.leave_type?.name ?? typeName(data.leave_type_id) }}</span>
+                  <div class="flex items-center gap-2">
+                    <span class="text-surface-700 dark:text-surface-300">{{ data.leave_type?.name ?? typeName(data.leave_type_id) }}</span>
+                    <Tag
+                      v-if="data.leave_type?.kind"
+                      :value="t('leaveKind.' + data.leave_type.kind)"
+                      :severity="kindSeverity[data.leave_type.kind as LeaveKind]"
+                    />
+                  </div>
                 </template>
               </Column>
               <Column :header="t('leaves.period')">
                 <template #body="{ data }">
-                  <span class="text-surface-500" dir="ltr">{{ ymd(data.start_at) }} → {{ ymd(data.end_at) }}</span>
+                  <span class="text-surface-600 dark:text-surface-300" dir="ltr">{{ durationFor(data) }}</span>
+                </template>
+              </Column>
+              <Column :header="t('leaves.submittedBy')">
+                <template #body="{ data }">
+                  <div class="flex items-center gap-2">
+                    <span class="text-surface-600 dark:text-surface-300">{{ submitterName(data) }}</span>
+                    <Tag
+                      v-if="data.source"
+                      :value="data.source === 'app' ? t('leaves.sourceApp') : t('leaves.sourcePanel')"
+                      severity="secondary"
+                    />
+                  </div>
+                </template>
+              </Column>
+              <Column :header="t('leaves.submittedAt')">
+                <template #body="{ data }">
+                  <span class="text-surface-500" dir="ltr">{{ submittedAt(data) }}</span>
                 </template>
               </Column>
               <Column :header="t('leaves.status')">

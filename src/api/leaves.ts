@@ -45,6 +45,12 @@ export interface LeaveRequest {
   status: LeaveStatus
   approved_by: number | null
   approved_at: string | null
+  created_at: string
+  created_by?: number | null
+  creator?: { id: number; name: string } | null
+  // hourly times may arrive as datetimes in start_at/end_at OR as separate fields:
+  start_time?: string | null
+  end_time?: string | null
   user?: { id: number; name: string; employee_no: string | null } | null
   leave_type?: { id: number; name: string; kind: LeaveKind } | null
 }
