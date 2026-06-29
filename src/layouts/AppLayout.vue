@@ -7,6 +7,7 @@ import Avatar from 'primevue/avatar'
 import Toast from 'primevue/toast'
 import ConfirmDialog from 'primevue/confirmdialog'
 import type { MenuItem } from 'primevue/menuitem'
+import NotificationBell from '@/components/NotificationBell.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
 import { settingsTabs, allSettingsPermissions } from '@/features/settings/settingsTabs'
@@ -332,6 +333,7 @@ async function onLogout(): Promise<void> {
         <h1 class="truncate text-lg font-semibold tracking-tight">{{ pageTitle }}</h1>
 
         <div class="ms-auto flex items-center gap-1.5">
+          <NotificationBell />
           <button
             type="button"
             class="grid h-10 min-w-10 place-items-center rounded-xl px-2.5 text-xs font-semibold text-surface-600 transition hover:bg-surface-100 dark:text-surface-300 dark:hover:bg-surface-800"

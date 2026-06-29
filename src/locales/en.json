@@ -3,6 +3,12 @@
     "title": "Hudhuri",
     "subtitle": "HR & Attendance Management"
   },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all read",
+    "empty": "No notifications.",
+    "now": "Just now"
+  },
   "common": {
     "language": "Language",
     "theme": "Theme",
