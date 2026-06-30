@@ -278,6 +278,13 @@ const router = createRouter({
               component: () => import('@/features/tracking/TrackingSettingsView.vue'),
               meta: { permission: 'tracking.manage' },
             },
+            {
+              // إدارة ملاحظات الإصدارات «ما الجديد» (BE-99) — releases.manage (Super Admin).
+              path: 'releases',
+              name: 'releases',
+              component: () => import('@/features/settings/ReleasesAdminView.vue'),
+              meta: { permission: 'releases.manage' },
+            },
           ],
         },
         {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { RouterView, RouterLink, useRouter, useRoute, type RouteLocationRaw } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Menu from 'primevue/menu'
@@ -8,6 +8,9 @@ import Toast from 'primevue/toast'
 import ConfirmDialog from 'primevue/confirmdialog'
 import type { MenuItem } from 'primevue/menuitem'
 import NotificationBell from '@/components/NotificationBell.vue'
+import WhatsNewDialog from '@/components/WhatsNewDialog.vue'
+import { releasesApi, releaseSeen, type ReleaseItem } from '@/api/releases'
+import { compareVersions } from '@/utils/version'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
 import { settingsTabs, allSettingsPermissions } from '@/features/settings/settingsTabs'
@@ -135,6 +138,53 @@ const pageTitle = computed(() => {
 // - افتراضياً مغلق (شريط أيقونات)، ينفتح عند التمرير/التركيز ويُغلق عند المغادرة.
 // - زر «التثبيت» بالأسفل يجعله ثابتاً مفتوحاً (يلغي الانغلاق التلقائي). الحالة محفوظة.
 const appVersion = __APP_VERSION__
+
+// ===== «ما الجديد» (FE-55) — يستهلك BE-99 =====
+// عرض تلقائي مرّة بعد كل تحديث + فتح يدوي. تتبّع «آخر مشاهَدة» عبر /me/preferences (seen_release.panel).
+const whatsNewVisible = ref(false)
+const whatsNewReleases = ref<ReleaseItem[]>([]) // ما يُعرض في النافذة حالياً
+const hasUnseen = ref(false)
+const latestVersion = ref<string | null>(null)
+let applicableReleases: ReleaseItem[] = [] // المنشورة لهذه اللوحة بنسخة ≤ الحالية
+
+async function initWhatsNew(): Promise<void> {
+  try {
+    const all = await releasesApi.list({ platform: 'panel' })
+    // المنشورة لهذه المنصّة بنسخة ≤ النسخة الحالية فقط (لا نعرض ملاحظات نسخة لم تُنشَر بعد على اللوحة).
+    applicableReleases = (all ?? []).filter((r) => r.is_published !== false && compareVersions(r.version, appVersion) <= 0)
+    if (!applicableReleases.length) return
+    latestVersion.value = applicableReleases.reduce((m, r) => (compareVersions(r.version, m) > 0 ? r.version : m), applicableReleases[0].version)
+    const seen = (await releaseSeen.get()).panel
+    const unseen = applicableReleases.filter((r) => !seen || compareVersions(r.version, seen) > 0)
+    if (unseen.length) {
+      hasUnseen.value = true
+      whatsNewReleases.value = unseen
+      whatsNewVisible.value = true // عرض تلقائي مرّة واحدة
+    }
+  } catch {
+    // BE-99 غير منشور بعد (404) أو الشبكة — تدهور آمن: لا نافذة، الزر يبقى للفتح اليدوي.
+  }
+}
+
+// فتح يدوي — يعرض كل المنشورة تاريخياً.
+function openWhatsNew(): void {
+  whatsNewReleases.value = applicableReleases
+  whatsNewVisible.value = true
+}
+
+// عند الإغلاق: إن كان هناك غير مشاهَد، ثبّت «آخر مشاهَدة» = أحدث نسخة مطبَّقة فتختفي النقطة ولا تتكرّر النافذة.
+function onWhatsNewToggle(v: boolean): void {
+  whatsNewVisible.value = v
+  if (!v && hasUnseen.value && latestVersion.value) {
+    void releaseSeen.setPanel(latestVersion.value)
+    hasUnseen.value = false
+  }
+}
+
+onMounted(() => {
+  void initWhatsNew()
+})
+
 const PIN_KEY = 'hr_dom.sidebar.pinned'
 const pinned = ref(localStorage.getItem(PIN_KEY) === '1')
 const hovered = ref(false)
@@ -160,6 +210,11 @@ function onSidebarFocusOut(e: FocusEvent): void {
 const userMenu = ref()
 const userMenuItems = computed<MenuItem[]>(() => [
   { label: auth.user?.name ?? '', items: [] },
+  {
+    label: t('whatsNew.menuItem'),
+    icon: 'pi pi-megaphone',
+    command: () => openWhatsNew(),
+  },
   {
     label: t('layout.logout'),
     icon: 'pi pi-sign-out',
@@ -333,6 +388,19 @@ async function onLogout(): Promise<void> {
         <h1 class="truncate text-lg font-semibold tracking-tight">{{ pageTitle }}</h1>
 
         <div class="ms-auto flex items-center gap-1.5">
+          <button
+            type="button"
+            class="relative grid size-10 place-items-center rounded-xl text-surface-600 transition hover:bg-surface-100 dark:text-surface-300 dark:hover:bg-surface-800"
+            :title="t('whatsNew.menuItem')"
+            :aria-label="t('whatsNew.menuItem')"
+            @click="openWhatsNew"
+          >
+            <i class="pi pi-megaphone text-lg" />
+            <span
+              v-if="hasUnseen"
+              class="absolute right-1.5 top-1.5 size-2 rounded-full bg-rose-500 ring-2 ring-white dark:ring-surface-900"
+            ></span>
+          </button>
           <NotificationBell />
           <button
             type="button"
@@ -372,5 +440,12 @@ async function onLogout(): Promise<void> {
     <!-- خدمات عامة: إشعارات + تأكيد الحذف -->
     <Toast position="top-center" />
     <ConfirmDialog />
+
+    <!-- «ما الجديد» (FE-55) — عرض تلقائي بعد التحديث + فتح يدوي -->
+    <WhatsNewDialog
+      :visible="whatsNewVisible"
+      :releases="whatsNewReleases"
+      @update:visible="onWhatsNewToggle"
+    />
   </div>
 </template>
