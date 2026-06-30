@@ -17,10 +17,10 @@
 
 ---
 
-## [2026-06-30] FE-55 — نافذة «ما الجديد» + صفحة إدارة الإصدارات (review — مدموج main)
+## [2026-06-30] FE-55 — نافذة «ما الجديد» + صفحة إدارة الإصدارات (done — مدموج/مدفوع main + تحقّق حيّ كامل)
 - ما أُنجز: يستهلك BE-99. `src/utils/version.ts` (compareVersions) · `src/api/releases.ts` (CRUD + releaseSeen عبر /me/preferences) · `WhatsNewDialog.vue` (تصميم مطابق: شارة نسخة + أقسام NEW/IMPROVED/FIXED ملوّنة، RTL/dark) · `ReleasesAdminView.vue` (DataTable + حوار CRUD بمحرّر بنود ديناميكي ثنائي اللغة). تكامل AppLayout: عرض تلقائي onMounted + زر 📣 بنقطة + عنصر قائمة. تبويب/مسار `/settings/releases` (releases.manage). تعريب + النسخة 1.4.0.
 - الملفات الرئيسية: `src/utils/version.ts` · `src/api/releases.ts` · `src/components/WhatsNewDialog.vue` · `src/features/settings/ReleasesAdminView.vue` · `settingsTabs.ts` · `router/index.ts` · `layouts/AppLayout.vue` · `locales/{ar,en}.json` · `package.json`. على `main` (commit 4cdb37d).
-- قرارات/ملاحظات: العمل على main مباشرة. تحقّق حيّ جزئي (الرسم + الزر + النافذة الفارغة + حارس الإدارة + صفر أخطاء)؛ التحقّق الكامل (إنشاء release + عرض تلقائي بمحتوى) محجوب على عدم توفّر Super Admin في القاعدة المخدومة.
+- قرارات/ملاحظات: العمل على main مباشرة. **إصلاح (fff902c، النسخة 1.4.1):** بلاغ المدير «الإصدار لا يظهر» — نسخته تقويمية (26.6.30) ومرشّح «≤ نسخة اللوحة (1.4.0)» استبعده؛ أُسقط المرشّح (البوابة `is_published` + ترتيب released_at + تطابق seen). **تحقّق حيّ كامل:** العرض التلقائي بالمحتوى + ثبات seen (لا تكرار بعد إعادة التحميل) + الفتح اليدوي + صفر أخطاء.
 - الاختبارات: `npm run build` (vue-tsc + vite) أخضر؛ JSON اللغتين صالح/متطابق.
 
 ## [2026-06-29] FE-53 + FE-54 — خدمة ذاتية للحساب + جدول الإجازات حسب النوع (done — مدموج main + تحقّق حيّ)
