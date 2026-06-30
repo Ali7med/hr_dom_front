@@ -17,6 +17,12 @@
 
 ---
 
+## [2026-06-30] FE-55 — نافذة «ما الجديد» + صفحة إدارة الإصدارات (review — مدموج main)
+- ما أُنجز: يستهلك BE-99. `src/utils/version.ts` (compareVersions) · `src/api/releases.ts` (CRUD + releaseSeen عبر /me/preferences) · `WhatsNewDialog.vue` (تصميم مطابق: شارة نسخة + أقسام NEW/IMPROVED/FIXED ملوّنة، RTL/dark) · `ReleasesAdminView.vue` (DataTable + حوار CRUD بمحرّر بنود ديناميكي ثنائي اللغة). تكامل AppLayout: عرض تلقائي onMounted + زر 📣 بنقطة + عنصر قائمة. تبويب/مسار `/settings/releases` (releases.manage). تعريب + النسخة 1.4.0.
+- الملفات الرئيسية: `src/utils/version.ts` · `src/api/releases.ts` · `src/components/WhatsNewDialog.vue` · `src/features/settings/ReleasesAdminView.vue` · `settingsTabs.ts` · `router/index.ts` · `layouts/AppLayout.vue` · `locales/{ar,en}.json` · `package.json`. على `main` (commit 4cdb37d).
+- قرارات/ملاحظات: العمل على main مباشرة. تحقّق حيّ جزئي (الرسم + الزر + النافذة الفارغة + حارس الإدارة + صفر أخطاء)؛ التحقّق الكامل (إنشاء release + عرض تلقائي بمحتوى) محجوب على عدم توفّر Super Admin في القاعدة المخدومة.
+- الاختبارات: `npm run build` (vue-tsc + vite) أخضر؛ JSON اللغتين صالح/متطابق.
+
 ## [2026-06-29] FE-53 + FE-54 — خدمة ذاتية للحساب + جدول الإجازات حسب النوع (done — مدموج main + تحقّق حيّ)
 - ما أُنجز: **FE-53** خدمة ذاتية لتغيير كلمة المرور/الإيميل: `src/api/account.ts` + `src/features/settings/AccountSettingsView.vue` (بطاقتان PrimeVue، تحقّق client + ApiException toast) + تبويب `account` (`permission: []`) + مسار `/settings/account`. **FE-54** جدول إدارة الإجازات: عمود المدّة حسب `kind` + وسم النوع + عمودا «مُقدّم الطلب» و«قُدّم في» + توسيع `LeaveRequest`. مفاتيح ar/en + النسخة 1.3.0.
 - الملفات الرئيسية: `src/api/{account.ts,leaves.ts}` · `src/features/settings/{AccountSettingsView.vue,settingsTabs.ts}` · `src/features/leaves/LeavesView.vue` · `src/router/index.ts` · `src/locales/{ar,en}.json` · `package.json`. الفرع `feature/FE-53-54`.
