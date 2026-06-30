@@ -10,7 +10,6 @@ import type { MenuItem } from 'primevue/menuitem'
 import NotificationBell from '@/components/NotificationBell.vue'
 import WhatsNewDialog from '@/components/WhatsNewDialog.vue'
 import { releasesApi, releaseSeen, type ReleaseItem } from '@/api/releases'
-import { compareVersions } from '@/utils/version'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
 import { settingsTabs, allSettingsPermissions } from '@/features/settings/settingsTabs'
@@ -145,20 +144,23 @@ const whatsNewVisible = ref(false)
 const whatsNewReleases = ref<ReleaseItem[]>([]) // ما يُعرض في النافذة حالياً
 const hasUnseen = ref(false)
 const latestVersion = ref<string | null>(null)
-let applicableReleases: ReleaseItem[] = [] // المنشورة لهذه اللوحة بنسخة ≤ الحالية
+let applicableReleases: ReleaseItem[] = [] // المنشورة لهذه المنصّة (panel + all)
 
 async function initWhatsNew(): Promise<void> {
   try {
     const all = await releasesApi.list({ platform: 'panel' })
-    // المنشورة لهذه المنصّة بنسخة ≤ النسخة الحالية فقط (لا نعرض ملاحظات نسخة لم تُنشَر بعد على اللوحة).
-    applicableReleases = (all ?? []).filter((r) => r.is_published !== false && compareVersions(r.version, appVersion) <= 0)
+    // النشر (is_published) هو البوابة — لا نقيّد بنسخة اللوحة (أرقام الإصدارات قد تكون تقويمية مثل 26.6.30).
+    applicableReleases = (all ?? []).filter((r) => r.is_published !== false)
     if (!applicableReleases.length) return
-    latestVersion.value = applicableReleases.reduce((m, r) => (compareVersions(r.version, m) > 0 ? r.version : m), applicableReleases[0].version)
+    // الـ feed مرتّب بـ released_at تنازلياً → الأحدث أولاً.
+    const latest = applicableReleases[0]
+    latestVersion.value = latest.version
     const seen = (await releaseSeen.get()).panel
-    const unseen = applicableReleases.filter((r) => !seen || compareVersions(r.version, seen) > 0)
-    if (unseen.length) {
+    if (seen !== latest.version) {
       hasUnseen.value = true
-      whatsNewReleases.value = unseen
+      // اعرض الإصدارات الأحدث من «آخر مشاهَد» (قبله في القائمة التنازلية)؛ إن لم يُوجَد المشاهَد اعرض الكل.
+      const idx = applicableReleases.findIndex((r) => r.version === seen)
+      whatsNewReleases.value = idx > 0 ? applicableReleases.slice(0, idx) : applicableReleases
       whatsNewVisible.value = true // عرض تلقائي مرّة واحدة
     }
   } catch {
