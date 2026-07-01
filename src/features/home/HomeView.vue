@@ -28,7 +28,6 @@ import { trackingApi, type LivePosition } from '@/api/tracking'
 const { t } = useI18n()
 const auth = useAuthStore()
 
-const loading = ref(true)
 const now = new Date()
 const period = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
 const today = `${period}-${String(now.getDate()).padStart(2, '0')}`
@@ -50,7 +49,34 @@ const stats = reactive({
 
 const has = (p: string | string[] | null) =>
   p === null || (Array.isArray(p) ? auth.canAny(p) : auth.can(p))
-async function safe(fn: () => Promise<void>) { try { await fn() } catch { /* صلاحية/بيانات ناقصة */ } }
+
+// ===== تحميل تدريجي لكل وجد (لا انتظار للكل) =====
+// `loaded[key] === false` = المهمّة أُطلقت وتُحمّل؛ true = انتهت؛ undefined = لم تُطلَق (لا صلاحية).
+const loaded = reactive<Record<string, boolean>>({})
+function run(key: string, fn: () => Promise<void>) {
+  loaded[key] = false
+  fn().catch(() => { /* صلاحية/بيانات ناقصة */ }).finally(() => { loaded[key] = true })
+}
+// مهام البيانات التي يعتمدها كل وجد (لعرض مؤشّر تحميله وحده).
+const WIDGET_JOBS: Record<string, string[]> = {
+  quickActions: [],
+  kpis: ['users', 'departments', 'worksites', 'shifts', 'leaves', 'devices'],
+  dailyAttendance: ['daily'],
+  pendingActions: ['pending'],
+  attendance: ['attendance'],
+  leavesStatus: ['leaves'],
+  usersStatus: ['users'],
+  payroll: ['payroll'],
+  topLate: ['attendance'],
+  byDept: ['users'],
+  unresolvedAbsences: ['absences'],
+  rebindRequests: ['devices'],
+  liveTracking: ['live'],
+  recentNotifications: ['notifications'],
+  onLeaveToday: ['leaves'],
+  upcomingHolidays: ['holidays'],
+}
+const widgetLoading = (id: string) => (WIDGET_JOBS[id] ?? []).some((k) => loaded[k] === false)
 
 // ===== حالة وجدات FE-56 =====
 const dailyToday = reactive({ present: 0, missingIn: 0, missingOut: 0, missingBoth: 0, onLeave: 0, netDeficiency: 0, hasData: false })
@@ -275,29 +301,27 @@ function onDrop(targetId: string) {
   persist()
 }
 
-onMounted(async () => {
-  // 1) كاش محلّي فوري (يتجنّب الوميض)، 2) ثم الخادم كمصدر موثوق.
+onMounted(() => {
+  // اللوحة تُرسَم فوراً من الكاش المحلّي؛ كل وجد يحمّل بياناته مستقلّاً (لا انتظار للكل).
   const local = dashboardPrefs.loadLocal(storageId.value)
   if (local) layout.value = local.layout
-  const jobs: Promise<void>[] = [
-    dashboardPrefs.loadRemote().then((remote) => {
-      if (remote) { layout.value = remote.layout; dashboardPrefs.cache(storageId.value, remote) }
-    }),
-  ]
-  if (has('users.view')) jobs.push(safe(loadUsers), safe(loadDepartments))
-  if (has('work_sites.view')) jobs.push(safe(loadWorkSites))
-  if (has('shifts.view')) jobs.push(safe(loadShifts))
-  if (has('holidays.view')) jobs.push(safe(loadHolidays))
-  if (has('leaves.view')) jobs.push(safe(loadLeaves))
-  if (has('devices.rebind_approve')) jobs.push(safe(loadDevices))
-  if (has('reports.view')) jobs.push(safe(loadAttendance), safe(loadDailyToday))
-  if (has('payroll.view')) jobs.push(safe(loadPayroll))
-  if (has(['leaves.approve', 'overtime.approve', 'shift_swaps.approve'])) jobs.push(safe(loadPending))
-  if (has('absences.view')) jobs.push(safe(loadUnresolvedAbsences))
-  if (has('tracking.view')) jobs.push(safe(loadLive))
-  jobs.push(safe(loadNotifications)) // بلا صلاحية — لكل مستخدم مُصادَق
-  await Promise.all(jobs)
-  loading.value = false
+  dashboardPrefs
+    .loadRemote()
+    .then((remote) => { if (remote) { layout.value = remote.layout; dashboardPrefs.cache(storageId.value, remote) } })
+    .catch(() => { /* غير متصل — نعتمد الكاش */ })
+  // إطلاق مهام البيانات بالتوازي دون حجب العرض؛ كلٌّ يُحدّث وجده عند وصوله.
+  if (has('users.view')) { run('users', loadUsers); run('departments', loadDepartments) }
+  if (has('work_sites.view')) run('worksites', loadWorkSites)
+  if (has('shifts.view')) run('shifts', loadShifts)
+  if (has('holidays.view')) run('holidays', loadHolidays)
+  if (has('leaves.view')) run('leaves', loadLeaves)
+  if (has('devices.rebind_approve')) run('devices', loadDevices)
+  if (has('reports.view')) { run('attendance', loadAttendance); run('daily', loadDailyToday) }
+  if (has('payroll.view')) run('payroll', loadPayroll)
+  if (has(['leaves.approve', 'overtime.approve', 'shift_swaps.approve'])) run('pending', loadPending)
+  if (has('absences.view')) run('absences', loadUnresolvedAbsences)
+  if (has('tracking.view')) run('live', loadLive)
+  run('notifications', loadNotifications) // بلا صلاحية — لكل مستخدم مُصادَق
 })
 
 // أوقف وضع التحرير عند إفراغه (لا شيء لإضافته ولا حذفه ليس ضرورياً).
@@ -351,9 +375,7 @@ watch(editMode, (v) => { if (!v) overId.value = null })
       </div>
     </div>
 
-    <p v-if="loading" class="rounded-2xl border border-surface-200 bg-white p-6 text-sm text-surface-500 dark:border-surface-800 dark:bg-surface-900">{{ t('common.loading') }}</p>
-
-    <template v-else>
+    <template>
       <!-- تنبيه «بحاجة إلى إجراء» (ثابت أعلى اللوحة عند وجود معلّقات) -->
       <div v-if="hasActions" class="mb-6 rounded-2xl border border-amber-200 bg-amber-50/60 p-5 dark:border-amber-900 dark:bg-amber-950/30">
         <h2 class="mb-3 text-sm font-semibold text-amber-800 dark:text-amber-200">⚠️ {{ t('dashboard.needsAction') }}</h2>
@@ -390,6 +412,11 @@ watch(editMode, (v) => { if (!v) overId.value = null })
             <Button v-if="editMode" type="button" icon="pi pi-times" severity="danger" text rounded size="small" :title="t('dashboard.removeWidget')" @click="removeWidget(id)" />
           </div>
 
+          <!-- مؤشّر تحميل خاص بالوجد (لا يحجب بقية اللوحة) -->
+          <div v-if="widgetLoading(id)" class="flex items-center justify-center py-10 text-surface-300 dark:text-surface-600">
+            <i class="pi pi-spin pi-spinner text-2xl" />
+          </div>
+          <template v-else>
           <!-- إجراءات سريعة -->
           <div v-if="id === 'quickActions'" class="flex flex-wrap gap-2">
             <RouterLink v-for="a in quickActions" :key="a.key" :to="{ name: a.to }" class="inline-flex items-center gap-2 rounded-lg border border-surface-200 bg-white px-3.5 py-2 text-sm font-medium text-surface-700 transition hover:border-primary-300 hover:bg-primary-50 dark:border-surface-800 dark:bg-surface-900 dark:text-surface-200 dark:hover:border-primary-700 dark:hover:bg-primary-950">
@@ -553,6 +580,7 @@ watch(editMode, (v) => { if (!v) overId.value = null })
               </component>
             </ul>
             <p v-else class="text-sm text-surface-500">{{ t('dashboard.notifW.none') }}</p>
+          </template>
           </template>
         </section>
       </div>
