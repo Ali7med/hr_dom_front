@@ -4,17 +4,26 @@ import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 import Button from 'primevue/button'
 import Tag from 'primevue/tag'
+import InputText from 'primevue/inputtext'
+import IconField from 'primevue/iconfield'
+import InputIcon from 'primevue/inputicon'
 import { useAuthStore } from '@/stores/auth'
 import DonutChart from '@/components/charts/DonutChart.vue'
 import BarChart from '@/components/charts/BarChart.vue'
 import { dashboardPrefs } from '@/api/dashboardPrefs'
 import { usersApi, departmentsApi } from '@/api/users'
 import { leavesApi } from '@/api/leaves'
-import { devicesApi } from '@/api/devices'
+import { devicesApi, type RebindRequest } from '@/api/devices'
 import { reportsApi, type ReportRow } from '@/api/reports'
 import { workSitesApi } from '@/api/worksites'
 import { shiftsApi, holidaysApi } from '@/api/schedule'
 import { payrollApi } from '@/api/payroll'
+import { dailyAttendanceApi } from '@/api/dailyAttendance'
+import { overtimeApi } from '@/api/overtime'
+import { shiftSwapsApi } from '@/api/shiftSwaps'
+import { absencesApi, type Absence } from '@/api/absences'
+import { notificationsApi, type NotificationItem, type NotificationSeverity } from '@/api/notifications'
+import { trackingApi, type LivePosition } from '@/api/tracking'
 
 const { t } = useI18n()
 const auth = useAuthStore()
@@ -39,8 +48,18 @@ const stats = reactive({
   payrollCount: 0, payrollNet: 0, payrollCurrency: '',
 })
 
-const has = (p: string | null) => p === null || auth.can(p)
+const has = (p: string | string[] | null) =>
+  p === null || (Array.isArray(p) ? auth.canAny(p) : auth.can(p))
 async function safe(fn: () => Promise<void>) { try { await fn() } catch { /* صلاحية/بيانات ناقصة */ } }
+
+// ===== حالة وجدات FE-56 =====
+const dailyToday = reactive({ present: 0, missingIn: 0, missingOut: 0, missingBoth: 0, onLeave: 0, netDeficiency: 0, hasData: false })
+const pending = reactive({ leaves: 0, overtime: 0, shiftSwaps: 0 })
+const absCount = ref(0)
+const absRows = ref<Absence[]>([])
+const rebindList = ref<RebindRequest[]>([])
+const recentNotifs = ref<NotificationItem[]>([])
+const livePositions = ref<LivePosition[]>([])
 
 async function loadUsers() {
   const { data } = await usersApi.list({ per_page: 100 })
@@ -67,7 +86,46 @@ async function loadLeaves() {
     .filter((l) => l.status === 'approved' && l.start_at.slice(0, 10) <= today && l.end_at.slice(0, 10) >= today)
     .map((l) => l.user?.name ?? `#${l.user_id}`)
 }
-async function loadDevices() { stats.devicePending = (await devicesApi.rebindRequests()).length }
+async function loadDevices() {
+  rebindList.value = await devicesApi.rebindRequests()
+  stats.devicePending = rebindList.value.length
+}
+// ===== تحميل وجدات FE-56 =====
+async function loadDailyToday() {
+  const { data, summary } = await dailyAttendanceApi.list({ date: today, per_page: 1 })
+  const c = summary?.counts ?? {}
+  dailyToday.present = c.present ?? 0
+  dailyToday.missingIn = c.missing_check_in ?? 0
+  dailyToday.missingOut = c.missing_check_out ?? 0
+  dailyToday.missingBoth = c.missing_both ?? 0
+  dailyToday.onLeave = c.on_leave ?? 0
+  dailyToday.netDeficiency = summary?.total_net_deficiency_minutes ?? 0
+  dailyToday.hasData = (summary?.total_rows ?? data.length) > 0
+}
+async function loadPending() {
+  if (auth.can('leaves.approve')) {
+    const r = await leavesApi.list({ status: 'pending', per_page: 100 })
+    pending.leaves = r.pagination?.total ?? r.data.length
+  }
+  if (auth.can('overtime.approve')) {
+    const r = await overtimeApi.list({ status: 'pending', per_page: 100 })
+    pending.overtime = r.pagination?.total ?? r.data.length
+  }
+  if (auth.can('shift_swaps.approve')) {
+    const r = await shiftSwapsApi.list({ status: 'pending', per_page: 100 })
+    pending.shiftSwaps = r.pagination?.total ?? r.data.length
+  }
+}
+async function loadUnresolvedAbsences() {
+  const { data, pagination } = await absencesApi.list({ status: 'unresolved', per_page: 5 })
+  absCount.value = pagination?.total ?? data.length
+  absRows.value = data.slice(0, 5)
+}
+async function loadNotifications() {
+  const feed = await notificationsApi.list({ per_page: 5 })
+  recentNotifs.value = feed.items
+}
+async function loadLive() { livePositions.value = await trackingApi.listPositions() }
 async function loadAttendance() {
   const res = await reportsApi.fetch('attendance', { period })
   const sum = (k: string) => res.rows.reduce((a: number, r: ReportRow) => a + Number(r[k] ?? 0), 0)
@@ -130,17 +188,49 @@ const attendanceBars = computed(() => [
 const hasActions = computed(() => stats.leavesPending > 0 || stats.devicePending > 0)
 const leavesHasData = computed(() => stats.leavesPending + stats.leavesApproved + stats.leavesRejected > 0)
 
+// ===== مشتقّات وجدات FE-56 =====
+const dailyBars = computed(() => [
+  { label: t('dashboard.dailyW.present'), value: dailyToday.present, color: '#10b981' },
+  { label: t('dashboard.dailyW.missingIn'), value: dailyToday.missingIn, color: '#f59e0b' },
+  { label: t('dashboard.dailyW.missingOut'), value: dailyToday.missingOut, color: '#0ea5e9' },
+  { label: t('dashboard.dailyW.missingBoth'), value: dailyToday.missingBoth, color: '#f43f5e' },
+  { label: t('dashboard.dailyW.onLeave'), value: dailyToday.onLeave, color: '#6366f1' },
+])
+const pendingRows = computed(() =>
+  [
+    { key: 'leaves', to: 'leaves', n: pending.leaves, show: auth.can('leaves.approve') },
+    { key: 'overtime', to: 'overtime', n: pending.overtime, show: auth.can('overtime.approve') },
+    { key: 'shiftSwaps', to: 'shift-swaps', n: pending.shiftSwaps, show: auth.can('shift_swaps.approve') },
+  ].filter((r) => r.show),
+)
+const pendingTotal = computed(() => pendingRows.value.reduce((a, r) => a + r.n, 0))
+const liveWithPoint = computed(() => livePositions.value.filter((p) => p.point).length)
+
+const NOTIF_SEV: Record<NotificationSeverity, { icon: string; cls: string }> = {
+  info: { icon: 'pi-info-circle', cls: 'text-sky-500' },
+  success: { icon: 'pi-check-circle', cls: 'text-emerald-500' },
+  warning: { icon: 'pi-exclamation-triangle', cls: 'text-amber-500' },
+  error: { icon: 'pi-times-circle', cls: 'text-rose-500' },
+}
+const notifSev = (s: NotificationSeverity) => NOTIF_SEV[s] ?? NOTIF_SEV.info
+
 // ===== الودجتات القابلة للتخصيص =====
-interface WidgetDef { id: string; titleKey: string; perm: string | null; full?: boolean }
+interface WidgetDef { id: string; titleKey: string; perm: string | string[] | null; full?: boolean }
 const WIDGETS: WidgetDef[] = [
   { id: 'quickActions', titleKey: 'dashboard.w.quickActions', perm: null, full: true },
   { id: 'kpis', titleKey: 'dashboard.w.kpis', perm: null, full: true },
+  { id: 'dailyAttendance', titleKey: 'dashboard.w.dailyAttendance', perm: 'reports.view', full: true },
+  { id: 'pendingActions', titleKey: 'dashboard.w.pendingActions', perm: ['leaves.approve', 'overtime.approve', 'shift_swaps.approve'] },
   { id: 'attendance', titleKey: 'dashboard.attendanceTitle', perm: 'reports.view' },
   { id: 'leavesStatus', titleKey: 'dashboard.leavesTitle', perm: 'leaves.view' },
   { id: 'usersStatus', titleKey: 'dashboard.usersTitle', perm: 'users.view' },
   { id: 'payroll', titleKey: 'dashboard.w.payroll', perm: 'payroll.view' },
   { id: 'topLate', titleKey: 'dashboard.topLateTitle', perm: 'reports.view' },
   { id: 'byDept', titleKey: 'dashboard.byDeptTitle', perm: 'users.view' },
+  { id: 'unresolvedAbsences', titleKey: 'dashboard.w.unresolvedAbsences', perm: 'absences.view' },
+  { id: 'rebindRequests', titleKey: 'dashboard.w.rebindRequests', perm: 'devices.rebind_approve' },
+  { id: 'liveTracking', titleKey: 'dashboard.w.liveTracking', perm: 'tracking.view' },
+  { id: 'recentNotifications', titleKey: 'dashboard.w.recentNotifications', perm: null },
   { id: 'onLeaveToday', titleKey: 'dashboard.onLeaveTodayTitle', perm: 'leaves.view' },
   { id: 'upcomingHolidays', titleKey: 'dashboard.upcomingHolidaysTitle', perm: 'holidays.view' },
 ]
@@ -156,6 +246,13 @@ const overId = ref<string | null>(null)
 const visibleLayout = computed(() => layout.value.filter((id) => { const w = widgetById(id); return w && has(w.perm) }))
 // متاحة للإضافة (مسموحة + غير مضافة).
 const availableToAdd = computed(() => WIDGETS.filter((w) => has(w.perm) && !layout.value.includes(w.id)))
+// بحث في منتقي الوجدات (يفلتر بعنوان الوجد المترجَم).
+const widgetSearch = ref('')
+const filteredAvailableToAdd = computed(() => {
+  const q = widgetSearch.value.trim().toLowerCase()
+  if (!q) return availableToAdd.value
+  return availableToAdd.value.filter((w) => t(w.titleKey).toLowerCase().includes(q))
+})
 
 const storageId = computed(() => auth.user?.id ?? 'anon')
 function persist() { dashboardPrefs.save(storageId.value, { layout: layout.value }) }
@@ -193,8 +290,12 @@ onMounted(async () => {
   if (has('holidays.view')) jobs.push(safe(loadHolidays))
   if (has('leaves.view')) jobs.push(safe(loadLeaves))
   if (has('devices.rebind_approve')) jobs.push(safe(loadDevices))
-  if (has('reports.view')) jobs.push(safe(loadAttendance))
+  if (has('reports.view')) jobs.push(safe(loadAttendance), safe(loadDailyToday))
   if (has('payroll.view')) jobs.push(safe(loadPayroll))
+  if (has(['leaves.approve', 'overtime.approve', 'shift_swaps.approve'])) jobs.push(safe(loadPending))
+  if (has('absences.view')) jobs.push(safe(loadUnresolvedAbsences))
+  if (has('tracking.view')) jobs.push(safe(loadLive))
+  jobs.push(safe(loadNotifications)) // بلا صلاحية — لكل مستخدم مُصادَق
   await Promise.all(jobs)
   loading.value = false
 })
@@ -225,10 +326,16 @@ watch(editMode, (v) => { if (!v) overId.value = null })
     <!-- شريط التخصيص -->
     <div v-if="editMode" class="mb-6 rounded-2xl border border-primary-200 bg-primary-50/50 p-4 dark:border-primary-900 dark:bg-primary-950/30">
       <p class="mb-3 text-xs text-primary-700 dark:text-primary-300">💡 {{ t('dashboard.dragHint') }}</p>
+      <div v-if="availableToAdd.length" class="mb-3">
+        <IconField>
+          <InputIcon class="pi pi-search" />
+          <InputText v-model="widgetSearch" :placeholder="t('dashboard.searchWidgets')" class="w-full sm:w-72" />
+        </IconField>
+      </div>
       <div class="flex flex-wrap items-center gap-2">
         <span class="text-sm font-medium text-surface-600 dark:text-surface-300">{{ t('dashboard.addWidget') }}:</span>
         <Button
-          v-for="w in availableToAdd"
+          v-for="w in filteredAvailableToAdd"
           :key="w.id"
           type="button"
           size="small"
@@ -239,6 +346,7 @@ watch(editMode, (v) => { if (!v) overId.value = null })
           @click="addWidget(w.id)"
         />
         <span v-if="!availableToAdd.length" class="text-sm text-surface-400">{{ t('dashboard.allAdded') }}</span>
+        <span v-else-if="!filteredAvailableToAdd.length" class="text-sm text-surface-400">{{ t('dashboard.noWidgetMatch') }}</span>
         <Button type="button" class="ms-auto" size="small" severity="secondary" text icon="pi pi-replay" :label="t('dashboard.resetDefault')" @click="resetLayout" />
       </div>
     </div>
@@ -359,6 +467,92 @@ watch(editMode, (v) => { if (!v) overId.value = null })
               </li>
             </ul>
             <p v-else class="text-sm text-surface-500">{{ t('dashboard.noHolidays') }}</p>
+          </template>
+
+          <!-- التقرير اليومي للحضور/الانصراف (اليوم) -->
+          <template v-else-if="id === 'dailyAttendance'">
+            <template v-if="dailyToday.hasData">
+              <BarChart :bars="dailyBars" />
+              <div class="mt-4 flex items-center justify-between gap-3 border-t border-surface-100 pt-3 dark:border-surface-800">
+                <span class="text-sm text-surface-500">{{ t('dashboard.dailyW.netDeficiency', { n: dailyToday.netDeficiency }) }}</span>
+                <RouterLink :to="{ name: 'daily-attendance' }" class="text-sm text-primary-600 hover:underline dark:text-primary-400">{{ t('dashboard.viewDetails') }} →</RouterLink>
+              </div>
+            </template>
+            <p v-else class="text-sm text-surface-500">{{ t('dashboard.noData') }}</p>
+          </template>
+
+          <!-- طلبات تنتظر إجرائي -->
+          <template v-else-if="id === 'pendingActions'">
+            <ul v-if="pendingTotal > 0" class="space-y-2">
+              <RouterLink
+                v-for="r in pendingRows"
+                :key="r.key"
+                :to="{ name: r.to }"
+                v-show="r.n > 0"
+                class="flex items-center justify-between gap-3 rounded-lg border border-surface-200 px-3 py-2 text-sm transition hover:border-primary-300 hover:bg-primary-50 dark:border-surface-800 dark:hover:border-primary-700 dark:hover:bg-primary-950"
+              >
+                <span class="text-surface-700 dark:text-surface-200">{{ t('dashboard.pendingW.' + r.key) }}</span>
+                <Tag :value="String(r.n)" severity="warn" />
+              </RouterLink>
+            </ul>
+            <p v-else class="text-sm text-surface-500">{{ t('dashboard.pendingW.none') }}</p>
+          </template>
+
+          <!-- الغيابات غير المحلولة -->
+          <template v-else-if="id === 'unresolvedAbsences'">
+            <template v-if="absCount > 0">
+              <div class="mb-3 text-3xl font-bold text-surface-900 dark:text-white">{{ absCount }}</div>
+              <ul class="space-y-2">
+                <li v-for="a in absRows" :key="a.id" class="flex items-center justify-between gap-3 text-sm">
+                  <span class="text-surface-700 dark:text-surface-200">{{ a.user?.name ?? '#' + a.user_id }}</span>
+                  <span class="font-mono text-xs text-surface-500" dir="ltr">{{ a.date.slice(0, 10) }}</span>
+                </li>
+              </ul>
+              <RouterLink :to="{ name: 'absences' }" class="mt-3 inline-block text-sm text-primary-600 hover:underline dark:text-primary-400">{{ t('dashboard.viewDetails') }} →</RouterLink>
+            </template>
+            <p v-else class="text-sm text-surface-500">{{ t('dashboard.absW.none') }}</p>
+          </template>
+
+          <!-- طلبات ربط الأجهزة المعلّقة -->
+          <template v-else-if="id === 'rebindRequests'">
+            <template v-if="rebindList.length">
+              <ul class="space-y-2">
+                <li v-for="d in rebindList.slice(0, 6)" :key="d.id" class="flex items-center justify-between gap-3 text-sm">
+                  <span class="text-surface-700 dark:text-surface-200">{{ d.user?.name ?? '#' + d.user_id }}</span>
+                  <span class="font-mono text-[11px] text-surface-400" dir="ltr">{{ d.new_device_uid.slice(0, 10) }}…</span>
+                </li>
+              </ul>
+              <RouterLink :to="{ name: 'device-requests' }" class="mt-3 inline-block text-sm text-primary-600 hover:underline dark:text-primary-400">{{ t('dashboard.viewDetails') }} →</RouterLink>
+            </template>
+            <p v-else class="text-sm text-surface-500">{{ t('dashboard.rebindW.none') }}</p>
+          </template>
+
+          <!-- التتبّع المباشر -->
+          <template v-else-if="id === 'liveTracking'">
+            <template v-if="livePositions.length">
+              <div class="text-3xl font-bold text-surface-900 dark:text-white">{{ livePositions.length }}</div>
+              <p class="mt-1 text-sm text-surface-500">{{ t('dashboard.liveW.summary', { seen: liveWithPoint }) }}</p>
+              <RouterLink :to="{ name: 'tracking' }" class="mt-3 inline-block text-sm text-primary-600 hover:underline dark:text-primary-400">{{ t('dashboard.viewDetails') }} →</RouterLink>
+            </template>
+            <p v-else class="text-sm text-surface-500">{{ t('dashboard.liveW.none') }}</p>
+          </template>
+
+          <!-- آخر الإشعارات -->
+          <template v-else-if="id === 'recentNotifications'">
+            <ul v-if="recentNotifs.length" class="space-y-2">
+              <component
+                :is="n.link ? RouterLink : 'div'"
+                v-for="n in recentNotifs"
+                :key="n.id"
+                :to="n.link || undefined"
+                class="flex items-start gap-2.5 rounded-lg px-2 py-1.5 text-sm"
+                :class="n.link ? 'transition hover:bg-surface-50 dark:hover:bg-surface-800' : ''"
+              >
+                <i class="pi mt-0.5 shrink-0 text-sm" :class="[notifSev(n.severity).icon, notifSev(n.severity).cls]" />
+                <span class="min-w-0 flex-1 truncate text-surface-700 dark:text-surface-200">{{ n.title }}</span>
+              </component>
+            </ul>
+            <p v-else class="text-sm text-surface-500">{{ t('dashboard.notifW.none') }}</p>
           </template>
         </section>
       </div>

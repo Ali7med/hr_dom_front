@@ -798,8 +798,35 @@
     "w": {
       "quickActions": "Quick actions",
       "kpis": "Key metrics",
-      "payroll": "Payroll summary"
+      "payroll": "Payroll summary",
+      "dailyAttendance": "Today's tracking",
+      "pendingActions": "Awaiting my action",
+      "unresolvedAbsences": "Unresolved absences",
+      "rebindRequests": "Device rebind requests",
+      "liveTracking": "Live tracking",
+      "recentNotifications": "Recent notifications"
     },
+    "searchWidgets": "Search widgets…",
+    "noWidgetMatch": "No matching widget.",
+    "viewDetails": "View details",
+    "dailyW": {
+      "present": "Present",
+      "missingIn": "Missing in",
+      "missingOut": "Missing out",
+      "missingBoth": "Both",
+      "onLeave": "On leave",
+      "netDeficiency": "Total net deficiency: {n} min"
+    },
+    "pendingW": {
+      "leaves": "Pending leaves",
+      "overtime": "Pending overtime",
+      "shiftSwaps": "Pending shift swaps",
+      "none": "Nothing awaiting your action."
+    },
+    "absW": { "none": "No unresolved absences." },
+    "rebindW": { "none": "No pending device rebind requests." },
+    "liveW": { "summary": "enrolled · {seen} seen", "none": "No employees enrolled for tracking." },
+    "notifW": { "none": "No notifications." },
     "needsAction": "Needs action",
     "pendingLeavesAction": "{n} leave requests awaiting approval",
     "pendingDevicesAction": "{n} device requests awaiting approval",

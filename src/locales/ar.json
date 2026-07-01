@@ -798,8 +798,35 @@
     "w": {
       "quickActions": "إجراءات سريعة",
       "kpis": "المؤشّرات",
-      "payroll": "ملخّص الرواتب"
+      "payroll": "ملخّص الرواتب",
+      "dailyAttendance": "تتبّع اليوم",
+      "pendingActions": "طلبات تنتظر إجرائي",
+      "unresolvedAbsences": "غيابات غير محلولة",
+      "rebindRequests": "طلبات ربط الأجهزة",
+      "liveTracking": "التتبّع المباشر",
+      "recentNotifications": "آخر الإشعارات"
     },
+    "searchWidgets": "ابحث عن ودجت…",
+    "noWidgetMatch": "لا ودجت مطابق.",
+    "viewDetails": "عرض التفاصيل",
+    "dailyW": {
+      "present": "حاضر",
+      "missingIn": "نقص دخول",
+      "missingOut": "نقص خروج",
+      "missingBoth": "كلاهما",
+      "onLeave": "إجازة",
+      "netDeficiency": "إجمالي النقص الصافي: {n} دقيقة"
+    },
+    "pendingW": {
+      "leaves": "إجازات معلّقة",
+      "overtime": "إضافي معلّق",
+      "shiftSwaps": "تبديل ورديات معلّق",
+      "none": "لا طلبات تنتظر إجراءك."
+    },
+    "absW": { "none": "لا غيابات غير محلولة." },
+    "rebindW": { "none": "لا طلبات ربط أجهزة معلّقة." },
+    "liveW": { "summary": "مُفعَّل للتتبّع · {seen} ظهروا", "none": "لا موظفين مُفعّلين للتتبّع." },
+    "notifW": { "none": "لا إشعارات." },
     "needsAction": "بحاجة إلى إجراء",
     "pendingLeavesAction": "{n} طلب إجازة بانتظار الموافقة",
     "pendingDevicesAction": "{n} طلب جهاز بانتظار الموافقة",
