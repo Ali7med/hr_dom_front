@@ -17,6 +17,12 @@
 
 ---
 
+## [2026-07-01] PERF — لوحة المعلومات: تحميل تدريجي لكل وجد (done — مدموج/مدفوع)
+- ما أُنجز: بلاغ المدير «اللوحة بطيئة التحميل». `HomeView.vue` كان `await Promise.all` يحجب العرض حتى تنتهي كل النداءات. الآن: إزالة قفل `loading` العام (الشبكة تُرسَم فوراً من الكاش) + `run(key,fn)` يُطلق كل مهمة بلا await + `widgetLoading(id)` (عبر `WIDGET_JOBS`) يعرض spinner داخل كل وجد حتى وصول بياناته. كل وجد مستقلّ.
+- الملفات الرئيسية: `src/features/home/HomeView.vue` + `package.json` (1.5.1). لا تغيير عقد.
+- قرارات/ملاحظات: تحقّق حيّ (admin@demo.test): الوجدات تظهر فوراً + spinner لكل بطيء ثم تمتلئ مستقلّةً؛ صفر أخطاء console. كل مهمة try/catch معزولة.
+- الاختبارات: `npm run build` (vue-tsc + vite) أخضر.
+
 ## [2026-07-01] FE-56 — 6 وجدات لوحة معلومات + بحث المنتقي (done — مدموج/مدفوع + تحقّق حيّ)
 - ما أُنجز: `HomeView.vue` — 6 وجدات جديدة في `WIDGETS` (dailyAttendance/pendingActions/unresolvedAbsences/rebindRequests/liveTracking/recentNotifications) كلٌّ بصلاحيته + loadX + قسم قالب + حالة فارغة. دعم `perm` مصفوفة (canAny) لـ pendingActions. بحث في منتقي الوجدات (`filteredAvailableToAdd` + IconField). مفاتيح ar/en (dashboard) + النسخة 1.5.0.
 - الملفات الرئيسية: `src/features/home/HomeView.vue` · `src/locales/{ar,en}.json` · `package.json`. لا تغيير عقد (مسارات قائمة).
