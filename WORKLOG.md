@@ -17,6 +17,12 @@
 
 ---
 
+## [2026-07-01] FE-56 — 6 وجدات لوحة معلومات + بحث المنتقي (done — مدموج/مدفوع + تحقّق حيّ)
+- ما أُنجز: `HomeView.vue` — 6 وجدات جديدة في `WIDGETS` (dailyAttendance/pendingActions/unresolvedAbsences/rebindRequests/liveTracking/recentNotifications) كلٌّ بصلاحيته + loadX + قسم قالب + حالة فارغة. دعم `perm` مصفوفة (canAny) لـ pendingActions. بحث في منتقي الوجدات (`filteredAvailableToAdd` + IconField). مفاتيح ar/en (dashboard) + النسخة 1.5.0.
+- الملفات الرئيسية: `src/features/home/HomeView.vue` · `src/locales/{ar,en}.json` · `package.json`. لا تغيير عقد (مسارات قائمة).
+- قرارات/ملاحظات: تحقّق حيّ (admin@demo.test): الأزرار الستّة + البحث يفلتر + تتبّع اليوم يعرض عدّادات BE-90 + آخر الإشعارات + طلبات معلّقة؛ التخطيط يُحفظ عبر /me/preferences؛ صفر أخطاء console.
+- الاختبارات: `npm run build` (vue-tsc + vite) أخضر؛ JSON اللغتين متطابق (dashboard).
+
 ## [2026-06-30] FE-55 — نافذة «ما الجديد» + صفحة إدارة الإصدارات (done — مدموج/مدفوع main + تحقّق حيّ كامل)
 - ما أُنجز: يستهلك BE-99. `src/utils/version.ts` (compareVersions) · `src/api/releases.ts` (CRUD + releaseSeen عبر /me/preferences) · `WhatsNewDialog.vue` (تصميم مطابق: شارة نسخة + أقسام NEW/IMPROVED/FIXED ملوّنة، RTL/dark) · `ReleasesAdminView.vue` (DataTable + حوار CRUD بمحرّر بنود ديناميكي ثنائي اللغة). تكامل AppLayout: عرض تلقائي onMounted + زر 📣 بنقطة + عنصر قائمة. تبويب/مسار `/settings/releases` (releases.manage). تعريب + النسخة 1.4.0.
 - الملفات الرئيسية: `src/utils/version.ts` · `src/api/releases.ts` · `src/components/WhatsNewDialog.vue` · `src/features/settings/ReleasesAdminView.vue` · `settingsTabs.ts` · `router/index.ts` · `layouts/AppLayout.vue` · `locales/{ar,en}.json` · `package.json`. على `main` (commit 4cdb37d).
