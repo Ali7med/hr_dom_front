@@ -655,6 +655,8 @@
     "selectEmployees": "Select employees",
     "enroll": "Enable tracking",
     "enrolled": "Tracking enabled for {n} employee(s)",
+    "enrolledSome": "Enrolled {n} employee(s) ({skipped} already enrolled)",
+    "enrolledNone": "Nobody added — the selected are already enrolled",
     "enrollTargetRequired": "Pick at least one department or employee.",
     "unenroll": "Stop tracking",
     "unenrolled": "Tracking stopped",

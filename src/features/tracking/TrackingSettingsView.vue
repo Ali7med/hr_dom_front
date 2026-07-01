@@ -77,7 +77,18 @@ async function submitEnroll(): Promise<void> {
       user_ids: enrollForm.user_ids.length ? enrollForm.user_ids : undefined,
       department_ids: enrollForm.department_ids.length ? enrollForm.department_ids : undefined,
     })
-    toast.add({ severity: 'success', summary: t('tracking.enrolled', { n: r.enrolled }), life: 2800 })
+    const skipped = Math.max(0, r.total_targeted - r.enrolled)
+    if (r.enrolled > 0) {
+      // نجاح — مع تنبيه إن كان بعض المحدَّدين مُفعّلين مسبقاً (فلا يُضافون ثانيةً).
+      toast.add({
+        severity: 'success',
+        summary: skipped > 0 ? t('tracking.enrolledSome', { n: r.enrolled, skipped }) : t('tracking.enrolled', { n: r.enrolled }),
+        life: 3000,
+      })
+    } else {
+      // enrolled=0: المحدَّدون كلهم مُفعّلون مسبقاً — رسالة معلوماتية واضحة بدل «نجاح 0» المضلِّل.
+      toast.add({ severity: 'info', summary: t('tracking.enrolledNone'), life: 3500 })
+    }
     enrollForm.user_ids = []
     enrollForm.department_ids = []
     await loadEnrollments()
