@@ -375,7 +375,6 @@ watch(editMode, (v) => { if (!v) overId.value = null })
       </div>
     </div>
 
-    <template>
       <!-- تنبيه «بحاجة إلى إجراء» (ثابت أعلى اللوحة عند وجود معلّقات) -->
       <div v-if="hasActions" class="mb-6 rounded-2xl border border-amber-200 bg-amber-50/60 p-5 dark:border-amber-900 dark:bg-amber-950/30">
         <h2 class="mb-3 text-sm font-semibold text-amber-800 dark:text-amber-200">⚠️ {{ t('dashboard.needsAction') }}</h2>
@@ -584,6 +583,5 @@ watch(editMode, (v) => { if (!v) overId.value = null })
           </template>
         </section>
       </div>
-    </template>
   </div>
 </template>
